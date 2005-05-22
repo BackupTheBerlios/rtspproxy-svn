@@ -1,0 +1,391 @@
+
+#include <unistd.h>
+#include <sys/time.h>
+#include <dbg.h>
+
+#include "tlist.h"
+#include "transport_rtp.h"
+#include "cache_segment.h"
+#include "config_parser.h"
+
+#include "rtp.h"
+
+#include "../librtp/rtp_prot/rtp_highlevel.h"
+#include "../librtp/rtp_prot/rtp_highlevel_internal.h"
+#include "../librtp/rtp_prot/rtp_api_internal.h"
+
+/*! Convert a struct timeval to a double */
+#define tv2dbl(tv) ((tv).tv_sec + (tv).tv_usec / 1000000.0)
+
+pthread_mutex_t s_mutex;
+
+/*! Convert a double to a struct timeval */
+static struct timeval dbl2tv(double d)
+{
+	struct timeval tv;
+
+	tv.tv_sec = (long) d;
+	tv.tv_usec = (long) ((d - (long) d) * 1000000.0);
+
+	return tv;
+}
+
+/*! We keep a static list of pointer to instances of
+ *  the class TransportRTP. This is needed to keep track
+ *  of the context IDs for all of the RTP sessions opened.
+ *  This way we can identify the instance of the class wich
+ *  the callback is directed to.
+ */
+typedef TDoubleList < class TransportRTP * > session_list_t;
+static session_list_t session_list;
+
+/*! Return the instance of the TransportRTP session associated
+ *  with the given context id.
+ */
+static session_list_t::Iterator find_by_cid( context cid )
+{
+	session_list_t::Iterator it;
+	it = session_list.Begin();
+	for ( ; it != session_list.End(); it++ ) {
+		if ( cid == (*it)->get_context_id() )
+			return it;
+	}
+
+	dbg("Error: cannot find instance of TransportRTP...\n");
+	exit( 1 );
+}
+
+/*! The library calls this function when it needs to schedule an event.
+ */
+void RTPSchedule(context cid, rtp_opaque_t opaque, struct timeval *tp)
+{
+	// dbg("**** RTPSchedule ****\n");
+	struct evt_queue_elt *elt;
+
+	elt = (struct evt_queue_elt *) malloc(sizeof(struct evt_queue_elt));
+	if (elt == NULL)
+		return;
+
+	elt->cid = cid;
+	elt->event_opaque = opaque;
+	elt->event_time = tv2dbl(*tp);
+
+	session_list_t::Iterator it = find_by_cid( cid );
+
+	////// pthread_mutex_lock( &s_mutex );
+	(*it)->insert_in_evt_queue( elt );
+	////// pthread_mutex_unlock( &s_mutex );
+
+	return;
+}
+
+
+TransportRTP::TransportRTP()
+   :	m_local_port( 0 ),
+	m_prev_timestamp( 0 ),
+	m_evt_queue ( NULL )
+{
+}
+
+TransportRTP::~TransportRTP()
+{
+	/* We remove the current session from the session list. */
+	session_list_t::Iterator it = find_by_cid( m_context_id );
+	session_list.Remove( it );
+}
+
+
+u_int8_t TransportRTP::setup()
+{
+	rtperror err;
+	socktype sockt;
+	char local_addr[50];
+
+	err = RTPCreate( &m_context_id );
+	if ( err != RTP_OK ) {
+		dbg("RTPCreate : %s\n", RTPStrError( err ) );
+		return 0;
+	}
+
+	/* We add the current session to the session list. */
+	pthread_mutex_lock( &s_mutex );
+	session_list.InsertTail( this );
+	pthread_mutex_unlock( &s_mutex );
+
+
+	// ttl is always 1
+	err = RTPSessionAddSendAddr( m_context_id, m_client_addr, m_client_port, 1);
+	if ( err != RTP_OK ) {
+		dbg("RTPSessionAddSendAddr : %s\n", RTPStrError( err ) );
+		return 0;
+	}
+
+	/* Address will be INADDR_ANY and ports will be dynamically assigned. */
+	err = RTPSessionSetReceiveAddr( m_context_id , NULL, 0);
+	if ( err != RTP_OK ) {
+		dbg("RTPSessionSetReceiveAddr : %s\n", RTPStrError( err ) );
+		return 0;
+	}
+
+	err = RTPOpenConnection( m_context_id );
+	if ( err != RTP_OK ) {
+		dbg("RTPOpenConnection : %s\n", RTPStrError( err ) );
+		return 0;
+	}
+
+	err = RTPSessionGetRTPSocket( m_context_id, &sockt );
+	if ( err != RTP_OK ) {
+		dbg("RTPSessionGetRTPSocket : %s\n", RTPStrError( err ) );
+		return 0;
+	}
+
+	m_sock[0] = sockt;
+
+	err = RTPSessionGetRTCPSocket( m_context_id, &sockt );
+	if ( err != RTP_OK ) {
+		dbg("RTPSessionGetRTCPSocket : %s\n", RTPStrError( err ) );
+		return 0;
+	}
+
+	m_sock[1] = sockt;
+
+	err = RTPSessionGetReceiveAddr( m_context_id, (char *)local_addr, &m_local_port);
+	if ( err != RTP_OK ) {
+		dbg("RTPSessionGetReceiveAddr : %s\n", RTPStrError( err ) );
+		return 0;
+	}
+	
+	err = RTPSessionSetRTPStampRate( m_context_id,
+			m_segment->getSDPInfo()->payload_type,
+			m_segment->getSDPInfo()->rtp_clock ) ;
+	if ( err != RTP_OK ) {
+		dbg("RTPSessionSetRTPStampRate : %s\n", RTPStrError( err ) );
+		return 0;
+	}
+	
+	if ( m_bit_rate > 0 ) {
+		err = RTPSessionSetBandwidth( m_context_id, (float)m_bit_rate/1000.0 , 0.05f) ;
+		if ( err != RTP_OK ) {
+			dbg("RTPSessionSetBandwidth : %s\n", RTPStrError( err ) );
+			return 0;
+		}
+	}
+
+	dbg("The RTP session was successfully created...\n");
+
+	return true;
+}
+
+void TransportRTP::run(void)
+{
+	uint32_t timestamp, timestamp_offset, result;
+	size_t size;
+	uint8_t marker;
+
+	struct timeval start_time_tv, now_tv;
+	double play_time, now;
+
+	m_total_size = 0;
+	gettimeofday(&start_time_tv, NULL);
+	m_start_time = tv2dbl(start_time_tv);
+	dbg("start_time: %f\n", m_start_time);
+
+	void *buffer;
+
+
+	FILE *file_read = m_segment->get_file_stream();
+	packet_list_t::Iterator read_ptr = m_segment->get_packet_list()->Begin();
+	uint8_t payload_type = m_segment->getSDPInfo()->payload_type;
+	uint32_t rtp_clock = m_segment->getSDPInfo()->rtp_clock;
+
+	uint32_t first_timestamp = (*read_ptr)->timestamp;
+
+	while (1) {
+		if ( !read_ptr )
+			break;
+		/* */
+		if ( m_exit )
+			return;
+
+		size = (*read_ptr)->size;
+		timestamp = (*read_ptr)->timestamp;
+		marker = (*read_ptr)->marker;
+
+		/* struct timeval adesso_tv;
+		double adesso;
+		gettimeofday(&adesso_tv, NULL);
+		adesso = tv2dbl(adesso_tv); */
+		// dbg("Size: %d - Sequence: %d - Marker: %d - Timestamp: %d - Time: %f \n",
+		// 	size, (*read_ptr)->seq , marker, timestamp,
+		//	(double)( (double)(timestamp - first_timestamp)/rtp_clock ) );
+		if (size < 0)
+			break;
+
+		buffer = malloc( size );
+
+		result = fread( buffer, size, 1, file_read);
+		if ( result == 0 ) {
+			dbg("CacheSegment::get_next_packet() : End Of File.\n");
+			return;
+		} else if ( result < 0) {
+			dbg("CacheSegment::get_next_packet() : Error reading from file.\n");
+			return;
+		}
+
+		m_total_size += size;
+		// dbg("m_total_size: %d\n", m_total_size);
+
+		/* We care about the difference.. */
+		timestamp_offset = timestamp - m_prev_timestamp;
+		m_prev_timestamp = timestamp;
+
+		rtperror err = RTPSend( m_context_id, timestamp_offset, marker,
+					payload_type, (int8_t *)buffer, size);
+		free( buffer );
+		if ( err != RTP_OK ) {
+			dbg("--- RTPSend: %s ---\n", RTPStrError( err ) );
+			return;
+		}
+
+		/* *************************************************** */
+		/*! Here we check for events or things to do... */
+
+		/* Schedule the times to play packets as an absolute offset from
+		 * our start time, rather than a relative offset from the initial
+		 * packet.  (We're less vulnerable to drifting clocks that way).
+		 * Alternative version based on timestamps and RTP clock..
+		 */
+		play_time = m_start_time + ((double)(timestamp - first_timestamp)/ rtp_clock);
+		// dbg("play_time: %f - difference: %f\n", play_time,
+		//		((double)m_total_size / m_byte_rate));
+
+		while (gettimeofday(&now_tv, NULL), (now = tv2dbl(now_tv)) < play_time) {
+
+			int event = 0;
+			int retval;
+			double timeout;
+			struct timeval timeout_tv;
+			fd_set sockets;
+
+			if (m_evt_queue != NULL && m_evt_queue->event_time < play_time ) {
+				event = 1;
+				timeout = m_evt_queue->event_time - now;
+			} else {
+				event = 0;
+				timeout = play_time - now;
+			}
+			if ( timeout < 0 )
+				timeout = 0;
+			timeout_tv = dbl2tv( timeout );
+
+
+			FD_ZERO( &sockets );
+			FD_SET( m_sock[0], &sockets );
+			FD_SET( m_sock[1], &sockets );
+
+			int max_fd = ((m_sock[0] > m_sock[1]) ? m_sock[0] : m_sock[1] ) + 1;
+
+			retval = select(max_fd, &sockets, NULL, NULL, &timeout_tv);
+			if ( retval < 0 ) {
+				perror("select");
+				exit(1);
+			} else if ( retval > 0 ) { // There are some events...
+				for (int i = 0; i < 2; i++) {
+					if (FD_ISSET(m_sock[i], &sockets)) {
+						#define RECEIVE_BUFFER_SIZE 65536
+						char receive_buffer[RECEIVE_BUFFER_SIZE];
+						int recbuflen = RECEIVE_BUFFER_SIZE;
+						/* We don't care about the contents of the received packet;
+						 * we're only a sender.  However, we still have to call
+						 * RTPReceive to ensure that our sender reports and
+						 * receiver reports are correct. 
+						 */
+						err = RTPReceive(m_context_id, m_sock[i], receive_buffer,
+								&recbuflen);
+						if (err != RTP_OK && err != RTP_PACKET_LOOPBACK) {
+							dbg("RTPReceive %s : %s\n",
+								i ? "RTCP" : "RTP", RTPStrError(err) );
+						} else if ( err == RTP_PACKET_LOOPBACK ) {
+							dbg("Packet loopback...\n");
+						} else if ( i == 1 ) {
+							/* Ok, we received an RTCP packet..
+							* we try to get info about it.
+							*/
+							process_rtcp_packet(receive_buffer, recbuflen);
+						}
+					}
+				}
+			} else { /* retval == 0, select timed out */
+				if (event) {
+					struct evt_queue_elt *next;
+					gettimeofday(&now_tv, NULL);
+					now = tv2dbl(now_tv);
+					while ( m_evt_queue != NULL  && m_evt_queue->event_time <= now ) {
+						/* There is a pending RTP event (currently this means
+						 * there's an RTCP packet to send), so run it.
+						 */
+						// dbg("RTPExecute...\n");
+						RTPExecute( m_evt_queue->cid, m_evt_queue->event_opaque );
+						/* Advance the queue */
+						//////////// pthread_mutex_lock( &s_mutex );
+						next = m_evt_queue->next;
+						free( m_evt_queue );
+						m_evt_queue = next;
+						//////////// pthread_mutex_unlock( &s_mutex );
+					}
+				} else
+					break;  /* Time for the next audio packet */
+			}
+		}
+		++ read_ptr;
+	}
+	/* **************************************************** */
+}
+
+void TransportRTP::insert_in_evt_queue(struct evt_queue_elt *elt)
+{
+	if (m_evt_queue == NULL || elt->event_time < m_evt_queue->event_time) {
+		elt->next = m_evt_queue;
+		m_evt_queue = elt;
+	} else {
+		struct evt_queue_elt *s = m_evt_queue;
+		while (s != NULL) {
+			if (s->next == NULL || elt->event_time < s->next->event_time) {
+				elt->next = s->next;
+				s->next = elt;
+				break;
+			}
+			s = s->next;
+		}
+	}
+}
+
+void TransportRTP::close()
+{
+	dbg("TransportRTP::close()\n");
+
+	/* This way we tell to the thread that is time to leave... */
+	m_exit = true;
+
+	rtperror err;
+	if ( (err = RTPCloseConnection( m_context_id, "Goodbye!")) != RTP_OK ) {
+		dbg("%s\n", RTPStrError(err));
+	}
+
+	if ((err = RTPDestroy( m_context_id )) != RTP_OK ) {
+		dbg("%s\n", RTPStrError(err) );
+	}
+
+	CacheTransport::close();
+}
+
+#if 0
+_RTP_CONTEXT* TransportRTP::rtp_session()
+{
+	return ContextList[ m_context_id ];
+}
+#endif
+
+
+
+

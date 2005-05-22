@@ -1,0 +1,59 @@
+
+$Id$
+$URL$
+
+ ** ABOUT ** 
+
+This program is an RTSP proxy derived from the proxy source code 
+released from RealNetworks.
+This version include a caching system that saves multimedia streams
+that traverse the proxy and playback then once required other times.
+
+ ** INSTALL **
+
+To compile the program you have to follow the "standard" procedure:
+
+$ ./configure
+$ make
+# make install 
+
+!!!! NOTE !!!!
+Please check you CFLAGS and CXXFLAGS environment variables. Normally
+configure will add a -g3 switch to have full debug symbols. This may 
+conflicts with other switchs (such as -O2 or so...). These conflicts
+may end in segmentation faults or other errors at run-time. 
+So if you experienced such problems please check that you are using
+clean environment variables:
+
+$ make distclean
+$ export CFLAGS=""
+$ export CXXFLAGS=""
+$ ./configure 
+$ make
+
+If errors persist, then it's a bug in rtspproxy. Please send a report.
+
+If all went fine, you have the executable installed..
+
+Now it's time the edit the configuration file.. 
+an example is provided here : rtspproxy.conf.
+The syntax is very simple and the comments explain all 
+the options.
+Edit as you need and save it in "the right place".
+The proxy will look for the configuration file in these 
+places :	'./rtspproxy.conf' 
+		'~/.rtspproxy.conf' 
+		'/etc/rtspproxy.conf'
+
+ ** USAGE **
+
+$ rtspproxy
+
+If you call the proxy without command line parameter, it will use the 
+defaults settings or the settings specified in the configuration file.
+
+
+
+9-Feb-2005 Matteo Merli <matteo.merli@gmail.com>
+
+

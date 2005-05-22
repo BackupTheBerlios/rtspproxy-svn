@@ -1,0 +1,3 @@
+
+
+Library( 'rtspproxy', [ 'main.cpp', 'rtspproxy.cpp' ] )
