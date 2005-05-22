@@ -179,8 +179,8 @@ int main(int argc, char **argv)
 			break;
 
 		case 'v':
-			printf( "\nRTSP Caching Proxy version 2.4 \n"
-			    "(c) 2003 Matteo Merli, http://merlimat.net/rtsp-proxy\n"
+			printf( "\nRTSP Caching Proxy version 2.5 \n"
+			    "(c) 2005 Matteo Merli, http://merlimat.net/software/rtsp-proxy\n"
 				  "Based on : \n"
 				"\nRTSP Proxy Reference Implementation Version 2.0 \n"
 				  "(c) 2001 RealNetworks, Inc. All Rights Reserved\n\n");
