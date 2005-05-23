@@ -1,3 +1,0 @@
-#!/bin/sh
-echo "Total lines of hand-made code:" `find -name *.cpp -or -name *.h | grep -v .moc.cpp | xargs cat | wc -l`
-
