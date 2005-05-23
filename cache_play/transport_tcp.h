@@ -21,7 +21,7 @@
 #ifndef TRANSPORT_TCP_H
 #define TRANSPORT_TCP_H
 
-#include <types.h>
+#include <sys/types.h>
 
 #include "cache_transport.h"
 
@@ -49,12 +49,4 @@ class TransportTCP : public CacheTransport
 
 #endif
 
-/** LOG **
- *
- * $Log: transport_tcp.h,v $
- * Revision 1.3  2003/11/17 16:13:47  mat
- * make-up
- *
- *
- */
 

@@ -18,20 +18,19 @@
  *   $Id$
  *****************************************************************************/
  
-#include <dbg.h>
+#include "../config.h"
+ 
 #include <cstdlib>
 #include "cache_play.h"
-#include "rtspproxy.h"
+#include "../rtspproxy/rtspproxy.h"
+#include "../libapp/dbg.h"
 
 #include "transport_rtp.h"
 #include "transport_tcp.h"
-#include "cache_segment.h"
-#include "time_range.h"
-#include "prefetching.h"
-
-#ifdef HAVE_CONFIG_H
-#include "../config.h"
-#endif
+#include "../cache_manager/cache_segment.h"
+#include "../cache_manager/time_range.h"
+#include "../cache_prefetching/prefetching.h"
+#include "../libapp/str.h"
 
 CachePlay::CachePlay(CClientCnx *cnx, CacheItem *item) : 
 	m_item( item ),
@@ -57,7 +56,7 @@ CachePlay::~CachePlay()
 void CachePlay::setup(CRtspRequestMsg *msg)
 {
 	dbg("CachePlay::SETUP\n");
-
+	
 	CString str_cseq = msg->GetHdr("CSeq");
 	CString str_tran = msg->GetHdr("Transport");
 	str_tran.ToLower();
@@ -347,17 +346,4 @@ void CachePlay::gen_session_id()
 	m_session_id = strdup( tmp );
 }
 
-
-
-/** LOG **
- *
- * $Log: cache_play.cpp,v $
- * Revision 1.4  2003/11/17 18:27:00  mat
- * Disabled stream prefetching (temporary)
- *
- * Revision 1.3  2003/11/17 16:13:47  mat
- * make-up
- *
- *
- */
 

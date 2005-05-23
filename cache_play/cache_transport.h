@@ -21,10 +21,10 @@
 #ifndef CACHE_TRANSPORT_H
 #define CACHE_TRANSPORT_H
 
-#include <types.h>
+#include <sys/types.h>
 #include <pthread.h>
 
-#include <rtp_session.h>
+#include "../rtp/rtp_session.h"
 
 class CacheSegment;
 class CachePlay;
@@ -99,12 +99,5 @@ class CacheTransport
 
 #endif
 
-/** LOG **
- *
- * $Log: cache_transport.h,v $
- * Revision 1.3  2003/11/17 16:13:47  mat
- * make-up
- *
- *
- */
+
 

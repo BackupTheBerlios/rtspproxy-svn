@@ -17,24 +17,22 @@
  *
  *   $Id$
  *****************************************************************************/
+
+#include "../config.h"
  
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <dbg.h>
+#include "../libapp/dbg.h"
 
-#include "tlist.h"
+#include "../libapp/tlist.h"
 #include "transport_rtp.h"
-#include "cache_segment.h"
-#include "config_parser.h"
+#include "../cache_manager/cache_segment.h"
+#include "../config/config_parser.h"
 #include "cache_play.h"
-#include "rtp_session.h"
-
-#ifdef HAVE_CONFIG_H
-#include "../config.h"
-#endif
+#include "../rtp/rtp_session.h"
 
 /*! Convert a struct timeval to a double */
 #define tv2dbl(tv) ((tv).tv_sec + (tv).tv_usec / 1000000.0)
@@ -186,17 +184,4 @@ void TransportRTP::close()
 }
 
 
-
-
-
-
-
-/** LOG **
- *
- * $Log: transport_rtp.cpp,v $
- * Revision 1.3  2003/11/17 16:13:47  mat
- * make-up
- *
- *
- */
 

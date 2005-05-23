@@ -21,9 +21,9 @@
 #ifndef TRANSPORT_RTP_H
 #define TRANSPORT_RTP_H
 
-#include <types.h>
+#include <sys/types.h>
 #include "cache_transport.h"
-#include "rtp_session.h"
+#include "../rtp/rtp_session.h"
 
 extern "C" {
 void process_rtcp_packet(void *buf, uint32_t size);
@@ -72,12 +72,4 @@ class TransportRTP : public CacheTransport
 
 #endif
 
-/** LOG **
- *
- * $Log: transport_rtp.h,v $
- * Revision 1.3  2003/11/17 16:13:47  mat
- * make-up
- *
- *
- */
 

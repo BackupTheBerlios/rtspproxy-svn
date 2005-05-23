@@ -21,9 +21,9 @@
 #ifndef CACHE_PLAY_H
 #define CACHE_PLAY_H
 
-#include "rtspmsg.h"
-#include "cache_items.h"
-#include "cache_segment.h"
+#include "../librtsp/rtspmsg.h"
+#include "../cache_manager/cache_items.h"
+#include "../cache_manager/cache_segment.h"
 #include "cache_transport.h"
 
 #include <pthread.h>
@@ -126,13 +126,4 @@ typedef TDoubleList< CachePlay* > cache_play_list_t;
 
 
 #endif
-
-/** LOG **
- *
- * $Log: cache_play.h,v $
- * Revision 1.3  2003/11/17 16:13:47  mat
- * make-up
- *
- *
- */
 
