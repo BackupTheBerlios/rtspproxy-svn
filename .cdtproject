@@ -5,6 +5,7 @@
 <extension point="org.eclipse.cdt.core.BinaryParser" id="org.eclipse.cdt.core.ELF"/>
 <data>
 <item id="org.eclipse.cdt.core.pathentry">
+<pathentry kind="mac" path="" name="_BSD" value="1"/>
 <pathentry kind="src" path=""/>
 <pathentry kind="out" path=""/>
 <pathentry kind="con" path="org.eclipse.cdt.make.core.DISCOVERED_SCANNER_INFO"/>
