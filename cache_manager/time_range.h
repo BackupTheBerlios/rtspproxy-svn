@@ -81,12 +81,3 @@ class TimeRange {
 
 #endif
 
-/** LOG **
- *
- * $Log: time_range.h,v $
- * Revision 1.3  2003/11/17 16:13:45  mat
- * make-up
- *
- *
- */
-

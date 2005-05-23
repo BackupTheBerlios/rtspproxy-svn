@@ -21,11 +21,11 @@
 #ifndef CACHE_SEGMENT_H
 #define CACHE_SEGMENT_H
 
-#include <types.h>
+#include <sys/types.h>
 #include <stdio.h>
 #include <pthread.h>
 
-#include "tlist.h"
+#include "../libapp/tlist.h"
 
 class CacheItem;
 class TimeRange;
@@ -197,14 +197,5 @@ class CacheSegment
 typedef TDoubleList < CacheSegment *>CacheSegmentList;
 
 
-#endif
-
-/** LOG **
- *
- * $Log: cache_segment.h,v $
- * Revision 1.3  2003/11/17 16:13:45  mat
- * make-up
- *
- *
- */
+#endif /* CACHE_SEGMENT_H */
 

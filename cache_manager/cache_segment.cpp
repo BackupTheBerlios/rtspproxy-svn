@@ -22,12 +22,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <dbg.h>
 
+#include "../libapp/dbg.h"
 #include "cache_segment.h"
 #include "time_range.h"
-#include "rtp_packet.h"
-#include "rtspproxy.h"
+#include "../rtp/rtp_packet.h"
+#include "../rtspproxy/rtspproxy.h"
 #include "time_range.h"
 
 /*! Time amount to guess the bandwidth in seconds. */
@@ -276,14 +276,4 @@ static void * thread_main(void *p)
 	pthread_exit(0);
 }
 
-
-
-/** LOG **
- *
- * $Log: cache_segment.cpp,v $
- * Revision 1.3  2003/11/17 16:13:45  mat
- * make-up
- *
- *
- */
 

@@ -22,7 +22,7 @@
 
 #include "sdp.h"
 #include "cache_items.h"
-#include "dbg.h"
+#include "../libapp/dbg.h"
 
 #include <string.h>
 #include <assert.h>
@@ -83,14 +83,4 @@ char *SDP::get( const char* url )
 	return NULL;
 }
 
-
-
-/** LOG **
- *
- * $Log: sdp.cpp,v $
- * Revision 1.3  2003/11/17 16:13:45  mat
- * make-up
- *
- *
- */
 

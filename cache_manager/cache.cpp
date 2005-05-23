@@ -20,12 +20,12 @@
 
 
 #include <stdio.h>
-#include <dbg.h>
 #include <sys/types.h>
 #include <dirent.h>
 
+#include "../libapp/dbg.h"
 #include "cache.h"
-#include "config_parser.h"
+#include "../config/config_parser.h"
 
 extern pthread_mutex_t g_cache_mutex;
 extern pthread_mutex_t g_cache_status_mutex;
@@ -159,14 +159,4 @@ void Cache::empty()
 }
 
 
-
-
-/** LOG **
- *
- * $Log: cache.cpp,v $
- * Revision 1.3  2003/11/17 16:13:45  mat
- * make-up
- *
- *
- */
 

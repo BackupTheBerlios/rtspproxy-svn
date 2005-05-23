@@ -21,10 +21,14 @@
 #ifndef CACHE_ITEMS_H
 #define CACHE_ITEMS_H
 
-#include <types.h>
+#ifdef _BSD
+	#include <sys/types.h>
+#else
+	#include <types.h>
+#endif
 #include <pthread.h>
 
-#include "tlist.h"
+#include "../libapp/tlist.h"
 #include "cache_segment.h"
 
 

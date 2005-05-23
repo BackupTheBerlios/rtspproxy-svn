@@ -19,13 +19,12 @@
  *****************************************************************************/
  
 #include <string.h>
-#include <types.h>
-#include <dbg.h>
+#include <sys/types.h>
 
+#include "../libapp/dbg.h"
 #include "cache_items.h"
 #include "cache.h"
-
-#include "rtspproxy.h"
+#include "../rtspproxy/rtspproxy.h"
 
 extern pthread_mutex_t g_cache_mutex;
 
@@ -224,13 +223,4 @@ CacheItem * CacheItems::get_item(const char *url)
 	return NULL;
 }
 
-
-/** LOG **
- *
- * $Log: cache_items.cpp,v $
- * Revision 1.3  2003/11/17 16:13:45  mat
- * make-up
- *
- *
- */
 

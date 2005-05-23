@@ -21,14 +21,13 @@
 #ifndef CACHE_STATUS_H
 #define CACHE_STATUS_H
 
-#include "pthread.h"
+#include <pthread.h>
 
-/*!
+/**
  * Class CacheStatus runs in a separate thread and periodically
  * checks the status of the cache. It can do things like swap out
  * or cleaning out unused resources...
  */
-
 class CacheStatus
 {
 public:
@@ -53,7 +52,7 @@ public:
 protected:
 
 	/*! Extracts the LRU item from the cache.
-         * @return The size of extracted item.
+     * @return The size of extracted item.
 	 */
 	int swap_out();
 
@@ -70,13 +69,4 @@ void handler(int sig);
 
 #endif
 
-
-/** LOG **
- *
- * $Log: cache_status.h,v $
- * Revision 1.3  2003/11/17 16:13:45  mat
- * make-up
- *
- *
- */
 

@@ -20,12 +20,12 @@
 
 #include "cache_status.h"
 #include "cache.h"
-#include "rtspproxy.h"
+#include "../rtspproxy/rtspproxy.h"
+#include "../libapp/dbg.h"
 
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
-#include <dbg.h>
 
 /*! Seconds beetween every check of the cache status */
 #define CHECK_PERIOD 10
@@ -161,15 +161,4 @@ void * thread_main(void *p)
 }
 
 
-
-
-
-/** LOG **
- *
- * $Log: cache_status.cpp,v $
- * Revision 1.3  2003/11/17 16:13:45  mat
- * make-up
- *
- *
- */
 
