@@ -34,6 +34,8 @@
 
 #include <rtp_session.h>
 
+#include "../config.h"
+
 extern config_t global_config;
 
 /* Pointer to the CApp object */
@@ -179,7 +181,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'v':
-			printf( "\nRTSP Caching Proxy version 2.5 \n"
+			printf( "\nRTSP Caching Proxy version " VERSION "\n"
 			    "(c) 2005 Matteo Merli, http://merlimat.net/software/rtsp-proxy\n"
 				  "Based on : \n"
 				"\nRTSP Proxy Reference Implementation Version 2.0 \n"
