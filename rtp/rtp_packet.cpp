@@ -96,33 +96,7 @@ uint32_t RtpPacket::to_buffer(void *buf )
 {
 	memcpy( buf, m_header, RTP_HEADER_LEN );
 	memcpy( (uint8_t*)buf + RTP_HEADER_LEN, m_payload, m_payload_size );
-	/*
-	FILE *f = fopen("/tmp/rtspproxy/prova", "a+");
-	fwrite(buf, m_size, 1, f);
-	fclose( f );
-	*/
-
-	/*
-	RtpPacket *rtp = new RtpPacket( (uint8_t*)buf, (RTP_HEADER_LEN + m_payload_size) );
-	printf("seq = %u - timestamp: %u - marker: %u - size: %u - psize: %u \n",
-		rtp->sequence(), rtp->timestamp(), rtp->marker(),
-		rtp->get_size(), rtp->get_payload_size() );
-	delete rtp;
-	*/
 	return ( m_size );
 }
 
-
-
-
-
-
-/** LOG **
- *
- * $Log: rtp_packet.cpp,v $
- * Revision 1.3  2003/11/17 16:14:12  mat
- * make-up
- *
- *
- */
 

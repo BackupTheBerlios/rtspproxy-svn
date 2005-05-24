@@ -58,7 +58,6 @@
 /*! My own version of random() that uses the linux random
  *  device..
  */
-typedef unsigned long long uint64_t;
 uint64_t my_random();
 
 /*! Event queue list..*/

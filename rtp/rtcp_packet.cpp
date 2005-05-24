@@ -46,7 +46,7 @@ void process_rtcp_packet(void *buf, uint32_t size)
 		printf("* RTP timestamp: %u\n", rtcp.sr_rtp_ts() );
 		printf("* Packets sent: %u\tBytes sent: %u\n", rtcp.sr_psent(), rtcp.sr_osent() );
 
-		for (int j=0; j < rtcp.count(); j++ ){
+		for (uint j=0; j < rtcp.count(); j++ ){
 			rtcp_rr_t* rr = rtcp.sr_rr( j );
 			if ( !rr )
 				break;
@@ -67,7 +67,7 @@ void process_rtcp_packet(void *buf, uint32_t size)
 		printf("=======================================\n");
 		printf("| RECEIVER REPORT\n|\n");
 		printf("| SSRC: %u\tLength: %u\n", rtcp.rr_ssrc(), rtcp.length() );
-		for ( int j=0; j < rtcp.count() ; j++ ){
+		for ( j=0; j < rtcp.count() ; j++ ){
 			rtcp_rr_t* rr = rtcp.rr_rr( j );
 			if ( !rr )
 				break;
@@ -85,7 +85,7 @@ void process_rtcp_packet(void *buf, uint32_t size)
 
 		printf("=== SDES ===\n");
 		printf("Pkt length: %u\n", rtcp.length() );
-		for ( uint j=0; j < rtcp.count(); j++ ){
+		for ( j=0; j < rtcp.count(); j++ ){
 			rtcp_sdes_item_t* item;
 			item = rtcp.sdes( j );
 			if ( !item )
@@ -284,7 +284,7 @@ rtcp_sdes_item_t* RtcpPacket::sdes(uint8_t idx)
 
 void RtcpPacket::set_sdes(rtcp_sdes_type_t type, const char* value)
 {
-	rtcp_sdes_item_t* sdes = (rtcp_sdes_item_t*)m_packet + m_size;
+	rtcp_sdes_item_t* sdes = (rtcp_sdes_item_t*)(m_packet + m_size);
 	memcpy( (uint8_t*)m_packet + m_size, sdes, 2 + strlen(value) );
 	m_size += 2 + strlen(value);
 }
@@ -295,19 +295,4 @@ uint32_t RtcpPacket::to_buffer(void *buf )
 	return m_size;
 }
 
-
-
-
-
-
-
-
-/** LOG **
- *
- * $Log: rtcp_packet.cpp,v $
- * Revision 1.3  2003/11/17 16:14:11  mat
- * make-up
- *
- *
- */
 
