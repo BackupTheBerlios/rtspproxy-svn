@@ -10,7 +10,7 @@
 #ifndef _RTSPPROT_H
 #define _RTSPPROT_H
 
-#include "sock.h"
+#include "../libapp/sock.h"
 #include "rtspmsg.h"
 #include "tran.h"
 
@@ -166,12 +166,4 @@ class CRtspProtocol:public CStreamResponse {
 
 #endif				//ndef _RTSPPROT_H
 
-/** LOG **
- *
- * $Log: rtspprot.h,v $
- * Revision 1.2  2003/11/17 16:14:08  mat
- * make-up
- *
- *
- */
 

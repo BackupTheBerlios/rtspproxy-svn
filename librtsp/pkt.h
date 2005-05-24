@@ -10,9 +10,9 @@
 #ifndef _PKT_H
 #define _PKT_H
 
-#include "types.h"
-#include "str.h"
-#include "sock.h"
+#include "../libapp/types.h"
+#include "../libapp/str.h"
+#include "../libapp/sock.h"
 
 // Base class for all packets
 class CPacket {
@@ -30,12 +30,5 @@ class CPacket {
 
 #endif				//ndef _PKT_H
 
-/** LOG **
- *
- * $Log: pkt.h,v $
- * Revision 1.2  2003/11/17 16:14:08  mat
- * make-up
- *
- *
- */
+
 

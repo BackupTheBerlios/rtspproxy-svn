@@ -10,9 +10,9 @@
 #ifndef _RTSPMSG_H
 #define _RTSPMSG_H
 
-#include "types.h"
-#include "str.h"
-#include "tlist.h"
+#include <sys/types.h>
+#include "../libapp/str.h"
+#include "../libapp/tlist.h"
 
 // These must correspond with s_pVerbs indices
 enum RtspVerb {
@@ -149,12 +149,5 @@ typedef TDoubleList < CRtspResponseMsg * >CRtspResponseMsgList;
 
 #endif				//ndef _RTSPMSG_H
 
-/** LOG **
- *
- * $Log: rtspmsg.h,v $
- * Revision 1.2  2003/11/17 16:14:08  mat
- * make-up
- *
- *
- */
+
 

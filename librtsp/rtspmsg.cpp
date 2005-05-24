@@ -7,10 +7,13 @@
  *
  */
 
-#include "dbg.h"
+#include "../libapp/types.h"
+#include "../libapp/dbg.h"
 #include "rtspmsg.h"
 
 #include <string.h>		/* memset */
+
+typedef unsigned char uint8_t;
 
 /**************************************
  *
