@@ -16,6 +16,9 @@
  * the merchantability of this software or the suitability of this
  * software for any particular purpose. It is provided "as is"
  * without express or implied warranty of any kind.
+ * 
+ * $Id$
+ * 
  */
 
 #ifndef _MD5_H
@@ -36,14 +39,5 @@ void MD5Final(unsigned char[16], MD5_CTX *);
 char *MD5End(MD5_CTX * ctx, char *p);
 char *MD5Data(char *buf, const unsigned char *data, unsigned int len);
 
-#endif				// ndef _MD5_H
-
-/** LOG **
- *
- * $Log: md5.h,v $
- * Revision 1.2  2003/11/17 16:14:02  mat
- * make-up
- *
- *
- */
+#endif
 

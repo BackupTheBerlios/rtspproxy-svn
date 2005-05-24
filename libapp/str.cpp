@@ -10,12 +10,14 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <types.h>
+#include <sys/types.h>
 
 #include "types.h"
 #include "str.h"
 
 #include "dbg.h"
+
+typedef unsigned char uint8_t;
 
 /**************************************
  *

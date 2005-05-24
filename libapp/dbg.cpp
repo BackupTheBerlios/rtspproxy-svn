@@ -11,7 +11,7 @@
 #include <time.h>
 
 #include "dbg.h"
-#include "config_parser.h"
+#include "../config/config_parser.h"
 
 static FILE *log;
 

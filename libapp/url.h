@@ -65,13 +65,3 @@ class CUrl {
 };
 
 #endif				//ndef _URL_H
-
-/** LOG **
- *
- * $Log: url.h,v $
- * Revision 1.2  2003/11/17 16:14:03  mat
- * make-up
- *
- *
- */
-

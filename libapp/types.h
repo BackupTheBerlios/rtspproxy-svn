@@ -10,6 +10,8 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
+#include <sys/types.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -62,7 +64,6 @@ typedef const unsigned char *CPBYTE;
 
 typedef signed char INT8;
 typedef unsigned char UINT8;
-typedef unsigned char uint8_t;
 
 typedef signed short INT16;
 // typedef unsigned short WORD;
@@ -104,12 +105,4 @@ void ntohl_buf(UINT32 * phbuf, const void *pnbuf, UINT cnt);
 
 #endif				//ndef _TYPES_H
 
-/** LOG **
- *
- * $Log: types.h,v $
- * Revision 1.2  2003/11/17 16:14:03  mat
- * make-up
- *
- *
- */
 
