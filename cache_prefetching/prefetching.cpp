@@ -18,13 +18,15 @@
  *   $Id$
  *****************************************************************************/
 
+#include "../config.h"
+
 #include <string.h>
 #include <assert.h>
 
 #include "prefetching.h"
-#include "dbg.h"
+#include "../libapp/dbg.h"
 #include "rtsp_session.h"
-#include "cache_items.h"
+#include "../cache_manager/cache_items.h"
 
 static Prefetching *g_prefetching;
 static pthread_mutex_t g_prefetching_mutex;
@@ -120,13 +122,4 @@ void Prefetching::start()
 	pthread_create( &m_thread, &attr , &thread_main, NULL);
 	pthread_detach( m_thread );
 }
-
-/** LOG **
- *
- * $Log: prefetching.cpp,v $
- * Revision 1.3  2003/11/17 16:13:51  mat
- * make-up
- *
- *
- */
 

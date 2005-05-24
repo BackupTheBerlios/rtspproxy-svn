@@ -23,9 +23,9 @@
 
 #include <pthread.h>
 
-#include "time_range.h"
-#include "cache_segment.h"
-#include "rtp_session.h"
+#include "../cache_manager/time_range.h"
+#include "../cache_manager/cache_segment.h"
+#include "../rtp/rtp_session.h"
 #include "rtsp_session.h"
 
 /*! This class ...
@@ -74,15 +74,4 @@ protected:
 #endif
 
 
-
-
-
-/** LOG **
- *
- * $Log: prefetching.h,v $
- * Revision 1.3  2003/11/17 16:13:51  mat
- * make-up
- *
- *
- */
 

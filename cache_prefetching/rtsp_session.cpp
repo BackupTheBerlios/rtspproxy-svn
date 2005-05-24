@@ -18,6 +18,8 @@
  *   $Id$
  *****************************************************************************/
  
+#include "../config.h"
+ 
 #include <assert.h>
 #include <string.h>
 #include <netdb.h>
@@ -25,12 +27,8 @@
 #include <sys/socket.h> 
 
 #include "rtsp_session.h"
-#include "dbg.h"
-#include "time_range.h"
-
-#ifdef HAVE_CONFIG_H
-#include "../config.h"
-#endif
+#include "../libapp/dbg.h"
+#include "../cache_manager/time_range.h"
 
 #define DEFAULT_RTSP_PORT 554
 
@@ -212,17 +210,4 @@ bool RtspSession::connect()
 	
 	return true;
 }
-
-
-
-
-
-/** LOG **
- *
- * $Log: rtsp_session.cpp,v $
- * Revision 1.3  2003/11/17 16:13:51  mat
- * make-up
- *
- *
- */
 

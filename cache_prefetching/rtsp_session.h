@@ -21,7 +21,7 @@
 #ifndef _RTSP_SESSION_H_
 #define _RTSP_SESSION_H_
 
-#include "types.h"
+#include <sys/types.h>
 
 class TimeRange;
 
@@ -66,14 +66,4 @@ protected:
 };
 
 #endif
-
-
-/** LOG **
- *
- * $Log: rtsp_session.h,v $
- * Revision 1.3  2003/11/17 16:13:51  mat
- * make-up
- *
- *
- */
 
