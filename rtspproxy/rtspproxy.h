@@ -16,20 +16,20 @@
 #ifndef RTSPPROXY_H
 #define RTSPPROXY_H
 
-#include <types.h>
+#include <sys/types.h>
 
-#include "sock.h"
-#include "resolver.h"
-#include "rtspprot.h"
+#include "../libapp/sock.h"
+#include "../libapp/resolver.h"
+#include "../librtsp/rtspprot.h"
 #include "proxytran.h"
-#include "url.h"
+#include "../libapp/url.h"
 #include "proxysession.h"
 
-#include "app.h"
-#include "cache.h"
-#include "cache_play.h"
-#include "cache_segment.h"
-#include "config_parser.h"
+#include "../libapp/app.h"
+#include "../cache_manager/cache.h"
+#include "../cache_play/cache_play.h"
+#include "../cache_manager/cache_segment.h"
+#include "../config/config_parser.h"
 
 class CRtspProxyCnx;
 class CRtspProxyApp;

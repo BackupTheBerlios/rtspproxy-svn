@@ -18,7 +18,7 @@
 
 #include "proxytran.h"
 #include "string.h"
-#include "tlist.h"
+#include "../libapp/tlist.h"
 
 // the session header my contain sessionID and timeout
 class CSessionHdr {
@@ -135,13 +135,4 @@ typedef TDoubleList < CRtspProxySession * >CRtspProxySessionList;
 
 
 #endif
-
-/** LOG **
- *
- * $Log: proxysession.h,v $
- * Revision 1.3  2003/11/17 16:14:16  mat
- * make-up
- *
- *
- */
 

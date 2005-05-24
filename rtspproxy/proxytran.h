@@ -16,10 +16,10 @@
 #ifndef _PROXYTRAN_H
 #define _PROXYTRAN_H
 
-#include "tran.h"
-#include "rtspprot.h"
+#include "../librtsp/tran.h"
+#include "../librtsp/rtspprot.h"
 
-#include "cache_segment.h"
+#include "../cache_manager/cache_segment.h"
 
 class CPassthruProtocol;
 
@@ -102,12 +102,4 @@ class CProxyTransport : public CTransport {
 
 #endif				//ndef _PROXYTRAN_H
 
-/** LOG **
- *
- * $Log: proxytran.h,v $
- * Revision 1.3  2003/11/17 16:14:16  mat
- * make-up
- *
- *
- */
 

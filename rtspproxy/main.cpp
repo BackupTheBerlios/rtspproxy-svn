@@ -25,14 +25,14 @@
 #include <getopt.h>
 #include <pthread.h>
 
-#include "app.h"
+#include "../libapp/app.h"
 #include "rtspproxy.h"
-#include "rtspprot.h"
-#include "cache.h"
-#include "dbg.h"
-#include "config_parser.h"
+#include "../librtsp/rtspprot.h"
+#include "../cache_manager/cache.h"
+#include "../libapp/dbg.h"
+#include "../config/config_parser.h"
 
-#include <rtp_session.h>
+#include "../rtp/rtp_session.h"
 
 #include "../config.h"
 
@@ -206,6 +206,7 @@ int main(int argc, char **argv)
 	/* Set up the options */
 	if ( global_config.log_to_file )
 		open_log_file();
+
 	app->UseCache( global_config.cache_enable );
 	if ( global_config.cache_enable ) {
 		app->cache()->set_size( global_config.cache_max_size );
@@ -219,13 +220,4 @@ int main(int argc, char **argv)
 
 	exit(0);
 }
-
-/** LOG **
- *
- * $Log: main.cpp,v $
- * Revision 1.3  2003/11/17 16:14:16  mat
- * make-up
- *
- *
- */
 
