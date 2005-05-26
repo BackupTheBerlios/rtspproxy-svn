@@ -1,5 +1,5 @@
 /**************************************************************************
- *   Copyright (C) 2003 Matteo Merli <matteo.merli@studenti.unipr.it>
+ *   Copyright (C) 2005 Matteo Merli <matteo.merli@gmail.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,34 +16,26 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *   $Id$
+ * 
+ *   $URL$
+ * 
  *****************************************************************************/
 
 #ifndef _RTP_H_
 #define _RTP_H_
 
-#ifdef _BSD
 #include <machine/endian.h>
-#else
-#include <endian.h>
-#endif
 #include <sys/types.h>
 
-typedef unsigned char u_int8_t;
-typedef unsigned short u_int16_t;
-typedef unsigned int u_int32_t;
-typedef unsigned long long u_int64_t;
-typedef u_int8_t  uint8_t;
-typedef u_int16_t uint16_t;
-typedef u_int32_t uint32_t;
-typedef u_int64_t uint64_t;
-
+/** RTP version implemented */
 #define RTP_VERSION 2
 
 #define RTP_SEQ_MOD (1<<16)
 
-/* Maximun text length for SDES*/
+/** Maximun text length for SDES*/
 #define RTP_MAX_SDES 255
 
+/** RTCP packet types */
 typedef enum {
 	RTCP_SR   = 200,
 	RTCP_RR   = 201,
@@ -54,6 +46,10 @@ typedef enum {
 	RTCP_NULL = 0 /* Used for internal reasons.. */
 } rtcp_type_t;
 
+
+/**
+ * RTCP SDES packet types
+ */
 typedef enum {
 	RTCP_SDES_END   = 0,
 	RTCP_SDES_CNAME = 1,
@@ -72,28 +68,28 @@ typedef enum {
  */
 typedef struct {
 #if BYTE_ORDER == BIG_ENDIAN
-	unsigned int version:2;  /* protocol version       */
-	unsigned int p:1;        /* padding flag           */
-	unsigned int x:1;        /* header extension flag  */
-	unsigned int cc:4;       /* CSRC count             */
-	unsigned int m:1;        /* marker bit             */
-	unsigned int pt:7;       /* payload type           */
-	unsigned int seq:16;     /* sequence number        */
-	uint32_t ts;             /* timestamp              */
-	uint32_t ssrc;           /* synchronization source */
-	uint32_t csrc[1];	 /* optional CSRC list     */
+	u_int32_t version:2;  /*! protocol version       */
+	u_int32_t p:1;        /*! padding flag           */
+	u_int32_t x:1;        /*! header extension flag  */
+	u_int32_t cc:4;       /*! CSRC count             */
+	u_int32_t m:1;        /*! marker bit             */
+	u_int32_t pt:7;       /*! payload type           */
+	u_int32_t seq:16;     /*! sequence number        */
+	u_int32_t ts;            /*! timestamp              */
+	u_int32_t ssrc;          /*! synchronization source */
+	u_int32_t csrc[1];	    /*! optional CSRC list     */
 
 #elif BYTE_ORDER == LITTLE_ENDIAN
-	unsigned int cc:4;       /* CSRC count             */
-	unsigned int x:1;        /* header extension flag  */
-	unsigned int p:1;        /* padding flag           */
-	unsigned int version:2;  /* protocol version       */
-	unsigned int pt:7;       /* payload type           */
-	unsigned int m:1;        /* marker bit             */
-	unsigned int seq:16;     /* sequence number        */
-	uint32_t ts;             /* timestamp              */
-	uint32_t ssrc;           /* synchronization source */
-	uint32_t csrc[1];        /* optional CSRC list     */
+	u_int32_t cc:4;       /*! CSRC count             */
+	u_int32_t x:1;        /*! header extension flag  */
+	u_int32_t p:1;        /*! padding flag           */
+	u_int32_t version:2;  /*! protocol version       */
+	u_int32_t pt:7;       /*! payload type           */
+	u_int32_t m:1;        /*! marker bit             */
+	u_int32_t seq:16;     /*! sequence number        */
+	u_int32_t ts;            /*! timestamp              */
+	u_int32_t ssrc;          /*! synchronization source */
+	u_int32_t csrc[1];       /*! optional CSRC list     */
 
 #else
 #error "Byte order is not big endian nor little endian..."
@@ -105,18 +101,18 @@ typedef struct {
  */
 typedef struct {
 #if BYTE_ORDER == BIG_ENDIAN
-	unsigned int version:2;   /* protocol version                */
-	unsigned int p:1;         /* padding flag                    */
-	unsigned int count:5;     /* varies by packet type           */
-	unsigned int pt:8;        /* RTCP packet type                */
-	uint16_t length;          /* pkt len in words, w/o this word */
+	u_int32_t version:2;   /* protocol version                */
+	u_int32_t p:1;         /* padding flag                    */
+	u_int32_t count:5;     /* varies by packet type           */
+	u_int32_t pt:8;        /* RTCP packet type                */
+	u_int16_t length;      /* pkt len in words, w/o this word */
 
 #else /* LITTLE ENDIAN */
-	unsigned int count:5;     /* varies by packet type           */
-	unsigned int p:1;         /* padding flag                    */
-	unsigned int version:2;   /* protocol version                */
-	unsigned int pt:8;        /* RTCP packet type                */
-	uint16_t length;          /* pkt len in words, w/o this word */
+	u_int32_t count:5;     /* varies by packet type           */
+	u_int32_t p:1;         /* padding flag                    */
+	u_int32_t version:2;   /* protocol version                */
+	u_int32_t pt:8;        /* RTCP packet type                */
+	u_int16_t length;          /* pkt len in words, w/o this word */
 #endif
 } rtcp_common_t;
 
@@ -130,23 +126,23 @@ typedef struct {
  * Reception report block
  */
 typedef struct {
-	uint32_t ssrc;             /* data source being reported      */
-	unsigned int fraction:8;   /* fraction lost since last SR/RR  */
+	u_int32_t ssrc;         /* data source being reported      */
+	u_int32_t fraction:8;   /* fraction lost since last SR/RR  */
 	
-	int lost:24;               /* cumul. no. pkts lost (signed!)  */
-	uint32_t last_seq;         /* extended last seq. no. received */
-	uint32_t jitter;           /* interarrival jitter             */
-	uint32_t lsr;              /* last SR packet from this source */
-	uint32_t dlsr;             /* delay since last SR packet      */
+	int32_t lost:24;        /* cumul. no. pkts lost (signed!)  */
+	u_int32_t last_seq;     /* extended last seq. no. received */
+	u_int32_t jitter;       /* interarrival jitter             */
+	u_int32_t lsr;          /* last SR packet from this source */
+	u_int32_t dlsr;         /* delay since last SR packet      */
 } rtcp_rr_t;
 
 /**
  * SDES item
  */
 typedef struct {
-	uint8_t type;              /* type of item (rtcp_sdes_type_t) */
-	uint8_t length;            /* length of item (in octets)      */
-	char data[1];              /* text, not null-terminated       */
+	u_int8_t type;              /* type of item (rtcp_sdes_type_t) */
+	u_int8_t length;            /* length of item (in octets)      */
+	u_int8_t data[1];           /* text, not null-terminated       */
 } rtcp_sdes_item_t;
 
 /**
@@ -157,12 +153,12 @@ typedef struct {
 	union {
 		/*! sender report (SR) */
 		struct {
-			uint32_t ssrc;     /* sender generating this report */
-			uint32_t ntp_sec;  /* NTP timestamp */
-			uint32_t ntp_frac;
-			uint32_t rtp_ts;   /* RTP timestamp */
-			uint32_t psent;    /* packets sent */
-			uint32_t osent;    /* octets sent */
+			u_int32_t ssrc;     /* sender generating this report */
+			u_int32_t ntp_sec;  /* NTP timestamp */
+			u_int32_t ntp_frac;
+			u_int32_t rtp_ts;   /* RTP timestamp */
+			u_int32_t psent;    /* packets sent */
+			u_int32_t osent;    /* octets sent */
 			rtcp_rr_t rr[1];   /* variable-length list */
 		} sr;
 
@@ -174,13 +170,13 @@ typedef struct {
 
 		/*! source description (SDES) */
 		struct rtcp_sdes {
-			uint32_t src;      /* first SSRC/CSRC */
+			u_int32_t src;      /* first SSRC/CSRC */
 			rtcp_sdes_item_t item[1]; /* list of SDES items */
 		} sdes;
 
 		/*! BYE */
 		struct {
-			uint32_t src[1];   /* list of sources */
+			u_int32_t src[1];   /* list of sources */
 			/* can't express trailing text for reason */
 		} bye;
 	} r;
@@ -192,16 +188,16 @@ typedef struct rtcp_sdes rtcp_sdes_t;
  * Per-source state information
  */
 typedef struct {
-	uint16_t max_seq;        /* highest seq. number seen            */
-	uint32_t cycles;         /* shifted count of seq. number cycles */
-	uint32_t base_seq;       /* base seq number                     */
-	uint32_t bad_seq;        /* last 'bad' seq number + 1           */
-	uint32_t probation;      /* sequ. packets till source is valid  */
-	uint32_t received;       /* packets received                    */
-	uint32_t expected_prior; /* packet expected at last interval    */
-	uint32_t received_prior; /* packet received at last interval    */
-	uint32_t transit;        /* relative trans time for prev pkt    */
-	uint32_t jitter;         /* estimated jitter                    */
+	u_int16_t max_seq;        /* highest seq. number seen            */
+	u_int32_t cycles;         /* shifted count of seq. number cycles */
+	u_int32_t base_seq;       /* base seq number                     */
+	u_int32_t bad_seq;        /* last 'bad' seq number + 1           */
+	u_int32_t probation;      /* sequ. packets till source is valid  */
+	u_int32_t received;       /* packets received                    */
+	u_int32_t expected_prior; /* packet expected at last interval    */
+	u_int32_t received_prior; /* packet received at last interval    */
+	u_int32_t transit;        /* relative trans time for prev pkt    */
+	u_int32_t jitter;         /* estimated jitter                    */
 	/* ... */
 } source_t; 
 

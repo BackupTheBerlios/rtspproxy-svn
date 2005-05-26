@@ -732,16 +732,3 @@ uint16_t RtpSession::get_rtcp_port()
 
 
 
-
-
-
-
-/** LOG **
- *
- * $Log: rtp_session.cpp,v $
- * Revision 1.3  2003/11/17 16:14:12  mat
- * make-up
- *
- *
- */
-

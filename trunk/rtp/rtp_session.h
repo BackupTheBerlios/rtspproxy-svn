@@ -1,5 +1,5 @@
 /**************************************************************************
- *   Copyright (C) 2003 Matteo Merli <matteo.merli@studenti.unipr.it>
+ *   Copyright (C) 2005 Matteo Merli <matteo.merli@gmail.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,6 +16,9 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *   $Id$
+ * 
+ *   $URL$
+ * 
  *****************************************************************************/
  
 #ifndef _RTP_SESSION_H_
@@ -58,7 +61,7 @@
 /*! My own version of random() that uses the linux random
  *  device..
  */
-uint64_t my_random();
+u_int64_t my_random();
 
 /*! Event queue list..*/
 typedef struct {
@@ -66,7 +69,7 @@ typedef struct {
 	double time;
 
 	/*! RTCP packet type. */
-	uint8_t type;
+	u_int8_t type;
 
 	/*! Reference to next event in queue. */
 	void *next;
@@ -74,8 +77,8 @@ typedef struct {
 
 /*! NTP time structure. */
 typedef struct {
-	uint32_t secs;
-	uint32_t frac;
+	u_int32_t secs;
+	u_int32_t frac;
 } ntp_t;
 
 /*! This classe create and manage a complete RTP session.
@@ -101,12 +104,12 @@ class RtpSession
 	 *                   to normal time. Specify the amount of RTP timestamp
 	 *                   increment for each second.
 	 */
-	bool setup( uint16_t base_port, const char* cname, 
-		const char* client_addr, uint16_t client_port,
-		uint8_t payload_type, uint32_t rtp_clock );
+	bool setup( u_int16_t base_port, const char* cname, 
+		const char* client_addr, u_int16_t client_port,
+		u_int8_t payload_type, u_int32_t rtp_clock );
 
 	/*! Sets the approssimate bandwidth (in bits per second ) for the stream. */
-	void set_bandwidth(uint32_t b) {m_bandwidth = b;}
+	void set_bandwidth(u_int32_t b) {m_bandwidth = b;}
 
 	/*! Closes the session sending a BYE RTCP packet and freeing resources.. */
 	void close();
@@ -117,22 +120,22 @@ class RtpSession
 	 *  @param size Size of the payload.
 	 *  @param ts_inc Incrementation of RTP timestamp since last packet.
 	 */
-	bool send_rtp_packet(void *buf, uint16_t size, uint32_t ts_inc );
+	bool send_rtp_packet(void *buf, u_int16_t size, u_int32_t ts_inc );
 	
-	uint16_t receive_rtp_packet(void *buf);
+	u_int16_t receive_rtp_packet(void *buf);
 	
 	/*! Sets the SSRC for the source.
 	 *  A random SSRC will be automatically generated, this
 	 *  function let you change it.
 	 */
-	void set_ssrc(uint32_t ssrc);
+	void set_ssrc(u_int32_t ssrc);
 	
 	/*! Sets the CNAME SDES item for the session.
 	 */
 	void set_cname(const char* s);
 
 	/*! Returns the local SSRC. */
-	uint32_t get_ssrc() {return m_ssrc;}
+	u_int32_t get_ssrc() {return m_ssrc;}
 	
 	/*! Returns the canonical name. */
 	const char* get_cname() {return (const char *) m_cname;}
@@ -140,21 +143,21 @@ class RtpSession
 	/*! Returns the RTP local port used
 	 *  or 0 if it's not set.
 	 */
-	uint16_t get_rtp_port();
+	u_int16_t get_rtp_port();
 	
 	/*! Returns the RTCP local port used
 	 *  or 0 if it's not set.
 	 */
-	uint16_t get_rtcp_port();
+	u_int16_t get_rtcp_port();
 	
 	/*! Return the ranmly chosen initial timestamp. */ 
-	uint32_t get_base_timestamp() {return m_base_timestamp;}
+	u_int32_t get_base_timestamp() {return m_base_timestamp;}
 	
 	/*! Return the ranmly chosen initial sequence number. */ 
-	uint32_t get_base_seq() {return m_base_seq;}
+	u_int32_t get_base_seq() {return m_base_seq;}
 	
 	/*! */
-	bool setup_peer(const char* peer_addr, uint16_t peer_port);
+	bool setup_peer(const char* peer_addr, u_int16_t peer_port);
 
 protected:
 
@@ -164,7 +167,7 @@ protected:
 	bool send_rtp_pkt(RtpPacket *pkt);
 	
 	/*! Sends a generic packet.. */
-	bool send_pkt(void *buf, uint32_t size);
+	bool send_pkt(void *buf, u_int32_t size);
 	
 	/*! Send an RTCP packet to the peer host. 
 	 *  @param pkt RTCP packet to be sent
@@ -174,11 +177,11 @@ protected:
 	bool send_rtcp_pkt(RtcpPacket *pkt, bool bye_packet=false);
 
 	/*! Creates and binds the UDP sockets. */
-	bool create_sockets(uint16_t base_port=0);
+	bool create_sockets(u_int16_t base_port=0);
 		
 	void insert_event(event_t*);
 	
-	uint16_t receive_rtp(void *buf);
+	u_int16_t receive_rtp(void *buf);
 	
 	bool receive_rtcp();
 	
@@ -192,12 +195,12 @@ private:
 	int32_t m_rtcp_sock;
 
 	/*! Local RTP port. */
-	uint16_t m_rtp_local_port;
+	u_int16_t m_rtp_local_port;
 
 	/*********************************************/
 	
 	/*! SSRC for this source. */
-	uint32_t m_ssrc;
+	u_int32_t m_ssrc;
 	
 	/*! Canonical name for the source. 
 	 *  It will be in the form of 'name@host.com'
@@ -205,30 +208,30 @@ private:
 	char *m_cname;
 	
 	/*! Initial timestamp. */
-	uint32_t m_base_timestamp;
+	u_int32_t m_base_timestamp;
 	
 	/*! Previous timestamp. */
-	uint32_t m_prev_timestamp;
+	u_int32_t m_prev_timestamp;
 	
 	/*! Initial sequence number. */
-	uint16_t m_base_seq;
+	u_int16_t m_base_seq;
 	
 	/*! Current sequence number. */
-	uint16_t m_seq;
+	u_int16_t m_seq;
 	
 	/*! Payload type. */ 
-	uint8_t m_payload_type;
+	u_int8_t m_payload_type;
 	
 	/*! RTP clock. */ 
-	uint32_t m_rtp_clock;
+	u_int32_t m_rtp_clock;
 
 	/*! Scratch buffer. */
-	uint8_t m_buf[ MAX_UDP_LEN ];
+	u_int8_t m_buf[ MAX_UDP_LEN ];
 	
 	/*! Sdes packet to be attached to every RTCP packet.. */
 	rtcp_t* m_sdes_pkt;
 	
-	uint16_t m_sdes_pkt_size;
+	u_int16_t m_sdes_pkt_size;
 	
 	/*! Event queue. */
 	event_t *m_event_queue;
@@ -241,30 +244,28 @@ private:
 	double m_start_time;
 	
 	/*! Packets sent. */
-	uint32_t m_psent;
+	u_int32_t m_psent;
 	
 	/*! Octects sent. */
-	uint32_t m_osent;
+	u_int32_t m_osent;
 
 	/*! Average size of RTCP packets. */
 	double m_rtcp_avg_size;
 
 	/*! Number of RTCP packet sent. */
-	uint32_t m_rtcp_psent;
+	u_int32_t m_rtcp_psent;
 
-	uint32_t m_bandwidth;
+	u_int32_t m_bandwidth;
 	
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 	 *               RECEIVER STATISTICS               *
 	 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 	 
 	/*! Number of received RTP packets. */
-	uint32_t m_preceived;
+	u_int32_t m_preceived;
 	
 	/*! Last timestamp. */
-	uint32_t m_last_timestamp;
-	 
-
+	u_int32_t m_last_timestamp;
 };
 
 

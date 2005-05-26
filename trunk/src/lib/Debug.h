@@ -51,6 +51,41 @@ private:
 	critical_section m_cs;
 };
 
+struct log_stream
+{
+	log_stream( internal_threadsafe_log_stream & underlyingStream)
+		: m_underlyingStream( underlyingStream) {}
+    
+	log_stream( const log_stream & from)
+		: m_underlyingStream( from.m_underlyingStream) {}
+
+	template< class type> log_stream & operator<<( type val)
+		{ m_buffer << val; return *this; }
+	
+	void flush() { 
+		m_underlyingStream.threadsafe_write_str( m_buffer.str() ); 
+	}
+private:
+    internal_threadsafe_log_stream & m_underlyingStream;
+    std::ostringstream m_buffer;
+};
+
+/** 
+ * Debug stream 
+ * Ex. 
+ *   Debug << "Error with .. " << item;
+ */
+extern log_stream Debug;
+
+extern 
+
+
+log_stream get_log()
+{
+    static internal_threadsafe_log_stream log( "log.txt");
+    return log;
+}
+
 class Debug
 {
 public:

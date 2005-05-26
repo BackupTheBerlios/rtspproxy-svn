@@ -6,5 +6,5 @@
 #
 
 
-SUBDIRS = .
+SUBDIRS = lib
 

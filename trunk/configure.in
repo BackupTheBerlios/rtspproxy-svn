@@ -7,7 +7,7 @@ dnl
 dnl
 
 
-AC_INIT(rtspproxy/rtspproxy.cpp)
+AC_INIT(src/Main.cpp)
 
 AM_CONFIG_HEADER(config.h)
 
@@ -17,36 +17,28 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
 
-AM_INIT_AUTOMAKE(rtspproxy, 2.5.0)
+AM_INIT_AUTOMAKE(rtspproxy, 3.0,0)
 
 dnl Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
-case $host_os in
-	linux*)
-		cxx_define="-Wall -g3 -D_UNIX -D_LINUX -D_GNU_SOURCE -D_REENTRANT"
-	;;
-	darwin*)
-		cxx_define="-Wall -g3 -D_UNIX -D_BSD -D_GNU_SOURCE -D_REENTRANT"
-
-	dnl Other sytem can be added here.. with the relatives defines
-esac
+#case $host_os in
+#	linux*)
+#		cxx_define="-Wall -g3 -D_UNIX -D_LINUX -D_GNU_SOURCE -D_REENTRANT"
+#	;;
+#	darwin*)
+#		cxx_define="-Wall -g3 -D_UNIX -D_BSD -D_GNU_SOURCE -D_REENTRANT"
+#
+#	dnl Other sytem can be added here.. with the relatives defines
+#esac
 
 AC_SUBST(cxx_define)
 
 AC_OUTPUT(
 Makefile
-cache_manager/Makefile
-cache_play/Makefile
-cache_prefetching/Makefile
-config/Makefile
-libapp/Makefile
-librtsp/Makefile
-rtp/Makefile
-reflector/Makefile
-rtspproxy/Makefile
+lib/Makefile
 )
 
 echo "
