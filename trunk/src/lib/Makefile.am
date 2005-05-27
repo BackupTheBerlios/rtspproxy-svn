@@ -5,9 +5,6 @@
 # $URL
 #
 
-AM_CXXFLAGS = $(cxx_define) $(debug)
-AM_CFLAGS = $(cxx_define) $(debug)
-
 noinst_LIBRARIES = liblib.a
 
 liblib_a_SOURCES = Mutex.cpp Thread.cpp Debug.cpp \
