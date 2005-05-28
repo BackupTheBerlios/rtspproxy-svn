@@ -23,10 +23,14 @@
  
 #include "Debug.h"
 
-Debug::Debug()
-{
-}
+#include <iostream>
 
-Debug::~Debug()
-{
-}
+// log_stream getDebug()
+// {
+// 	static internal_threadsafe_log_stream log( std::cout );
+// 	return log;
+// }
+
+log_stream Debug( std::cout );
+
+
