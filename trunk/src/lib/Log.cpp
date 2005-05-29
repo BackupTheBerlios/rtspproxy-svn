@@ -21,16 +21,43 @@
  * 
  *****************************************************************************/
  
-#include "Debug.h"
+#include "Log.h"
 
 #include <iostream>
 
-// log_stream getDebug()
-// {
-// 	static internal_threadsafe_log_stream log( std::cout );
-// 	return log;
-// }
+// LogBase ProxyLog();
 
-log_stream Debug( std::cout );
+LogBase Debug( LogBase::STD_COUT );
+LogBase Info( LogBase::STD_COUT );
+LogBase Warning( LogBase::STD_COUT );
+LogBase Error( LogBase::STD_COUT );
+
+LogBase::LogBase( Output out )
+{
+	m_mutex = new Mutex();
+}
+
+LogBase::~LogBase()
+{
+	delete m_mutex;
+}
+
+LogBase & LogBase::operator<<( const std::string& str ) 
+{ 
+	m_mutex->lock();
+	std::cout << str;
+	std::cout.flush();
+	m_mutex->unlock();
+	return *this; 
+}
+
+LogBase & LogBase::operator<<( const char* str )
+{ 
+	m_mutex->lock();
+	std::cout << str;
+	std::cout.flush();
+	m_mutex->unlock();
+	return *this; 
+}
 
 

@@ -21,79 +21,35 @@
  * 
  *****************************************************************************/
 
-#ifndef _DEBUG_H_
-#define _DEBUG_H_
+#ifndef _LOG_H_
+#define _LOG_H_
 
 #include <fstream>
 #include <iostream>
-#include <time.h>
-#include <string>
-#include <sstream>
 
 #include "Mutex.h"
 
-/** @internal */
-struct internal_threadsafe_log_stream
-{
-	// internal_threadsafe_log_stream( std::string strFileName)
-	// 	: m_out( strFileName.c_str() ) {}
-		
-	internal_threadsafe_log_stream( std::ostream & out )
-		{ m_out = & out;  }
-
-	void threadsafe_write_str( const std::string & str)
-	{
-		/// m_cs.lock();
-		(*m_out) << str; 
-		(*m_out).flush();
-		/// m_cs.unlock();
-	}
-private:
-	std::ostream *m_out;
-	/// Mutex m_cs;
-};
-
-struct log_stream
-{
-	log_stream( std::ostream & out )
-		: m_underlyingStream( out ) {}
-	
-	// log_stream( internal_threadsafe_log_stream & underlyingStream )
-	// 	: m_underlyingStream( underlyingStream ) {}
-    
-	// log_stream( const log_stream & from)
-	//	: m_underlyingStream( from.m_underlyingStream ) {}
-
-	template< class type> log_stream & operator<<( type val ) { 
-		m_buffer << val << std::endl; 
-		return *this; 
-	}
-	
-	void flush() { 
-		m_underlyingStream.threadsafe_write_str( m_buffer.str() ); 
-	}
-private:
-    internal_threadsafe_log_stream m_underlyingStream;
-    std::ostringstream m_buffer;
-};
-
-/** 
- * Debug stream 
- * Ex. 
- *   Debug << "Error with .. " << item;
- */
-extern log_stream Debug;
-
-// extern 
-
-/*
-class Debug
+class LogBase
 {
 public:
-	Debug();
-	virtual ~Debug();
+	enum Output {
+		STD_COUT, 
+		STD_CERR, 
+		FILE
+	};
 	
-	static void _warning(); 
+	LogBase( Output out = STD_COUT );
+	virtual ~LogBase();
+	
+	LogBase & operator<<( const std::string& str );
+	
+	LogBase & operator<<( const char* str );
+	
+private:
+		Mutex *m_mutex;
 };
-*/
-#endif //_DEBUG_H_
+
+extern LogBase Debug;
+extern LogBase Warning;
+
+#endif //_LOG_H_
