@@ -33,9 +33,9 @@ class Timer : public Thread
 {
 public:
 	enum Mode {
-		Disabled, 
-		Single, 
-		Repeated
+		Disabled, ///< Counting disabled
+		Single,  ///< Single shot counting
+		Repeated ///< Continuos repeated counting
 	};
 	
 	Timer( uint32_t msecs, Mode mode );

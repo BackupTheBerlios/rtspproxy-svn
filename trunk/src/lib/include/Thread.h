@@ -26,10 +26,23 @@
 
 #include <pthread.h>
 
+/**
+ * \brief Thread abstraction Class.
+ * 
+ * This class implements all the thread related utilities.
+ * Classes that whish to execute some method in other thread, 
+ * should subclass the \a Thread class implementing the \a run()
+ * method.
+ *
+ * This method will be executed in the newly created thread using 
+ * the \a start() method.
+ */
 class Thread
 {
 public:
+	/*! Constructor */
 	Thread();
+	/*! Destructor */
 	virtual ~Thread();
 	
 	/**
@@ -38,6 +51,9 @@ public:
 	 */
 	bool start();
 	
+	/**
+	 * Terminate the execution of the thread.
+	 */
 	void terminate();
 	
 	/**
@@ -47,18 +63,31 @@ public:
 	
 	
 	/**
-	 * Forces the current thread to sleep for secs seconds.
+	 * Forces the current thread to sleep for \a secs seconds.
 	 *
 	 * @param secs Number of seconds to sleep
 	 */
 	void sleep(unsigned long secs);
 	
+	/**
+	 * Forces the current thread to sleep for \a msecs milli-seconds.
+	 *
+	 * @param msecs Number of milli-seconds to sleep
+	 */
 	void msleep( unsigned long msecs );
 	
+	/**
+	 * Forces the current thread to sleep for \a usecs micro-seconds.
+	 *
+	 * @param usecs Number of micro-seconds to sleep
+	 */
 	void usleep( unsigned long usecs );
 	
 protected:
-
+	/**
+	 * Virtual function that will be called on thread starting.
+	 * Subclasses of \a Thread should implement this method. 
+	 */
 	virtual void run() = 0;
 	
 private:

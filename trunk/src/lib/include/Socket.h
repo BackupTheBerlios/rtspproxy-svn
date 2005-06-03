@@ -32,26 +32,63 @@ class Socket
 {
 public:
 
-	enum Type {
-		TCP,		///< TCP IPv4 Address
-		TCP6,		///< TCP IPv6 Address
-		UDP,		///< UDP IPv4 Address
-		UDP6,		///< UDP IPv6 Address
-		LOCALSTREAM,	///< Unix Domain TCP
-		LOCALDGRAM	///< Unix Domain UDP
-    };
+	enum SocketType {
+		TcpSocket,
+		UdpSocket,
+		UnknownSocketType = -1
+	};
+	
+	enum NetworkLayerProtocol {
+		IPv4Protocol,
+		IPv6Protocol,
+		UnknownNetworkLayerProtocol = -1
+	};
+	
+	enum SocketError {
+		ConnectionRefusedError,
+		RemoteHostClosedError,
+		HostNotFounError,
+		SocketAccessError,
+		SocketResourceError,
+		SocketTimeoutError,
+		DatagramTooLargeError,
+		NetworkError,
+		AddressInUseError,
+		SocketAddressNowAvailableError,
+		UnsupportedSocketOperationError,
+		UnknownSocketError = -1
+	};
+	
+	enum SocketState {
+		UnconnectedState, 
+		HostLookupState,
+		ConnectingState,
+		ConnectedState,
+		BoundState,
+		ListeningState,
+		ClosingState
+	};
 
 	/** 
 	 * Creates a new socket with given type.
 	 * 
 	 * @param type Type of the socket: TCP, UDP...
 	 */
-	Socket( Type type );
+	Socket( SocketType type );
 	
 	Socket( );
 	
 	/** Destructor */
 	virtual ~Socket();
+	
+	/**
+	 * Attempts to make a connection to \a hostName on the given port.
+	 */
+	void connectToHost( const std::string& hostName, uint16_t port );
+	void disconnect();
+	
+	// bool isValid() const;
+	
 	
 	/** 
 	 * Read data from the socket and place it into the user buffer. If the given

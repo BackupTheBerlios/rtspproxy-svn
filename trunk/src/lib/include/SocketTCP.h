@@ -25,8 +25,9 @@
 #define _SOCKETTCP_H_
 
 #include "Socket.h"
+#include "Stream.h"
 
-class SocketTCP
+class SocketTCP : public Socket, public Stream
 {
 public:
 	
