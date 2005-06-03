@@ -38,13 +38,40 @@ public:
 	 */
 	bool start();
 	
+	void terminate();
+	
+	/**
+	 * Returns the internal thread id
+	 */
+	int getId();
+	
+	
+	/**
+	 * Forces the current thread to sleep for secs seconds.
+	 *
+	 * @param secs Number of seconds to sleep
+	 */
+	void sleep(unsigned long secs);
+	
+	void msleep( unsigned long msecs );
+	
+	void usleep( unsigned long usecs );
+	
 protected:
 
-	virtual void run();
+	virtual void run() = 0;
 	
 private:
 	
 	pthread_t m_thread;
+	
+	pthread_attr_t m_attr;
+	
+	bool m_finished;
+	
+	bool m_running;
+	
+	bool m_terminated;
 	
 };
 
