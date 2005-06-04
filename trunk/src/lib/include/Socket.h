@@ -32,18 +32,23 @@ class Socket
 {
 public:
 
+	/** Socket types. */
 	enum SocketType {
 		TcpSocket,
 		UdpSocket,
 		UnknownSocketType = -1
 	};
 	
+	/** Network layer types */
 	enum NetworkLayerProtocol {
 		IPv4Protocol,
 		IPv6Protocol,
 		UnknownNetworkLayerProtocol = -1
 	};
 	
+	/**
+	 * Socket error types.
+	 */
 	enum SocketError {
 		ConnectionRefusedError,
 		RemoteHostClosedError,
@@ -59,6 +64,9 @@ public:
 		UnknownSocketError = -1
 	};
 	
+	/** 
+	 * Socket's possible states.
+	 */
 	enum SocketState {
 		UnconnectedState, 
 		HostLookupState,
@@ -68,7 +76,7 @@ public:
 		ListeningState,
 		ClosingState
 	};
-
+#if 0
 	/** 
 	 * Creates a new socket with given type.
 	 * 
@@ -76,7 +84,8 @@ public:
 	 */
 	Socket( SocketType type );
 	
-	Socket( );
+	/** Default constructor */
+	Socket();
 	
 	/** Destructor */
 	virtual ~Socket();
@@ -141,17 +150,14 @@ public:
 	bool operator! (void) const;
 	
 private:
-
-	void setDomainType( Type type ); 
-
-	int m_sockfd;	
-	int m_domain;
-	int m_sock_type;
-	bool m_type_ready;
-    Type m_type;
+    SocketType m_type;
+    
+    std::string m_hostName;
+    uint16_t m_port;
+#endif    
 };
 
-bool operator== (const Socket &first, const Socket &second);
-bool operator!= (const Socket &first, const Socket &second);
+//// bool operator== (const Socket &first, const Socket &second);
+//// bool operator!= (const Socket &first, const Socket &second);
 
 #endif //_SOCKET_H_

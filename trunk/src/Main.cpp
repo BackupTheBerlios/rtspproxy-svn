@@ -1,9 +1,9 @@
 
-#include "Log.h"
+#include "ProxyApplication.h"
 
-int main() 
+int main( int argc, char** argv ) 
 {
-	Debug << "Ciao" << "come" << "va " << "?" ;
-	return 0;
+	ProxyApplication app( argc, argv );
+	return app.exec();
 }
 
