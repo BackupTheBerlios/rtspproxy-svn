@@ -23,4 +23,69 @@
 
 #include "RtspMessage.h"
 
+RtspMessage::RtspMessage()
+{
+	sequenceNumber = 0;
+	
+	// default is RTSP/1.0
+	rtspVersion.first = 1;
+	rtspVersione.second = 0;
+}
+
+RtspMessage::RtspMessage( const RtspMessage& ) // other )
+{
+	// TODO 
+}
+
+RtspMessage::~RtspMessage()
+{
+}
+
+void RtspMessage::setRtspVersion( quint8 major, quint8 minor )
+{
+	rtspVersion.first = major;
+	rtspVersion.second = minor;
+}
+
+quint32 RtspMessage::getHeadersCount() const
+{
+	return headerList.count();
+}
+
+QString RtspMessage::getHeader( const QString& key ) const
+{
+	if ( ! headers.contains( key ) ) 
+		// Header not found
+		return QString::null;
+
+	return headers[ key ];
+}
+
+void setHeader( const QSring& key, cont QString& value )
+{
+	headers.insert( key, value );
+}
+
+QString RtspMessage::getHeadersString() const
+{
+	QString* headers = new QString();
+	QTextStream str( headers );
+	HeadersDictIterator it( headerList );
+	while ( it.hasNext() ) {
+		RtspHeader h = it.next();
+		str << h.getKey() << ": " << h.getValue() << CRLF;
+	}
+	return *headers;
+}
+
+void RtspMessage::setBuffer( const QByteArray& buffer ) 
+{ 
+	this->buffer = buffer;
+	if ( buffer.size() ) {
+		setHeader( "Content-Length", QString::fromInt( buffer.size() ) );
+	} else {
+		removeHeader( "Content-Length" );
+	}
+} 
+
 
