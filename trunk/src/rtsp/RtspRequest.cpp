@@ -75,13 +75,13 @@ void RtspRequest::setVerb( const QString& verb )
 	return;
 }
 
-QString RtspRequest::toString() const
+QByteArray RtspRequest::toString() const
 {
 	// <verb> SP <url> SP "RTSP/1.0" CRLF
 	// <headers> CRLF <buffer>
-	QString *req = new QString();
-	QTextStream str( req );
-	str << verb << " " << url.toString() << " " 
+	QByteArray req;
+	QTextStream str( &req );
+	str << getVerbString() << " " << url.toString() << " " 
 		<< "RTSP/" << rtspVersion.first << "." << rtspVersion.second << CRLF;
 	str << getHeadersString();
 	
@@ -92,7 +92,7 @@ QString RtspRequest::toString() const
 		str << buffer;
 	}
 	
-	return *req;
+	return req;
 }
 
 

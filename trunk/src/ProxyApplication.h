@@ -28,10 +28,12 @@
 
 class ProxyApplication : public QCoreApplication
 {
+	Q_OBJECT
+	
 public:
 	ProxyApplication( int& argc, char** argv );
 	~ProxyApplication();
 
 };
 
-#endif _PROXY_APPLICATION_H_
+#endif // _PROXY_APPLICATION_H_

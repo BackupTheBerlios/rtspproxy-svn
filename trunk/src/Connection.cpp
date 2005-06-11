@@ -26,11 +26,25 @@
 #include <QtNetwork>
 #include <QtCore>
 
-Connection::Connection( QObject *parent, QTcpSocket *client )
-	: QObject( parent )
+#include "rtsp/RtspProtocol.h"
+
+Connection::Connection( int socketDescriptor )
+	: QObject()
 {
-	socket = client;
-	connect( socket, SIGNAL( readyRead() ), this, SLOT( readData() ) );
+	this->socketDescriptor = socketDescriptor;
+	
+	socket = new QTcpSocket( this );
+	socket->setSocketDescriptor( socketDescriptor );
+	
+	qDebug() << "New connection in thread: " 
+	<< socket->peerAddress().toString() 
+			<< ":" << socket->peerPort();
+	
+	// TODO: remove	
+	RtspProtocol *rtsp = new RtspProtocol( socket );
+			
+	connect( socket, SIGNAL( disconnected() ), socket, SLOT( deleteLater() ) );
+	connect( socket, SIGNAL( readyRead() ), rtsp, SLOT( readData() ) );
 }
 
 Connection::~Connection()

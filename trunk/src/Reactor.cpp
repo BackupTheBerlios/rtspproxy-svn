@@ -23,6 +23,7 @@
 
 #include "Reactor.h"
 #include "Connection.h"
+#include "Config.h"
 
 #include <QtNetwork>
 #include <QtCore>
@@ -35,37 +36,38 @@
  */
  
 Reactor::Reactor( QObject *parent )
-	: QThread( parent )
+	: QTcpServer( parent )// , QThread( parent )
 {
-	tcpServer = new QTcpServer( this );
-	// TODO: Read port number from config
-	if ( ! tcpServer->listen( 5540 ) ) {
-		qDebug() << "Unable to start the proxy: " << tcpServer->errorString();
-		return;
-	}
+	int port = Config::getIntValue( "rtsp_port" );
 	
-	connect( tcpServer, SIGNAL( newConnection() ), 
-			this, SLOT( newConnection() ) );
+	while ( ! this->listen( port++ ) ) {
+		qWarning() << "Unable to start the proxy on port" << port-1 << ":" << this->errorString();
+		///// QCoreApplication::exit( -1 );
+	} // else {
+		qDebug() << "Listening on port" << port-1;
+	// }
 }
  
 Reactor::~Reactor()
 {
 }
 
-void Reactor::newConnection()
+void Reactor::incomingConnection( int socketDescriptor )
 {
-	// Serve the connection in a new thread
-	start();
+	connectionQueue.enqueue( socketDescriptor );
+	// start();
+	run();
 }
 
-void Reactor::run()
+void Reactor::run() 
 {
-	QTcpSocket *client = tcpServer->nextPendingConnection();
-	qWarning() << "New connection in thread: " << client->peerAddress().toString() 
-			<< ":" << client->peerPort();
-	connect( client, SIGNAL( disconnected() ), 
-			 client, SLOT( deleteLater() ) );
+	if ( connectionQueue.isEmpty() )
+		return;
 	
-	new Connection( this, client );
+	int socket = connectionQueue.dequeue();
+	qDebug() << "New connection";
+	Connection *connection = new Connection( socket );
+	
+	// exec();
 }
 

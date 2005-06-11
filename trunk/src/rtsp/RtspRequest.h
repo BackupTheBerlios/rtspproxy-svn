@@ -55,13 +55,13 @@ public:
 	Verb getVerb() const { return verb; }
 	QString getVerbString() const;
 	
-	void setVerb() { this->verb = verb; }
+	void setVerb( Verb verb ) { this->verb = verb; }
 	void setVerb( const QString& verb );
 	
-	void setUrl( const QString& url );
+	void setUrl( const QUrl& url ) { this->url = url; }
 	QUrl getUrl() const { return url; }
 	
-	QString toString() const;
+	QByteArray toString() const;
 	
 private:
 	Verb verb;

@@ -24,11 +24,11 @@
 #ifndef _REACTOR_H_
 #define _REACTOR_H_
 
+#include <QTcpServer>
 #include <QThread>
+#include <QQueue>
 
-class QTcpServer;
-
-class Reactor : public QThread
+class Reactor : public QTcpServer//, QThread
 {
 	Q_OBJECT
 	
@@ -36,14 +36,13 @@ public:
 	Reactor( QObject *parent );
 	virtual ~Reactor();
 	
-private slots:
-	void newConnection();
+protected:
+	void incomingConnection( int socketDescriptor );
+	
+	void run();
 	
 private:
-
-	void run();
-
-	QTcpServer *tcpServer;
+	QQueue<int> connectionQueue;
 };
 
 #endif // _REACTOR_H_

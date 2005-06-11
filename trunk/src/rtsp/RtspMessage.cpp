@@ -29,7 +29,7 @@ RtspMessage::RtspMessage()
 	
 	// default is RTSP/1.0
 	rtspVersion.first = 1;
-	rtspVersione.second = 0;
+	rtspVersion.second = 0;
 }
 
 RtspMessage::RtspMessage( const RtspMessage& ) // other )
@@ -49,7 +49,7 @@ void RtspMessage::setRtspVersion( quint8 major, quint8 minor )
 
 quint32 RtspMessage::getHeadersCount() const
 {
-	return headerList.count();
+	return headers.count();
 }
 
 QString RtspMessage::getHeader( const QString& key ) const
@@ -61,31 +61,45 @@ QString RtspMessage::getHeader( const QString& key ) const
 	return headers[ key ];
 }
 
-void setHeader( const QSring& key, cont QString& value )
+void RtspMessage::setHeader( const QString& key, const QString& value )
 {
 	headers.insert( key, value );
 }
 
+void RtspMessage::removeHeader( const QString& key )
+{
+	headers.remove( key );
+}
+
 QString RtspMessage::getHeadersString() const
 {
-	QString* headers = new QString();
-	QTextStream str( headers );
-	HeadersDictIterator it( headerList );
+	QString s;
+	QTextStream str( &s );
+	HeadersDictIterator it( headers );
 	while ( it.hasNext() ) {
-		RtspHeader h = it.next();
-		str << h.getKey() << ": " << h.getValue() << CRLF;
+		it.next();
+		str << it.key() << ": " << it.value() << CRLF;
 	}
-	return *headers;
+	return s;
 }
 
 void RtspMessage::setBuffer( const QByteArray& buffer ) 
 { 
 	this->buffer = buffer;
 	if ( buffer.size() ) {
-		setHeader( "Content-Length", QString::fromInt( buffer.size() ) );
+		setHeader( "Content-Length", QString::number( buffer.size() ) );
 	} else {
 		removeHeader( "Content-Length" );
 	}
 } 
+
+/** 
+ * Append the content to the current buffer.
+ */
+void RtspMessage::addToBuffer( const QByteArray& other )
+{
+	this->buffer += other;
+	setBuffer( this->buffer );
+}
 
 

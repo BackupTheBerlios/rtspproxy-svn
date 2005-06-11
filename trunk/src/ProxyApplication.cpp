@@ -23,13 +23,15 @@
  
 #include "ProxyApplication.h"
 #include "Reactor.h"
-
-#include <iostream>
+#include "Config.h"
 
 ProxyApplication::ProxyApplication( int &argc, char** argv )
 	: QCoreApplication( argc, argv ) 
 {
-	std::cout << "Partito" << std::endl;
+	qDebug( "Partito" );
+	
+	// Initialize the configuration system
+	new Config( this );
 	
 	Reactor *reactor = new Reactor( this );
 }

@@ -25,19 +25,66 @@
 #define _RTSP_PROTOCOL_H_
 
 #include <QtCore>
+#include <QtNetwork>
 
 #define DEFAULT_RTSP_PORT 554
 
-class RtspRequest;
+#include "RtspMessage.h"
+#include "RtspRequest.h"
 class RtspResponse;
  
-class RtspProtocol
+class RtspProtocol : public QObject
 {
+	Q_OBJECT
+
 public:
-	RtspProtocol();
+	RtspProtocol( QTcpSocket* socket );
 	virtual ~RtspProtocol();
 	
 	void sendRequest( RtspRequest* request );
+	
+	void sendResponse( RtspResponse* response );
+
+signals:
+	// requests
+	void requestAnnounce( RtspRequest* );
+	void requestDescribe( RtspRequest* );
+	void requestGetParam( RtspRequest* );
+	void requestOptions( RtspRequest* );
+	void requestPause( RtspRequest* );
+	void requestPlay( RtspRequest* );
+	void requestRecord( RtspRequest* );
+	void requestRedirect( RtspRequest* );
+	void requestSetup( RtspRequest* );
+	void requestSetParam( RtspRequest* );
+	void requestTeardown( RtspRequest* );
+	void requestLast( RtspRequest* );
+	
+	// responses
+	void responseAnnounce( RtspResponse* );
+	void responseDescribe( RtspResponse* );
+	void responseGetParam( RtspResponse* );
+	void responseOptions( RtspResponse* );
+	void responsePause( RtspResponse* );
+	void responsePlay( RtspResponse* );
+	void responseRecord( RtspResponse* );
+	void responseRedirect( RtspResponse* );
+	void responseSetup( RtspResponse* );
+	void responseSetParam( RtspResponse* );
+	void responseTeardown( RtspResponse* );
+	void responseLast( RtspResponse* );
+	
+	// internal use
+	void messageParsed();
+	
+public slots:
+	/** When called, it will feed data into the buffer
+	 *  and parse it.
+	 */
+	void readData();
+	
+private slots:
+	void dispatchMessage();
 	
 private:
 	enum ReadState {
@@ -52,11 +99,21 @@ private:
 		stREADSTATE_LAST
 	};
 	
+	void parse();
+	
 	quint32 getNextCSeq() { return ++cseqToSend; }
 
 	quint32 cseqToSend;
-	quint32 cseqReceived;
+	// quint32 cseqReceived;
 	ReadState internalReadState;
+	
+	QTcpSocket* socket;
+	QByteArray buffer;
+	RtspMessage* rtspMessage;
+	bool rtspMessageBodyCompleted;
+	bool rtspMessageCompleted;
+	
+	RtspRequest::Verb lastRequestType;
 }; 
  
 #endif // _RTSP_PROTOCOL_H_

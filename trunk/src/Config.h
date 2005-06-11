@@ -21,29 +21,26 @@
  * 
  *****************************************************************************/
 
-#ifndef _RTSP_RESPONSE_H_
-#define _RTSP_RESPONSE_H_
-
-#include "RtspMessage.h"
+#ifndef _RTSP_CONFIG_H_
+#define _RTSP_CONFIG_H_
 
 #include <QtCore>
 
-class RtspResponse : public RtspMessage
+class Config : public QObject
 {
-public:	
-	RtspResponse();
-	~RtspResponse();	
+	Q_OBJECT
+
+public:
+	Config( QObject * parent );
+	virtual ~Config();
 	
-	MessageType getType() const { return TypeResponse; }
-	
-	quint8 getCode() const { return code; }
-	QString getCodeString() const; 
-	void setCode( quint8 code ) { this->code = code; }
-	
-	QByteArray toString() const;
+	static qint32 getIntValue( const QString& key );
+	// static QString getValue( const QString& key );
+
+	static QStringList getConfigFileList();
 	
 private:
-	quint8 code;
+	void readFromFile( const QString& fileName );
 };
 
-#endif //_RTSP_RESPONSE_H_
+#endif // _RTSP_CONFIG_H_

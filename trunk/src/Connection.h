@@ -33,7 +33,7 @@ class Connection : public QObject
 	Q_OBJECT
 
 public:
-	Connection( QObject *parent, QTcpSocket *client );
+	Connection( int socketDescriptor );
 	virtual ~Connection();
 	
 private slots:
@@ -41,6 +41,7 @@ private slots:
 	
 private:
 	QTcpSocket *socket;
+	int socketDescriptor;
 };
 
 #endif // _CONNECTION_H_

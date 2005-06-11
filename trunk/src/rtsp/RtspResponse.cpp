@@ -55,13 +55,13 @@ QString RtspResponse::getCodeString() const
 	return QString("");
 }
 
-QString RtspResponse::toString() const
+QByteArray RtspResponse::toString() const
 {
 	// "RTSP/1.0" SP <code> SP <reason> CRLF
 	// <headers> CRLF
 	// <buf> 
-	QString *req = new QString();
-	QTextStream str( req );
+	QByteArray req;
+	QTextStream str( &req );
 	str << "RTSP/" << rtspVersion.first << "." << rtspVersion.second << " " 
 		<< code << " " << getCodeString() << CRLF;
 	str << getHeadersString();
@@ -73,10 +73,10 @@ QString RtspResponse::toString() const
 		str << buffer;
 	}
 	
-	return *req;
+	return req;
 }
 
-static struct StatusMapEntry s_mapStatus[] = {
+struct StatusMapEntry s_mapStatus[] = {
 	{100, "Continue"},
 
 	{200, "OK"},

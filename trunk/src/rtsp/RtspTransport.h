@@ -21,17 +21,15 @@
  * 
  *****************************************************************************/
  
- #ifndef _RTSP_TRANSPORT_H_
- #define _RTSP_TRANSPORT_H_
+#ifndef _RTSP_TRANSPORT_H_
+#define _RTSP_TRANSPORT_H_
  
+class RtspTransport
+{
+public:
+
+private:
+
+};
  
- class RtspTransport
- {
- public:
- 
- 
- private:
- 
- };
- 
- #endif // _RTSP_TRANSPORT_H_
+#endif // _RTSP_TRANSPORT_H_

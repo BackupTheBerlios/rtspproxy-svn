@@ -24,8 +24,6 @@
 #ifndef _RTSP_MESSAGE_H_
 #define _RTSP_MESSAGE_H_
 
-#include "RtspHeader.h"
-
 #include <QtCore>
 
 // A pair of 8-bits integers
@@ -61,14 +59,17 @@ public:
 	
 	QString getHeadersString() const;
 	
-	void setHeader( const QSring& key, cont QString& value );
+	void setHeader( const QString& key, const QString& value );
+	void removeHeader( const QString& key );
 	
 	virtual MessageType getType() const { return TypeNone; }
 	
 	QByteArray getBuffer() { return buffer; }
+	quint32 getBufferSize() { return buffer.size(); }
 	void setBuffer( const QByteArray& buffer );
+	void addToBuffer( const QByteArray& other );
 	
-	virtual QString toString() const = 0;
+	virtual QByteArray toString() const = 0;
 	
 protected:
 	IntPair rtspVersion;
@@ -76,5 +77,8 @@ protected:
 	HeadersDict headers;
 	QByteArray buffer;
 };
+
+typedef QList<RtspMessage> RtspMessageList;
+typedef QListIterator<RtspMessage> RtspMessageListIterator;
 
 #endif // _RTSP_MESSAGE_H_
