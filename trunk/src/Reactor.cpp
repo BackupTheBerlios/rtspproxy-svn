@@ -40,9 +40,13 @@ Reactor::Reactor( QObject *parent )
 {
 	int port = Config::getIntValue( "rtsp_port" );
 	
-	while ( ! this->listen( port++ ) ) {
+	while ( ! this->listen( QHostAddress::Any, port++ ) ) {
 		qWarning() << "Unable to start the proxy on port" << port-1 << ":" << this->errorString();
-		///// QCoreApplication::exit( -1 );
+		
+		if ( port > 5550 ) {
+			QCoreApplication::exit( -1 );
+			break;
+		}
 	} // else {
 		qDebug() << "Listening on port" << port-1;
 	// }
