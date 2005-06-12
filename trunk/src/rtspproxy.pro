@@ -11,5 +11,6 @@ QT += network
 CONFIG += qt warn_on debug console
 
 include( rtsp/rtsp.pri )
+include( proxy/proxy.pri )
 
 
