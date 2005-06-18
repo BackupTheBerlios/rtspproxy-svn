@@ -18,10 +18,9 @@
 
 package rtspproxy;
 
-
 /**
  * @author mat
- *
+ * 
  */
 public class Config
 {

@@ -1,10 +1,29 @@
-/**
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   Copyright (C) 2005 - Matteo Merli - matteo.merli@gmail.com            *
+ *                                                                         *
+ ***************************************************************************/
+
+/*
+ * $Id$
+ * 
+ * $URL$
  * 
  */
+
 package rtspproxy;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
+
+import rtspproxy.lib.Debug;
 
 /**
  * 
@@ -19,23 +38,36 @@ public class Reactor
 	 * 
 	 * @throws IOException
 	 */
-	public Reactor() throws IOException
+	public Reactor()
 	{
 		boolean listening = true;
+		int port = 5540;
 
 		try {
-			serverSocket = new ServerSocket( 5540 );
-			
-		} catch (IOException e) {
-			System.err.println( "Could not listen on port: 5540." );
+			serverSocket = new ServerSocket();
+			serverSocket.setReuseAddress( true );
+			serverSocket.bind( new InetSocketAddress( port ) );
+
+		} catch ( IOException e ) {
+			System.err.println( "Could not listen on port: " + port );
 			System.exit( -1 );
 		}
 
-		while (listening) {
-			// new KKMultiServerThread(serverSocket.accept()).start();
+		while ( listening ) {
+			Socket socket;
+			try {
+				socket = serverSocket.accept();
+				new Connection( socket ).start();
+			} catch ( IOException e ) {
+				Debug.write( "Error accepting a connection." );
+				System.exit( -1 );
+			}
 		}
-
-		serverSocket.close();
+		try {
+			serverSocket.close();
+		} catch ( IOException e ) {
+			Debug.write( "Error closing server socket." );
+		}
 	}
 
 	/**
@@ -48,9 +80,9 @@ public class Reactor
 
 	/**
 	 * @param serverSocket
-	 *            The serverSocket to set.
+	 *        The serverSocket to set.
 	 */
-	public void setServerSocket(ServerSocket serverSocket)
+	public void setServerSocket( ServerSocket serverSocket )
 	{
 		this.serverSocket = serverSocket;
 	}
