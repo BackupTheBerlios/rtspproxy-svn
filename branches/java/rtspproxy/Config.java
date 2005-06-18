@@ -7,11 +7,14 @@
  *                                                                         *
  *   Copyright (C) 2005 - Matteo Merli - matteo.merli@gmail.com            *
  *                                                                         *
- *   $Id$                                                                  *
- *                                                                         *
- *   $URL$                                                                 *
- *                                                                         *
  ***************************************************************************/
+
+/*
+ * $Id$
+ * 
+ * $URL$
+ * 
+ */
 
 package rtspproxy;
 
