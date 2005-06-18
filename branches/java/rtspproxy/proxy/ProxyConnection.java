@@ -18,12 +18,19 @@
 
 package rtspproxy.proxy;
 
+import java.net.Socket;
+
 
 /**
- * @author mat
- *
+ * 
  */
 public class ProxyConnection
 {
-
+	public ProxyConnection( Socket socket )
+	{
+	
+	}
+	
+	public void passToServer(){}
+	
 }
