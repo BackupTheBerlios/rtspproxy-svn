@@ -72,22 +72,27 @@ public enum RtspCode {
 	RtspVersionNotSupported		( 505, "RTSP Version not supported" ),
 	OptionNotSupported			( 551, "Option not supported" );
 
-	private final int code;
+	private final int value;
 	private final String description;
 	
-	private RtspCode( int code, String description ) 
+	private RtspCode( int value, String description ) 
 	{
-		this.code = code;
+		this.value = value;
 		this.description = description;
 	}
 	
-	private RtspCode( int code )
+	private RtspCode( int value )
 	{
-		this.code = code;
+		this.value = value;
 		this.description = null;
 	}
 	
-	public String toString()
+	public int value()
+	{
+		return this.value;
+	}
+	
+	public String description()
 	{
 		if ( description != null )
 			return description;
