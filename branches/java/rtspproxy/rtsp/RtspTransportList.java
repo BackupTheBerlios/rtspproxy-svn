@@ -27,7 +27,7 @@ import java.util.List;
 public class RtspTransportList
 {
 
-	List<RtspTransport> transportList;
+	private List<RtspTransport> transportList;
 
 	/**
 	 * Constructor. Creates a list of transport type.
@@ -42,7 +42,7 @@ public class RtspTransportList
 	}
 
 	/**
-	 * @return The number of transport defined.
+	 * @return The number of transports defined.
 	 */
 	public int count()
 	{

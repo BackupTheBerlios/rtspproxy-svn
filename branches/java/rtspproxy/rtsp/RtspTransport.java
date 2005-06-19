@@ -20,6 +20,39 @@ package rtspproxy.rtsp;
 
 /**
  * Parse the RTSP Transport header field.
+ * 
+ * Reference Grammar:
+ * <pre>
+ *    Transport           =    "Transport" ":"
+ *                             1\#transport-spec
+ *    transport-spec      =    transport-protocol/profile[/lower-transport]
+ *                             *parameter
+ *    transport-protocol  =    "RTP"
+ *    profile             =    "AVP"
+ *    lower-transport     =    "TCP" | "UDP"
+ *    parameter           =    ( "unicast" | "multicast" )
+ *                        |    ";" "destination" [ "=" address ]
+ *                        |    ";" "interleaved" "=" channel [ "-" channel ]
+ *                        |    ";" "append"
+ *                        |    ";" "ttl" "=" ttl
+ *                        |    ";" "layers" "=" 1*DIGIT
+ *                        |    ";" "port" "=" port [ "-" port ]
+ *                        |    ";" "client_port" "=" port [ "-" port ]
+ *                        |    ";" "server_port" "=" port [ "-" port ]
+ *                        |    ";" "ssrc" "=" ssrc
+ *                        |    ";" "mode" = <"> 1\#mode <">
+ *    ttl                 =    1*3(DIGIT)
+ *    port                =    1*5(DIGIT)
+ *    ssrc                =    8*8(HEX)
+ *    channel             =    1*3(DIGIT)
+ *    address             =    host
+ *    mode                =    <"> *Method <"> | Method
+ * 
+ * 
+ *    Example:
+ *      Transport: RTP/AVP;multicast;ttl=127;mode="PLAY",
+ *                 RTP/AVP;unicast;client_port=3456-3457;mode="PLAY"
+ * </pre>
  */
 public class RtspTransport
 {
