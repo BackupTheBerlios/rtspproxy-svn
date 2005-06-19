@@ -53,7 +53,10 @@ public class Connection extends Thread
 					socket.getInputStream() ) );
 
 			String inputLine, outputLine;
-			
+
+			out.write( "Ciao!\r\n" );
+			out.flush();
+			socket.close();
 
 		} catch ( IOException e ) {
 			e.printStackTrace();

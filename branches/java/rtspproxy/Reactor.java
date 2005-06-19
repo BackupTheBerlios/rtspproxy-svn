@@ -36,12 +36,11 @@ public class Reactor
 	/**
 	 * Constructor. Creates a new Reactor and starts it.
 	 * 
-	 * @throws IOException
 	 */
 	public Reactor()
 	{
 		boolean listening = true;
-		int port = 5540;
+		int port = 5549;
 
 		try {
 			serverSocket = new ServerSocket();
