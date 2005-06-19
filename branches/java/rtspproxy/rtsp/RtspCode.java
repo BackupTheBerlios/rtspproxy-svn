@@ -99,4 +99,15 @@ public enum RtspCode {
 		else 
 			return name();
 	}
+	
+	public static RtspCode fromString( String strCode )
+	{
+		int intCode = Integer.valueOf( strCode );
+		for ( RtspCode code : RtspCode.values() ) {
+			if ( code.value() == intCode ) 
+				return code;
+		}
+		return RtspCode.BadRequest;
+	}
 }
+
