@@ -76,7 +76,7 @@ public class RtspProtocol
 	private Socket socket;
 	private BufferedReader in = null;
 	private PrintWriter out = null;
-	
+
 	private ProxySide parent;
 
 	/**
@@ -89,7 +89,7 @@ public class RtspProtocol
 		rtspMessage = null;
 		state = ReadState.Command;
 		lastRequestType = RtspRequest.Verb.None;
-		this.parent = parent; 
+		this.parent = parent;
 		if ( socket != null ) {
 			try {
 				in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
@@ -197,70 +197,77 @@ public class RtspProtocol
 		// qDebug() << "BUFFER(" << buffer << ")";
 		// String data = in.read();
 
-		if ( state == ReadState.Command ) {
-			String line = in.readLine();
-			if ( line.startsWith( "RTSP" ) ) {
-				// this is a RTSP response
-				RtspCode code = RtspCode.fromString( line.split( " " )[1] );
-				rtspMessage = new RtspResponse();
-				( (RtspResponse) ( rtspMessage ) ).setCode( code );
-				// qDebug() << "Request - code:" << code;
-			} else {
-				// this is a RTSP request
-				String verb = line.split( " " )[0];
-				URL url;
-				try {
-					url = new URL( line.split( " " )[1] );
-				} catch ( MalformedURLException e ) {
-					url = null;
-					state = ReadState.Failed;
+		String line;
+		
+		switch ( state ) {
+
+			case Command:
+				line = in.readLine();
+				if ( line.startsWith( "RTSP" ) ) {
+					// this is a RTSP response
+					RtspCode code = RtspCode.fromString( line.split( " " )[1] );
+					rtspMessage = new RtspResponse();
+					( (RtspResponse) ( rtspMessage ) ).setCode( code );
+					// qDebug() << "Request - code:" << code;
+				} else {
+					// this is a RTSP request
+					String verb = line.split( " " )[0];
+					URL url;
+					try {
+						url = new URL( line.split( " " )[1] );
+					} catch ( MalformedURLException e ) {
+						url = null;
+						state = ReadState.Failed;
+						return;
+					}
+					rtspMessage = new RtspRequest();
+					( (RtspRequest) ( rtspMessage ) ).setVerb( verb );
+					( (RtspRequest) ( rtspMessage ) ).setUrl( url );
+					// qDebug() << "Request - verb:" << verb << "url:" << url;
+				}
+				state = ReadState.Header;
+				break;
+
+			case Header:
+				// this is an header
+				line = in.readLine();
+				if ( line.length() == 0 ) {
+					// This is the empty line that marks the end
+					// of the headers section
+					state = ReadState.Body;
 					return;
 				}
-				rtspMessage = new RtspRequest();
-				( (RtspRequest) ( rtspMessage ) ).setVerb( verb );
-				( (RtspRequest) ( rtspMessage ) ).setUrl( url );
-				// qDebug() << "Request - verb:" << verb << "url:" << url;
-			}
-			state = ReadState.Header;
 
-		} else if ( state == ReadState.Header ) {
-			// this is an header
-			String line = in.readLine();
-			if ( line.length() == 0 ) {
-				// This is the empty line that marks the end
-				// of the headers section
-				state = ReadState.Body;
-				return;
-			}
+				String key = line.split( ": " )[0];
+				String value = line.split( ": " )[1];
+				rtspMessage.setHeader( key, value );
+				// qDebug() << "Header - key:" << key << "value:" << value;
+				break;
 
-			String key = line.split( ": " )[0];
-			String value = line.split( ": " )[1];
-			rtspMessage.setHeader( key, value );
-			// qDebug() << "Header - key:" << key << "value:" << value;
+			case Body:
 
-		} else if ( state == ReadState.Body ) {
+				int bufferLen = Integer.valueOf( rtspMessage.getHeader( "Content-Length" ) );
+				if ( bufferLen == 0 ) {
+					// there's no buffer to be read
+					state = ReadState.Dispatch;
+					return;
+				}
 
-			int bufferLen = Integer.valueOf( rtspMessage.getHeader( "Content-Length" ) );
-			if ( bufferLen == 0 ) {
-				// there's no buffer to be read
-				state = ReadState.Dispatch;
-				return;
-			}
-			
-			int bytesToRead = bufferLen - rtspMessage.getBufferSize();
+				int bytesToRead = bufferLen - rtspMessage.getBufferSize();
 
-			// read the content buffer
-			CharBuffer buffer = CharBuffer.allocate( bytesToRead );
-			int res = in.read( buffer.array() );
+				// read the content buffer
+				CharBuffer buffer = CharBuffer.allocate( bytesToRead );
+				int res = in.read( buffer.array() );
 
-			if ( res == 0 )
-				return;
+				if ( res == 0 )
+					return;
 
-			rtspMessage.appendToBuffer( new StringBuffer(buffer) );
-			if ( rtspMessage.getBufferSize() >= bufferLen ) {
-				// The RTSP message parsing is completed
-				state = ReadState.Dispatch;
-			}
+				rtspMessage.appendToBuffer( new StringBuffer( buffer ) );
+				if ( rtspMessage.getBufferSize() >= bufferLen ) {
+					// The RTSP message parsing is completed
+					state = ReadState.Dispatch;
+				}
+				break;
 		}
 	}
 }
