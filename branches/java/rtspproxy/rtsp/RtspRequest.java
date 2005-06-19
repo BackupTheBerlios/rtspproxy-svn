@@ -58,10 +58,17 @@ public class RtspRequest extends RtspMessage
 	{
 		this.verb = verb;
 	}
+	
+	public Verb getVerb()
+	{
+		return verb;
+	}
 
 	/**
 	 * Sets the verb of the request from a string.
-	 * @param strVerb String containing the the verb
+	 * 
+	 * @param strVerb
+	 *        String containing the the verb
 	 */
 	public void setVerb( String strVerb )
 	{
@@ -83,11 +90,25 @@ public class RtspRequest extends RtspMessage
 		return url;
 	}
 
+	/**
+	 * Return a serialized version of the RTSP request message that will be sent
+	 * over the network. The message is in the form:
+	 * 
+	 * <pre>
+	 * [verb] SP [url] SP "RTSP/1.0" CRLF
+	 * [headers] CRLF
+	 * CRLF 
+	 * [buffer]
+	 * </pre>
+	 */
 	public String toString()
 	{
 		String str = getVerbString() + " ";
 		str += url + " " + "RTSP/1.0" + CRLF;
 		str += getHeadersString();
+
+		// Insert a blank line
+		str += CRLF;
 
 		if ( getBufferSize() > 0 ) {
 			str += getBuffer();
