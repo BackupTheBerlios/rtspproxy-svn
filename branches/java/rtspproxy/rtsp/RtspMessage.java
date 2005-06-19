@@ -59,7 +59,7 @@ public abstract class RtspMessage
 	 */
 	public void setHeader( String key, String value )
 	{
-		// Handle some nasty formatted headers
+		// Handle some bad formatted headers
 		if ( key == "Content-length" )
 			key = "Content-Length";
 		headers.setProperty( key, value );
