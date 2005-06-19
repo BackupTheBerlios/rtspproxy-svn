@@ -20,17 +20,40 @@ package rtspproxy.proxy;
 
 import java.net.Socket;
 
+import rtspproxy.rtsp.RtspMessage;
+import rtspproxy.rtsp.RtspRequest;
+import rtspproxy.rtsp.RtspResponse;
 
 /**
- * 
+ * Wraps a proxy connection, managing server and client sides.
  */
 public class ProxyConnection
 {
-	public ProxyConnection( Socket socket )
+
+	private ClientSide clientSide;
+	private ServerSide serverSide;
+
+	public ProxyConnection( Socket clientSocket )
 	{
-	
+		clientSide = new ClientSide( this, clientSocket );
+		serverSide = new ServerSide( this );
 	}
-	
-	public void passToServer(){}
-	
+
+	public void passToServer( RtspMessage message )
+	{
+	}
+
+	public void passToClient( RtspMessage message )
+	{
+	}
+
+	// Special cases
+	public void passSetupRequestToServer( RtspRequest request )
+	{
+	}
+
+	public void passSetupResponseToClient( RtspResponse response )
+	{
+	}
+
 }
