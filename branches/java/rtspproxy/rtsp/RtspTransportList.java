@@ -41,6 +41,11 @@ public class RtspTransportList
 		}
 	}
 
+	public List<RtspTransport> getList()
+	{
+		return transportList;
+	}
+
 	/**
 	 * @return The number of transports defined.
 	 */
