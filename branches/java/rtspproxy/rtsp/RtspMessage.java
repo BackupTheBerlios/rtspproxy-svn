@@ -48,6 +48,10 @@ public abstract class RtspMessage
 		headers = new Properties();
 		buffer = new StringBuffer();
 	}
+	
+	public Type getType() {
+		return Type.TypeNone;
+	}
 
 	/**
 	 * Adds a new header to the RTSP message.
@@ -68,6 +72,15 @@ public abstract class RtspMessage
 	public String getHeader( String key )
 	{
 		return headers.getProperty( key );
+	}
+	
+	public String getHeader( String key, String defaultValue )
+	{
+		String value = getHeader( key );
+		if ( value == null )
+			return defaultValue;
+		else
+			return value;
 	}
 
 	public void removeHeader( String key )
