@@ -57,16 +57,16 @@ package rtspproxy.rtsp;
 public class RtspTransport
 {
 
-	enum TransportProtocol {
+	public enum TransportProtocol {
 		None, RTP, RDT
 	}
-	enum Profile {
+	public enum Profile {
 		None, AVP
 	}
-	enum LowerTransport {
+	public enum LowerTransport {
 		None, TCP, UDP
 	}
-	enum DeliveryType {
+	public enum DeliveryType {
 		None, unicast, multicast
 	}
 
