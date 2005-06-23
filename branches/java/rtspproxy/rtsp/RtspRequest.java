@@ -18,7 +18,7 @@
 
 package rtspproxy.rtsp;
 
-import java.net.URL;
+import java.net.URI;
 
 /**
  * @author mat
@@ -33,7 +33,7 @@ public class RtspRequest extends RtspMessage
 	};
 
 	private Verb verb;
-	private URL url;
+	private URI url;
 
 	/**
 	 * 
@@ -80,12 +80,12 @@ public class RtspRequest extends RtspMessage
 		}
 	}
 
-	public void setUrl( URL url )
+	public void setUrl( URI url )
 	{
 		this.url = url;
 	}
 
-	public URL getUrl()
+	public URI getUrl()
 	{
 		return url;
 	}
