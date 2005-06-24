@@ -56,16 +56,7 @@ public class RtspDecoder implements ProtocolDecoder
 
 	static Logger log = Logger.getLogger( RtspDecoder.class );
 
-	private ReadState state;
-	private RtspMessage rtspMessage;
-	private StringBuffer decodeBuf;
-
-	public RtspDecoder()
-	{
-		state = ReadState.Command;
-		rtspMessage = null;
-		decodeBuf = new StringBuffer();
-	}
+	private StringBuffer decodeBuf = new StringBuffer();
 
 	/*
 	 * Do the parsing on the incoming stream. If the stream does not contain the
@@ -79,11 +70,15 @@ public class RtspDecoder implements ProtocolDecoder
 	public void decode( ProtocolSession session, ByteBuffer buffer,
 			ProtocolDecoderOutput out ) throws ProtocolViolationException
 	{
-		// qDebug() << "BUFFER(" << buffer << ")";
-		// log.debug( "decode" );
 		do {
 			decodeBuf.append( (char) buffer.get() );
 		} while ( buffer.hasRemaining() );
+
+		// Retrieve status from session
+		ReadState state = (ReadState) session.getAttribute( "state" );
+		if ( state == null )
+			state = ReadState.Command;
+		RtspMessage rtspMessage = (RtspMessage) session.getAttribute( "rtspMessage" );
 
 		String str = decodeBuf.toString();
 		String[] list = str.split( "\r\n" );
@@ -103,6 +98,9 @@ public class RtspDecoder implements ProtocolDecoder
 						RtspCode code = RtspCode.fromString( line.split( " " )[1] );
 						rtspMessage = new RtspResponse();
 						( (RtspResponse) ( rtspMessage ) ).setCode( code );
+						RtspRequest.Verb verb = (RtspRequest.Verb) session.getAttribute( "lastRequestVerb" );
+						( (RtspResponse) ( rtspMessage ) ).setRequestVerb( verb );
+
 					} else {
 						// this is a RTSP request
 						String verb = line.split( " " )[0];
@@ -114,7 +112,7 @@ public class RtspDecoder implements ProtocolDecoder
 							log.info( e );
 							url = null;
 							state = ReadState.Failed;
-							return;
+							break;
 						}
 						rtspMessage = new RtspRequest();
 						( (RtspRequest) rtspMessage ).setVerb( verb );
@@ -129,14 +127,15 @@ public class RtspDecoder implements ProtocolDecoder
 					if ( line.length() == 0 ) {
 						// This is the empty line that marks the end
 						// of the headers section
-						int bufferLen = Integer.valueOf( rtspMessage.getHeader( "Content-Length", "0" ) );
+						int bufferLen = Integer.valueOf( rtspMessage.getHeader(
+								"Content-Length", "0" ) );
 						if ( bufferLen == 0 )
-							
+
 							// there's no buffer to be read
 							state = ReadState.Dispatch;
 						else
 							state = ReadState.Body;
-						
+
 						break;
 					}
 
@@ -147,7 +146,8 @@ public class RtspDecoder implements ProtocolDecoder
 
 				case Body:
 
-					int bufferLen = Integer.valueOf( rtspMessage.getHeader( "Content-Length", "0" ) );
+					int bufferLen = Integer.valueOf( rtspMessage.getHeader(
+							"Content-Length", "0" ) );
 					if ( bufferLen == 0 ) {
 						// there's no buffer to be read
 						state = ReadState.Dispatch;
@@ -164,6 +164,10 @@ public class RtspDecoder implements ProtocolDecoder
 					}
 					break;
 			}
+
+			if ( state == ReadState.Failed )
+				// break the for cycle
+				break;
 		}
 
 		if ( state == ReadState.Dispatch ) {
@@ -174,6 +178,10 @@ public class RtspDecoder implements ProtocolDecoder
 			out.write( rtspMessage );
 			// dispatchMessage();
 		}
+
+		// Save attributes in session
+		session.setAttribute( "state", state );
+		session.setAttribute( "rtspMessage", rtspMessage );
 
 		decodeBuf.delete( 0, decodeBuf.length() );
 	}
