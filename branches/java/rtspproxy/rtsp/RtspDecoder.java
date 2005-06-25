@@ -81,6 +81,8 @@ public class RtspDecoder implements ProtocolDecoder
 		RtspMessage rtspMessage = (RtspMessage) session.getAttribute( "rtspMessage" );
 
 		String str = decodeBuf.toString();
+		decodeBuf.delete( 0, decodeBuf.length() );
+		
 		String[] list = str.split( "\r\n" );
 		if ( list.length == 0 ) {
 			// If we only have an empty line, reports it
@@ -182,7 +184,5 @@ public class RtspDecoder implements ProtocolDecoder
 		// Save attributes in session
 		session.setAttribute( "state", state );
 		session.setAttribute( "rtspMessage", rtspMessage );
-
-		decodeBuf.delete( 0, decodeBuf.length() );
 	}
 }
