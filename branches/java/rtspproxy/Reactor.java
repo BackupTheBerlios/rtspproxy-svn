@@ -18,12 +18,13 @@
 
 package rtspproxy;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import org.apache.log4j.Logger;
+import org.apache.mina.common.TransportType;
+import org.apache.mina.registry.Service;
+import org.apache.mina.registry.ServiceRegistry;
+import org.apache.mina.registry.SimpleServiceRegistry;
 
-import rtspproxy.lib.Debug;
+import rtspproxy.proxy.ClientSideProvider;
 
 /**
  * 
@@ -31,7 +32,7 @@ import rtspproxy.lib.Debug;
 public class Reactor
 {
 
-	private ServerSocket serverSocket = null;
+	static Logger log = Logger.getLogger( Reactor.class );
 
 	/**
 	 * Constructor. Creates a new Reactor and starts it.
@@ -40,49 +41,15 @@ public class Reactor
 	public Reactor()
 	{
 		boolean listening = true;
-		int port = 5549;
-
+		int port = 5540;
 		try {
-			serverSocket = new ServerSocket();
-			serverSocket.setReuseAddress( true );
-			serverSocket.bind( new InetSocketAddress( port ) );
+			ServiceRegistry registry = new SimpleServiceRegistry();
 
-		} catch ( IOException e ) {
-			System.err.println( "Could not listen on port: " + port );
-			System.exit( -1 );
+			Service service = new Service( "proxysession", TransportType.SOCKET, port );
+			registry.bind( service, new ClientSideProvider() );
+			log.info( "Listening on port: " + port );
+		} catch ( Exception e ) {
+			e.printStackTrace();
 		}
-
-		while ( listening ) {
-			Socket socket;
-			try {
-				socket = serverSocket.accept();
-				new Connection( socket ).start();
-			} catch ( IOException e ) {
-				Debug.write( "Error accepting a connection." );
-				System.exit( -1 );
-			}
-		}
-		try {
-			serverSocket.close();
-		} catch ( IOException e ) {
-			Debug.write( "Error closing server socket." );
-		}
-	}
-
-	/**
-	 * @return Returns the serverSocket.
-	 */
-	public ServerSocket getServerSocket()
-	{
-		return serverSocket;
-	}
-
-	/**
-	 * @param serverSocket
-	 *        The serverSocket to set.
-	 */
-	public void setServerSocket( ServerSocket serverSocket )
-	{
-		this.serverSocket = serverSocket;
 	}
 }
