@@ -18,13 +18,18 @@
 
 package rtspproxy.rtsp;
 
+import org.apache.log4j.Logger;
+
 /**
- * Wraps up a RTSP response message. 
+ * Wraps up a RTSP response message.
  */
 public class RtspResponse extends RtspMessage
 {
 
+	static Logger log = Logger.getLogger( RtspResponse.class );
+
 	RtspCode code;
+	RtspRequest.Verb requestVerb;
 
 	public RtspResponse()
 	{
@@ -36,15 +41,25 @@ public class RtspResponse extends RtspMessage
 	{
 		return Type.TypeResponse;
 	}
-	
+
 	public RtspCode getCode()
 	{
 		return code;
 	}
-	
+
 	public void setCode( RtspCode code )
 	{
 		this.code = code;
+	}
+
+	public void setRequestVerb( RtspRequest.Verb requestVerb )
+	{
+		this.requestVerb = requestVerb;
+	}
+
+	public RtspRequest.Verb getRequestVerb()
+	{
+		return requestVerb;
 	}
 
 	/**
@@ -59,15 +74,17 @@ public class RtspResponse extends RtspMessage
 	 */
 	public String toString()
 	{
-		String str = "RTSP/1.0 ";
-		str += code.value() + " " + code.description() + CRLF;
+		String str = "RTSP/1.0 " + code.value() + " " + code.description() + CRLF;
 		str += getHeadersString();
 
 		// Insert a blank line
 		str += CRLF;
-		
-		if ( getBufferSize() > 0 )
+
+		if ( getBufferSize() > 0 ) {
 			str += getBuffer();
+
+			log.debug( "Buffer Size: " + getBufferSize() );
+		}
 
 		return str;
 	}
