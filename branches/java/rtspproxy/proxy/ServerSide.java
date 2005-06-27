@@ -18,223 +18,375 @@
 
 package rtspproxy.proxy;
 
-import rtspproxy.lib.Debug;
-import rtspproxy.rtsp.RtspProtocol;
+import org.apache.log4j.Logger;
+import org.apache.mina.protocol.ProtocolHandlerAdapter;
+import org.apache.mina.protocol.ProtocolSession;
+
+import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
 
-
 /**
  * @author mat
- *
+ * 
  */
-public class ServerSide implements ProxySide
+public class ServerSide extends ProtocolHandlerAdapter
 {
-	private ProxyConnection parent;
-	private RtspProtocol rtspProtocol;
 
-	/**
+	static Logger log = Logger.getLogger( ServerSide.class );
+
+	@Override
+	public void sessionCreated( ProtocolSession session )
+	{
+		log.info( "Created session to server: " + session.getRemoteAddress() );
+
+	}
+
+	@Override
+	public void sessionClosed( ProtocolSession session )
+	{
+		log.info( "Server connection closed" );
+		ProxySession proxySession = (ProxySession) ( session.getAttribute( "proxySession" ) );
+		proxySession.closeAll();
+	}
+
+	@Override
+	public void exceptionCaught( ProtocolSession session, Throwable cause )
+			throws Exception
+	{
+		// close all: same as sessionClosed()
+		log.info( "Exception: " + cause );
+		sessionClosed( session );
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * 
-	 */
-	public ServerSide( ProxyConnection parent )
-	{
-		this.parent = parent;
-	}
-	
-	public void sendRequest( RtspRequest request )
-	{
-		try {
-			rtspProtocol.sendRequest( request );
-		} catch ( Exception e ) {
-			Debug.write( "ServerSide: Exception during sendResponse()"
-					+ e.getStackTrace() );
-		}
-	}
-
-	public void sendResponse( RtspResponse response )
-	{
-		try {
-			rtspProtocol.sendResponse( response );
-		} catch ( Exception e ) {
-			Debug.write( "ServerSide: Exception during sendResponse()"
-					+ e.getStackTrace() );
-		}
-	}
-
-	/* (non-Javadoc)
 	 * @see rtspproxy.proxy.ProxySide#onRequestAnnounce(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestAnnounce( RtspRequest request )
+	public void onRequestAnnounce( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST ANNOUNCE" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onRequestDescribe(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestDescribe( RtspRequest request )
+	public void onRequestDescribe( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST DESCRIBE" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onRequestGetParam(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestGetParam( RtspRequest request )
+	public void onRequestGetParam( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST GET_PARAMETER" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onRequestOptions(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestOptions( RtspRequest request )
+	public void onRequestOptions( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST OPTIONS" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onRequestPause(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestPause( RtspRequest request )
+	public void onRequestPause( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST PAUSE" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onRequestPlay(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestPlay( RtspRequest request )
+	public void onRequestPlay( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST PLAY" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onRequestRecord(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestRecord( RtspRequest request )
+	public void onRequestRecord( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST RECORD" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onRequestRedirect(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestRedirect( RtspRequest request )
+	public void onRequestRedirect( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST REDIRECT" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onRequestSetParam(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestSetParam( RtspRequest request )
+	public void onRequestSetParam( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST SET_PARAMETER" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onRequestSetup(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestSetup( RtspRequest request )
+	public void onRequestSetup( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST SETUP" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onRequestTeardown(rtspproxy.rtsp.RtspRequest)
 	 */
-	public void onRequestTeardown( RtspRequest request )
+	public void onRequestTeardown( ProxySession proxySession, RtspRequest request )
 	{
-		parent.passToClient( request );
+		log.debug( "REQUEST TEARDOWN" );
+		proxySession.passToClient( request );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponseAnnounce(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponseAnnounce( RtspResponse response )
+	public void onResponseAnnounce( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passToClient( response );
+		log.debug( "RESPONSE ANNOUNCE" );
+		proxySession.passToClient( response );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponseDescribe(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponseDescribe( RtspResponse response )
+	public void onResponseDescribe( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passToClient( response );	
+		log.debug( "RESPONSE DESCRIBE" );
+		proxySession.passToClient( response );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponseGetParam(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponseGetParam( RtspResponse response )
+	public void onResponseGetParam( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passToClient( response );
+		proxySession.passToClient( response );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponseOptions(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponseOptions( RtspResponse response )
+	public void onResponseOptions( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passToClient( response );
+		proxySession.passToClient( response );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponsePause(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponsePause( RtspResponse response )
+	public void onResponsePause( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passToClient( response );
+		proxySession.passToClient( response );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponsePlay(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponsePlay( RtspResponse response )
+	public void onResponsePlay( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passToClient( response );
+		proxySession.passToClient( response );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponseRecord(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponseRecord( RtspResponse response )
+	public void onResponseRecord( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passToClient( response );
+		proxySession.passToClient( response );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponseRedirect(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponseRedirect( RtspResponse response )
+	public void onResponseRedirect( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passToClient( response );
+		proxySession.passToClient( response );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponseSetParam(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponseSetParam( RtspResponse response )
+	public void onResponseSetParam( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passToClient( response );
+		proxySession.passToClient( response );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponseSetup(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponseSetup( RtspResponse response )
+	public void onResponseSetup( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passSetupResponseToClient( response );
+		proxySession.passSetupResponseToClient( response );
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.proxy.ProxySide#onResponseTeardown(rtspproxy.rtsp.RtspResponse)
 	 */
-	public void onResponseTeardown( RtspResponse response )
+	public void onResponseTeardown( ProxySession proxySession, RtspResponse response )
 	{
-		parent.passToClient( response );
+		proxySession.passToClient( response );
 	}
 
+	@Override
+	public void messageReceived( ProtocolSession session, Object message )
+	{
+		RtspMessage rtspMessage = (RtspMessage) message;
+		log.debug( "Received message:\n" + message );
+
+		ProxySession proxySession = (ProxySession) ( session.getAttribute( "proxySession" ) );
+		if ( proxySession == null ) {
+			log.fatal( "proxySession is null" );
+			return;
+		}
+
+		switch ( rtspMessage.getType() ) {
+			case TypeRequest:
+				RtspRequest request = (RtspRequest) rtspMessage;
+				switch ( request.getVerb() ) {
+					case ANNOUNCE:
+						onRequestAnnounce( proxySession, request );
+						break;
+					case DESCRIBE:
+						onRequestDescribe( proxySession, request );
+						break;
+					case GET_PARAMETER:
+						onRequestGetParam( proxySession, request );
+						break;
+					case OPTIONS:
+						onRequestOptions( proxySession, request );
+						break;
+					case PAUSE:
+						onRequestPause( proxySession, request );
+						break;
+					case PLAY:
+						onRequestPlay( proxySession, request );
+						break;
+					case RECORD:
+						onRequestRecord( proxySession, request );
+						break;
+					case REDIRECT:
+						onRequestRedirect( proxySession, request );
+						break;
+					case SET_PARAMETER:
+						onRequestSetParam( proxySession, request );
+						break;
+					case SETUP:
+						onRequestSetup( proxySession, request );
+						break;
+					case TEARDOWN:
+						onRequestTeardown( proxySession, request );
+					default:
+						break;
+				}
+				break;
+
+			case TypeResponse:
+				RtspResponse response = (RtspResponse) rtspMessage;
+				switch ( response.getRequestVerb() ) {
+					case ANNOUNCE:
+						onResponseAnnounce( proxySession, response );
+						break;
+					case DESCRIBE:
+						onResponseDescribe( proxySession, response );
+						break;
+					case GET_PARAMETER:
+						onResponseGetParam( proxySession, response );
+						break;
+					case OPTIONS:
+						onResponseOptions( proxySession, response );
+						break;
+					case PAUSE:
+						onResponsePause( proxySession, response );
+						break;
+					case PLAY:
+						onResponsePlay( proxySession, response );
+						break;
+					case RECORD:
+						onResponseRecord( proxySession, response );
+						break;
+					case REDIRECT:
+						onResponseRedirect( proxySession, response );
+						break;
+					case SET_PARAMETER:
+						onResponseSetParam( proxySession, response );
+						break;
+					case SETUP:
+						onResponseSetup( proxySession, response );
+						break;
+					case TEARDOWN:
+						onResponseTeardown( proxySession, response );
+					default:
+						break;
+				}
+				break;
+
+			default:
+				break;
+		}
+	}
 }
