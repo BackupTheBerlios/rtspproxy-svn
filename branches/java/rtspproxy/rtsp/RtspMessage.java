@@ -26,7 +26,6 @@ import java.util.Properties;
  */
 public abstract class RtspMessage
 {
-
 	// Enum Message Type
 	/**
 	 * 
@@ -48,8 +47,9 @@ public abstract class RtspMessage
 		headers = new Properties();
 		buffer = new StringBuffer();
 	}
-	
-	public Type getType() {
+
+	public Type getType()
+	{
 		return Type.TypeNone;
 	}
 
@@ -64,16 +64,18 @@ public abstract class RtspMessage
 	public void setHeader( String key, String value )
 	{
 		// Handle some bad formatted headers
-		if ( key == "Content-length" )
-			key = "Content-Length";
-		headers.setProperty( key, value );
+		if ( key.compareToIgnoreCase( "content-length" ) == 0 ) {
+			headers.setProperty( "Content-Length", value );
+		} else {
+			headers.setProperty( key, value );
+		}
 	}
 
 	public String getHeader( String key )
 	{
 		return headers.getProperty( key );
 	}
-	
+
 	public String getHeader( String key, String defaultValue )
 	{
 		String value = getHeader( key );
@@ -103,7 +105,7 @@ public abstract class RtspMessage
 	{
 		String str = "";
 		for ( Object key : headers.keySet() ) {
-			String value = headers.getProperty( (String)key );
+			String value = headers.getProperty( (String) key );
 			str += key + ": " + value + CRLF;
 		}
 		return str;
@@ -112,6 +114,17 @@ public abstract class RtspMessage
 	public int getHeadersCount()
 	{
 		return headers.size();
+	}
+
+	public void setCommonHeaders()
+	{
+		// TODO: Get the proxy signature from a common class
+		String proxy = "RTSP Proxy v3.0 alpha " + "(" + System.getProperty( "os.name" )
+				+ " " + System.getProperty( "os.arch" ) + ")";
+		if ( getHeader( "Server" ) != null )
+			setHeader( "Via", proxy );
+		else
+			setHeader( "Server", proxy );
 	}
 
 	public void setBuffer( StringBuffer buffer )
@@ -131,7 +144,7 @@ public abstract class RtspMessage
 
 	public int getBufferSize()
 	{
-		return buffer.capacity();
+		return buffer.length();
 	}
 
 	// CRLF
