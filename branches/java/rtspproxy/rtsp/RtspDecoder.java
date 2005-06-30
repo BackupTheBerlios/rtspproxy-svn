@@ -29,12 +29,15 @@ import org.apache.mina.protocol.ProtocolSession;
 import org.apache.mina.protocol.ProtocolViolationException;
 
 /**
- * @author mat
  * 
  */
 public class RtspDecoder implements ProtocolDecoder
 {
 
+	/** 
+	 * State enumerator that indicates the reached state in the RTSP
+	 * message decoding process.  
+	 */
 	public enum ReadState {
 		/** Unrecoverable error occurred */
 		Failed,
@@ -56,9 +59,13 @@ public class RtspDecoder implements ProtocolDecoder
 
 	static Logger log = Logger.getLogger( RtspDecoder.class );
 
+	/** 
+	 * Get a line from a string buffer and delete the line in the buffer.
+	 * @param buffer
+	 * @return
+	 */
 	private static String getLine( StringBuffer buffer )
 	{
-		StringBuffer sb = new StringBuffer();
 		int idx = buffer.indexOf( "\r\n" );
 		if ( idx == -1 ) {
 			return null;
@@ -70,7 +77,7 @@ public class RtspDecoder implements ProtocolDecoder
 		}
 	}
 
-	/*
+	/**
 	 * Do the parsing on the incoming stream. If the stream does not contain the
 	 * entire RTSP message wait for other data to arrive, before dispatching the
 	 * message.
@@ -97,10 +104,12 @@ public class RtspDecoder implements ProtocolDecoder
 		while ( true ) {
 
 			if ( state != ReadState.Command && state != ReadState.Header )
+				// the "while" loop is only used to read commands and headers
 				break;
 
 			String line = getLine( decodeBuf );
 			if ( line == null )
+				// there's no more data in the buffer
 				break;
 
 			if ( line.length() == 0 ) {
@@ -172,6 +181,10 @@ public class RtspDecoder implements ProtocolDecoder
 			} else {
 				// we have a content buffer to read
 				int bytesToRead = bufferLen - rtspMessage.getBufferSize();
+				
+				if ( bytesToRead < decodeBuf.length() ) {
+					log.warn( "We are reading more bytes than Content-Length." );
+				}
 
 				// read the content buffer
 				rtspMessage.appendToBuffer( decodeBuf );
