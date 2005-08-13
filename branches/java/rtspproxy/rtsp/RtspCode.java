@@ -100,6 +100,13 @@ public enum RtspCode {
 			return name();
 	}
 	
+	/**
+	 * Try to translare a numeric RTSP status code to
+	 * the corresponding enum value.
+	 * 
+	 * @param strCode numeric code (as a string)
+	 * @return enum values
+	 */
 	public static RtspCode fromString( String strCode )
 	{
 		int intCode = Integer.valueOf( strCode );
