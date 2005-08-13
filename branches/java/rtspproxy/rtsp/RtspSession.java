@@ -67,7 +67,7 @@ public class RtspSession
 	 * 
 	 * @param id
 	 *        Session identifier
-	 * @return The RtspSession identified by \a id or null if not present
+	 * @return The RtspSession identified by id or null if not present
 	 */
 	static public RtspSession get( String id )
 	{
@@ -130,13 +130,21 @@ public class RtspSession
 
 	private static Random random = new Random();
 
+	/**
+	 * Creates a unique session ID
+	 * 
+	 * @return the session ID
+	 */
 	private static long newSessionID()
 	{
-		long id = random.nextLong();
-		if ( sessions.get( id ) != null ) {
-			log.error( "Duplicate session id " );
-			return random.nextLong();
+		long id;
+		while ( true ) {
+			id = random.nextLong();
+			if ( sessions.get( id ) == null ) {
+				// Ok, the id is unique
+				return id;
+			}
+			// try with another id
 		}
-		return id;
 	}
 }
