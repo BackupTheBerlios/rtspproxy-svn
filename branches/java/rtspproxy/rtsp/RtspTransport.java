@@ -18,10 +18,13 @@
 
 package rtspproxy.rtsp;
 
+import org.apache.log4j.Logger;
+
 /**
  * Parse the RTSP Transport header field.
  * 
  * Reference Grammar:
+ * 
  * <pre>
  *    Transport           =    "Transport" ":"
  *                             1\#transport-spec
@@ -57,8 +60,10 @@ package rtspproxy.rtsp;
 public class RtspTransport
 {
 
+	static Logger log = Logger.getLogger( RtspTransport.class );
+
 	public enum TransportProtocol {
-		None, RTP, RDT
+		None, RTP, RDT, RAW
 	}
 	public enum Profile {
 		None, AVP
@@ -80,9 +85,9 @@ public class RtspTransport
 	int layers;
 	boolean append;
 	int ttl;
-	short[] port = new short[2];
-	short[] client_port = new short[2];
-	short[] server_port = new short[2];
+	int[] port = new int[2];
+	int[] client_port = new int[2];
+	int[] server_port = new int[2];
 	String ssrc;
 	String mode;
 
@@ -111,6 +116,9 @@ public class RtspTransport
 		mode = null;
 
 		parseTransport( transport );
+		if ( transport.compareToIgnoreCase( this.toString() ) != 0 ) {
+			log.warn( "Transport header incorrectly parsed." );
+		}
 	}
 
 	private void parseTransport( String transport )
@@ -128,9 +136,9 @@ public class RtspTransport
 				continue;
 			}
 
-			if ( tok.toLowerCase() == "unicast" )
+			if ( tok.compareToIgnoreCase( "unicast" ) == 0 )
 				deliveryType = DeliveryType.unicast;
-			else if ( tok.toLowerCase() == "multicast" )
+			else if ( tok.compareToIgnoreCase( "multicast" ) == 0 )
 				deliveryType = DeliveryType.multicast;
 			else if ( tok.startsWith( "destination" ) )
 				setDestination( _getStrValue( tok ) );
@@ -209,7 +217,7 @@ public class RtspTransport
 	/**
 	 * @return Returns the client_port.
 	 */
-	public short[] getClientPort()
+	public int[] getClientPort()
 	{
 		return client_port;
 	}
@@ -218,7 +226,7 @@ public class RtspTransport
 	 * @param client_port
 	 *        The client_port to set.
 	 */
-	public void setClientPort( short[] client_port )
+	public void setClientPort( int[] client_port )
 	{
 		this.client_port = client_port;
 	}
@@ -328,7 +336,7 @@ public class RtspTransport
 	/**
 	 * @return Returns the port.
 	 */
-	public short[] getPort()
+	public int[] getPort()
 	{
 		return port;
 	}
@@ -337,7 +345,7 @@ public class RtspTransport
 	 * @param port
 	 *        The port to set.
 	 */
-	public void setPort( short[] port )
+	public void setPort( int[] port )
 	{
 		this.port = port;
 	}
@@ -362,7 +370,7 @@ public class RtspTransport
 	/**
 	 * @return Returns the server_port.
 	 */
-	public short[] getServerPort()
+	public int[] getServerPort()
 	{
 		return server_port;
 	}
@@ -371,7 +379,7 @@ public class RtspTransport
 	 * @param server_port
 	 *        The server_port to set.
 	 */
-	public void setServerPort( short[] server_port )
+	public void setServerPort( int[] server_port )
 	{
 		this.server_port = server_port;
 	}
@@ -456,18 +464,21 @@ public class RtspTransport
 	 * 
 	 * @param str
 	 *        the content string
-	 * @return a short[] containing only the value
+	 * @return a int[2] containing only the value
 	 */
-	private static short[] _getPairValue( String str )
+	private static int[] _getPairValue( String str )
 	{
-		short[] pair = { 0, 0 };
+		int[] pair = { 0, 0 };
 		String[] list = str.split( "=" );
 		if ( list.length != 2 )
 			return pair;
 
 		try {
-			pair[0] = Integer.valueOf( list[1].split( "-" )[0] ).shortValue();
-			pair[1] = Integer.valueOf( list[1].split( "-" )[1] ).shortValue();
+			pair[0] = Integer.valueOf( list[1].split( "-" )[0] ).intValue();
+			pair[1] = Integer.valueOf( list[1].split( "-" )[1] ).intValue();
+
+			// log.debug("Client ports: " + 1);
+			// Integers.parse();
 
 		} catch ( Exception e ) {
 			return pair;
