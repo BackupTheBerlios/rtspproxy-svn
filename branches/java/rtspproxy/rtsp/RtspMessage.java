@@ -26,6 +26,7 @@ import java.util.Properties;
  */
 public abstract class RtspMessage
 {
+
 	// Enum Message Type
 	/**
 	 * 
@@ -149,4 +150,21 @@ public abstract class RtspMessage
 
 	// CRLF
 	public static final String CRLF = "\r\n";
+
+	/**
+	 * @return Returns the sequenceNumber.
+	 */
+	public int getSequenceNumber()
+	{
+		return sequenceNumber;
+	}
+
+	/**
+	 * @param sequenceNumber
+	 *        The sequenceNumber to set.
+	 */
+	public void setSequenceNumber( int sequenceNumber )
+	{
+		this.sequenceNumber = sequenceNumber;
+	}
 }
