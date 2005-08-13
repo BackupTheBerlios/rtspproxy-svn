@@ -31,10 +31,14 @@ import org.apache.log4j.Logger;
 public class RtspSession
 {
 
-	static Logger log = Logger.getLogger( RtspSession.class );
+	// Members
+	/** Session ID */
+	private long id;
+	/** Session associated tracks */
+	private HashMap<String, Track> tracks = new HashMap<String, Track>();
 
 	// Static access
-
+	static Logger log = Logger.getLogger( RtspSession.class );
 	private static HashMap<Long, RtspSession> sessions = new HashMap<Long, RtspSession>();
 
 	/**
@@ -47,16 +51,20 @@ public class RtspSession
 	static public RtspSession create( String id )
 	{
 		long key = Long.valueOf( id );
-		RtspSession session = new RtspSession( key );
+
 		if ( sessions.get( key ) != null ) {
 			log.error( "Session key conflit!!" );
 			return null;
 		}
+		RtspSession session = new RtspSession( key );
 		sessions.put( key, session );
 		log.debug( "New session created - id=" + key );
 		return session;
 	}
 
+	/**
+	 * @return a new RtspSession with a new random ID
+	 */
 	static public RtspSession create()
 	{
 		return create( Long.toString( newSessionID() ) );
@@ -90,36 +98,49 @@ public class RtspSession
 		close( key );
 	}
 
+	/**
+	 * Close the session and removes it.
+	 * @param id the session ID
+	 */
 	static public void close( long id )
 	{
 		sessions.remove( id );
 	}
-
-	// Members
-	private long id;
-
-	private HashMap<String, Track> tracks = new HashMap<String, Track>();
 
 	private RtspSession( long id )
 	{
 		this.id = id;
 	}
 
+	/**
+	 * @return the session ID
+	 */
 	public long getId()
 	{
 		return id;
 	}
 
+	/** 
+	 * @param control the key to access the track
+	 * @return the track
+	 */
 	public Track getTrack( String control )
 	{
 		return tracks.get( control );
 	}
 
+	/**
+	 * @return the number of track contained in this sessions
+	 */
 	public int getTracksCount()
 	{
 		return tracks.size();
 	}
 
+	/**
+	 * Adds a new track to the session
+	 * @param track a Track object
+	 */
 	public void addTrack( Track track )
 	{
 		String control = track.getControl();
