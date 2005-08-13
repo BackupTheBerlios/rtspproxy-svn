@@ -26,17 +26,17 @@ import org.apache.log4j.Logger;
 public class Main
 {
 
-	static Logger log = Logger.getRootLogger(  );
+	static Logger log = Logger.getLogger( "rtspproxy" );
 
 	public static void main( String[] args )
 	{
 		// TODO: remove this temp stuffs
-		/*
-		 for ( Object key : System.getProperties().keySet() ) {
-		 String value = System.getProperty( (String)key );
-		 System.out.println( key + " : " + value );
-		 }
-		 */
+	
+		for ( Object key : System.getProperties().keySet() ) {
+			String value = System.getProperty( (String)key );
+			System.out.println( key + " : " + value );
+		}
+		
 		/*Properties prop = new Properties();
 		prop.setProperty( "log4j.rootLogger", "DEBUG, A1" );
 		prop.setProperty( "log4j.appender.A1", "org.apache.log4j.ConsoleAppender" );
@@ -47,10 +47,10 @@ public class Main
 		log.warn( "Try.." );
 		try {
 			log.warn( "Starting.." );
-			Reactor reactor = new Reactor();
+			new Reactor();
 
 		} catch ( Exception e ) {
-			System.err.println( "Exception in the reactor: " + e );
+			log.fatal( "Exception in the reactor: " + e );
 			System.exit( -1 );
 		}
 	}
