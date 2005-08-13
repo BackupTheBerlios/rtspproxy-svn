@@ -21,18 +21,23 @@ package rtspproxy.rtsp;
 import java.util.Properties;
 
 /**
- * @author mat
+ * Base abstract class for RTSP messages. 
  * 
+ * @author mat
  */
 public abstract class RtspMessage
 {
 
-	// Enum Message Type
 	/**
-	 * 
+	 * RTSP Message Type
 	 */
 	public enum Type {
-		TypeNone, TypeRequest, TypeResponse
+		/** Generic message (internal use) */
+		TypeNone,
+		/** Request message */
+		TypeRequest,
+		/** Response message */
+		TypeResponse
 	};
 
 	private int sequenceNumber;
@@ -49,6 +54,9 @@ public abstract class RtspMessage
 		buffer = new StringBuffer();
 	}
 
+	/**
+	 * @return the RTSP type of the message
+	 */
 	public Type getType()
 	{
 		return Type.TypeNone;
@@ -72,11 +80,25 @@ public abstract class RtspMessage
 		}
 	}
 
+	/**
+	 * @param key
+	 *        Header name
+	 * @return the value of the header
+	 */
 	public String getHeader( String key )
 	{
 		return headers.getProperty( key );
 	}
 
+	/**
+	 * 
+	 * @param key
+	 *        Header name
+	 * @param defaultValue
+	 *        the default value
+	 * @return the value of the header of <i>defaultValue</i> if header is not
+	 *         found
+	 */
 	public String getHeader( String key, String defaultValue )
 	{
 		String value = getHeader( key );
@@ -86,6 +108,12 @@ public abstract class RtspMessage
 			return value;
 	}
 
+	/**
+	 * Remove an header from the message headers collection
+	 * 
+	 * @param key
+	 *        the name of the header
+	 */
 	public void removeHeader( String key )
 	{
 		headers.remove( key );
@@ -112,11 +140,18 @@ public abstract class RtspMessage
 		return str;
 	}
 
+	/**
+	 * 
+	 * @return the number of headers owned by the message
+	 */
 	public int getHeadersCount()
 	{
 		return headers.size();
 	}
 
+	/**
+	 * Sets common headers like <code>Server</code> and <code>Via</code>.
+	 */
 	public void setCommonHeaders()
 	{
 		// TODO: Get the proxy signature from a common class
@@ -128,21 +163,34 @@ public abstract class RtspMessage
 			setHeader( "Server", proxy );
 	}
 
+	/**
+	 * 
+	 * @param buffer StringBuffer containing the contents
+	 */
 	public void setBuffer( StringBuffer buffer )
 	{
 		this.buffer = buffer;
 	}
 
+	/**
+	 * @param other buffer with content to be appended
+	 */
 	public void appendToBuffer( StringBuffer other )
 	{
 		this.buffer.append( other );
 	}
 
+	/**
+	 * @return the content buffer
+	 */
 	public StringBuffer getBuffer()
 	{
 		return buffer;
 	}
 
+	/**
+	 * @return the size of the content buffer
+	 */
 	public int getBufferSize()
 	{
 		return buffer.length();
