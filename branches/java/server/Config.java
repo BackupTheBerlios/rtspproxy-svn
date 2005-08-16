@@ -27,11 +27,12 @@ public class Config
 {
 
 	private static Properties config = new Properties();
-	
+
 	// Initialize config with default values
 	static {
 		// 554 is the default RTSP port
 		config.setProperty( "server.rtsp.port", "5541" );
+		config.setProperty( "server.document.root", "/Users/mat/Music" );
 	}
 
 	public static String getValue( String key )
@@ -40,7 +41,8 @@ public class Config
 	}
 
 	/**
-	 * @param key the name of the property
+	 * @param key
+	 *        the name of the property
 	 * @return the integer value of the property
 	 */
 	public static int getValueInt( String key )
@@ -48,4 +50,18 @@ public class Config
 		return Integer.parseInt( config.getProperty( key ) );
 	}
 
+	
+	public static String getAlias( String path ) {
+		/* 
+		 if ( ! path.startsWith( "/" ) )
+			path = "/" + path;
+		for ( Object key : aliases.keySet() ) {
+			String alias = (String)key;
+			if ( path.startsWith( alias ) )
+				return aliases.getProperty( alias );
+		}
+		return aliases.getProperty( path );
+		*/
+		return null;
+	}
 }
