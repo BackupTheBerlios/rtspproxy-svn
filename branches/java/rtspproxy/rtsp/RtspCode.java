@@ -87,11 +87,17 @@ public enum RtspCode {
 		this.description = null;
 	}
 	
+	/**
+	 * @return the numeric value of the RTSP code
+	 */
 	public int value()
 	{
 		return this.value;
 	}
 	
+	/**
+	 * @return the human-readable description of the RTSP code
+	 */
 	public String description()
 	{
 		if ( description != null )
