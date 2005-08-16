@@ -40,7 +40,7 @@ public class Reactor
 	 */
 	public Reactor()
 	{
-		boolean listening = true;
+		// boolean listening = true;
 		int port = 5540;
 		try {
 			ServiceRegistry registry = new SimpleServiceRegistry();
@@ -49,7 +49,7 @@ public class Reactor
 			registry.bind( service, new ClientSideProvider() );
 			log.info( "Listening on port: " + port );
 		} catch ( Exception e ) {
-			e.printStackTrace();
+			log.fatal( e.getMessage() + " (port = " + port + ")" );
 		}
 	}
 }
