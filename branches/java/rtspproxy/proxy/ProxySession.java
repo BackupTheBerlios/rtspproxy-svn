@@ -30,6 +30,7 @@ import org.apache.mina.protocol.io.IoProtocolConnector;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
+import rtspproxy.rtsp.RtspSession;
 import rtspproxy.rtsp.RtspTransport;
 import rtspproxy.rtsp.RtspTransportList;
 
@@ -116,18 +117,35 @@ public class ProxySession
 			log.debug( "Transport:" + t );
 			if ( t.getLowerTransport() == RtspTransport.LowerTransport.TCP )
 				log.debug( "Transport is TCP based." );
-			log.debug( "Client port:" + t.getClientPort() );
+			int clientPort[] = t.getClientPort();
+			log.debug( "Client port:" + clientPort[0] + "-" + clientPort[1] );
 		}
 
 		sendRequest( serverSession, request );
 	}
 
+	/**
+	 * Forward a RTSP SETUP response message to client.
+	 * @param response Setup response message
+	 */
 	public void passSetupResponseToClient( RtspResponse response )
 	{
-		// TODO: to be implemented properly
+		// If there isn't yet an rtspSession, create a new one
+		RtspSession rtspSession = RtspSession.get( response.getHeader( "Session" ) );
+		if ( rtspSession == null ) {
+			rtspSession = (RtspSession) clientSession.getAttribute( "rtspSession" );
+			if ( rtspSession == null ) {
+				rtspSession = RtspSession.create();
+			}
+		}
 		sendResponse( clientSession, response );
 	}
 
+	/**
+	 * Tries to connect to remote RTSP server.
+	 * @param url the URI of the server
+	 * @throws IOException
+	 */
 	private void connectServerSide( URI url ) throws IOException
 	{
 		String host = url.getHost();
