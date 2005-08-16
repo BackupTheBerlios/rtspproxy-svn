@@ -56,7 +56,7 @@ public class ClientSide extends ProtocolHandlerAdapter
 			throws Exception
 	{
 		// close all: same as sessionClosed()
-		log.info( "Exception:" + cause.getMessage() );
+		log.info( "Exception: " + cause );
 		sessionClosed( session );
 	}
 
