@@ -146,6 +146,9 @@ public class RtspDecoder implements ProtocolDecoder
 						}
 						rtspMessage = new RtspRequest();
 						( (RtspRequest) rtspMessage ).setVerb( verb );
+						if ( ( (RtspRequest) rtspMessage ).getVerb() == RtspRequest.Verb.None )							
+							throw new ProtocolViolationException( "Invalid method: " + verb );
+						
 						( (RtspRequest) rtspMessage ).setUrl( url );
 					}
 					state = ReadState.Header;
