@@ -76,7 +76,7 @@ public class RtspRequest extends RtspMessage
 			this.verb = Verb.valueOf( strVerb );
 		} catch ( Exception e ) {
 			this.verb = Verb.None;
-			System.out.println( "Invalid verb: " + strVerb );
+			// System.out.println( "Invalid verb: " + strVerb );
 		}
 	}
 
