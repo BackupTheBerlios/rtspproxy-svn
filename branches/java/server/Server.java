@@ -63,6 +63,9 @@ public class Server extends ProtocolHandlerAdapter
 			throws Exception
 	{
 		log.info( "Exception: " + cause );
+		if ( log.isDebugEnabled() ) {
+			cause.printStackTrace();
+		}
 		sendError( session, RtspCode.BadRequest );
 		session.close();
 	}
@@ -171,7 +174,7 @@ public class Server extends ProtocolHandlerAdapter
 				+ ")";
 		message.setHeader( "Server", serverHeader );
 
-		// Get a CSeq if any 
+		// Get a CSeq if any
 		if ( message.getHeader( "CSeq" ) == null
 				&& session.getAttribute( "CSeq" ) != null )
 			message.setHeader( "CSeq", (String) session.getAttribute( "CSeq" ) );
@@ -206,6 +209,10 @@ public class Server extends ProtocolHandlerAdapter
 	public void onRequestDescribe( ProtocolSession session, RtspRequest request )
 	{
 		log.debug( "REQUEST DESCRIBE" );
+		MediaObject.resolveURL( request.getUrl() );
+		RtspResponse response = new RtspResponse();
+		response.setCode( RtspCode.NotFound );
+		// response.setH
 	}
 
 	public void onRequestGetParam( ProtocolSession session, RtspRequest request )
