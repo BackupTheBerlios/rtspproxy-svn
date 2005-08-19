@@ -50,6 +50,7 @@ public class Reactor
 			log.info( "Listening on port: " + port );
 		} catch ( Exception e ) {
 			log.fatal( e.getMessage() + " (port = " + port + ")" );
+			System.exit( -1 );
 		}
 	}
 }
