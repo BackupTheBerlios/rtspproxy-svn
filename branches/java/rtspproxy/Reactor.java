@@ -25,6 +25,7 @@ import org.apache.mina.registry.ServiceRegistry;
 import org.apache.mina.registry.SimpleServiceRegistry;
 
 import rtspproxy.proxy.ClientSideProvider;
+import rtspproxy.rtsp.Handler;
 
 /**
  * 
@@ -40,14 +41,16 @@ public class Reactor
 	 */
 	public Reactor()
 	{
-		// boolean listening = true;
-		int port = 5540;
+		int port = Config.getInt( "proxy.port",  Handler.DEFAULT_RTSP_PORT );
+		
 		try {
 			ServiceRegistry registry = new SimpleServiceRegistry();
 
 			Service service = new Service( "proxysession", TransportType.SOCKET, port );
+			
 			registry.bind( service, new ClientSideProvider() );
 			log.info( "Listening on port: " + port );
+			
 		} catch ( Exception e ) {
 			log.fatal( e.getMessage() + " (port = " + port + ")" );
 			System.exit( -1 );
