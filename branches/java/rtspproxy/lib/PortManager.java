@@ -18,12 +18,13 @@
 
 package rtspproxy.lib;
 
+import java.io.IOException;
+import java.net.DatagramSocket;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.mina.util.AvailablePortFinder;
 
 /**
  * The PortManager will keep a list of reserved ports
@@ -34,6 +35,7 @@ public class PortManager
 	static Logger log = Logger.getLogger( PortManager.class );
 
 	private static final int minUdpPort = 6790;
+	private static final int maxUdpPort = 49151;
 	private static Set<Integer> reservedPorts = Collections.synchronizedSet( new HashSet<Integer>() );
 
 	// TODO: Using custom exceptions
@@ -61,18 +63,43 @@ public class PortManager
 		return reservedPorts.contains( port );
 	}
 
+	/**
+	 * Get the first port (starting from <i>start</i>) that does not appear in
+	 * the reservation list.
+	 * 
+	 * @param start
+	 *        the base port number to start from
+	 * @return the port number if found
+	 */
+	public static synchronized int getNextNotReservedPort( int start )
+			throws NoPortAvailableException
+	{
+		int port = start;
+		while ( reservedPorts.contains( port ) ) {
+			if ( port > maxUdpPort ) {
+				// port not found
+				throw new NoPortAvailableException();
+			}
+			port += 1;
+		}
+		return port;
+	}
+
 	public static synchronized int[] findAvailablePorts( int nPorts )
+		throws NoPortAvailableException
 	{
 		int dataPort, controlPort, startingPort;
-		
+
 		startingPort = minUdpPort;
 
 		while ( true ) {
-			dataPort = AvailablePortFinder.getNextAvailable( startingPort );
+			
+			startingPort = getNextNotReservedPort( startingPort );
+			dataPort = getNextPortAvailable( startingPort );
 
 			if ( isPortReserved( dataPort ) ) {
-				// The port is effectively available, but reserved in 
-				// PortManager. 
+				// The port is effectively unbound, but reserved in
+				// PortManager.
 				startingPort += nPorts;
 				continue;
 			}
@@ -95,7 +122,7 @@ public class PortManager
 					continue;
 
 				} else {
-					controlPort = AvailablePortFinder.getNextAvailable( dataPort + 1 );
+					controlPort = getNextPortAvailable( dataPort + 1 );
 
 					if ( controlPort != ( dataPort + 1 ) ) {
 						// port are not consequents
@@ -110,7 +137,7 @@ public class PortManager
 						} catch ( Exception e ) {
 							continue;
 						}
-						
+
 						int[] a = { dataPort, controlPort };
 						log.debug( "DataPort: " + dataPort + " - ControlPort: "
 								+ controlPort );
@@ -120,4 +147,25 @@ public class PortManager
 			}
 		}
 	}
+
+	private static int getNextPortAvailable( int startPort )
+			throws NoPortAvailableException
+	{
+
+		for ( int port = startPort; port <= maxUdpPort; port++ ) {
+			DatagramSocket s = null;
+			try {
+				s = new DatagramSocket( port );
+				s.close();
+				return port;
+
+			} catch ( IOException e ) {
+				// Ignore
+			}
+		}
+
+		// No port is available
+		throw new NoPortAvailableException();
+	}
+
 }
