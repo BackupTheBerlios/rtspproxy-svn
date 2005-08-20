@@ -30,12 +30,6 @@ public class Handler extends URLStreamHandler
 {
 	public static final int DEFAULT_RTSP_PORT = 554;
 
-	static {
-		// TODO: if the general package name will change, also this reference
-		// should change.
-		System.setProperty( "java.protocol.handler.pkgs", "rtspproxy" );
-	}
-
 	@Override
 	protected URLConnection openConnection( URL url ) throws IOException
 	{
