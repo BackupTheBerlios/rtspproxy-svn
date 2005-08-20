@@ -18,8 +18,8 @@
 
 package rtspproxy.rtsp;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
@@ -134,11 +134,11 @@ public class RtspDecoder implements ProtocolDecoder
 					} else {
 						// this is a RTSP request
 						String verb = line.split( " " )[0];
-						URI url;
+						URL url;
 						try {
 							// log.debug( "url line: " + line.split( " " )[1] );
-							url = new URI( line.split( " " )[1] );
-						} catch ( URISyntaxException e ) {
+							url = new URL( line.split( " " )[1] );
+						} catch ( MalformedURLException e ) {
 							log.info( e );
 							url = null;
 							state = ReadState.Failed;

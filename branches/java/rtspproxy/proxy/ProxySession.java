@@ -20,7 +20,7 @@ package rtspproxy.proxy;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URI;
+import java.net.URL;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.io.socket.SocketConnector;
@@ -146,7 +146,7 @@ public class ProxySession
 	 * @param url the URI of the server
 	 * @throws IOException
 	 */
-	private void connectServerSide( URI url ) throws IOException
+	private void connectServerSide( URL url ) throws IOException
 	{
 		String host = url.getHost();
 		int port = url.getPort();
