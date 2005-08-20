@@ -18,7 +18,7 @@
 
 package server;
 
-import java.net.URI;
+import java.net.URL;
 
 import org.apache.log4j.Logger;
 
@@ -32,7 +32,7 @@ public class MediaObject
 
 	static String fileSeparator = System.getProperty( "file.separator" );
 
-	public static MediaObject resolveURL( URI url )
+	public static MediaObject resolveURL( URL url )
 	{
 		// Since we are not supporting virtual hosting,
 		// we only care about the second part of the url
