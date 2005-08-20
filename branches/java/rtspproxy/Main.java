@@ -43,7 +43,12 @@ public class Main
 		prop.setProperty( "log4j.appender.A1.layout", "org.apache.log4j.PatternLayout" );
 		prop.setProperty( "log4j.appender.stdout.layout.ConversionPattern", "%5p [%t] (%F:%L) - %m%n" );
 		PropertyConfigurator.configure( prop );
-		*/ BasicConfigurator.configure();
+		*/ 
+		
+		BasicConfigurator.configure();
+		
+		// Register the "rtsp://" protocol scheme
+		System.setProperty( "java.protocol.handler.pkgs", Main.class.getPackage().getName() );
 		
 		new Config();
 		
