@@ -36,12 +36,16 @@ public class PortManager
 	private static final int minUdpPort = 6790;
 	private static Set<Integer> reservedPorts = Collections.synchronizedSet( new HashSet<Integer>() );
 
-	public static void reservePort( int port )
+	// TODO: Using custom exceptions
+	public static synchronized void reservePort( int port ) throws Exception
 	{
+		if ( reservedPorts.contains( port ) )
+			throw new Exception( "Port " + port + "is reserved" );
+
 		reservedPorts.add( port );
 	}
 
-	public static void removePort( int port )
+	public static synchronized void removePort( int port )
 	{
 		reservedPorts.remove( port );
 	}
@@ -52,26 +56,36 @@ public class PortManager
 	 * @return true if the port is already reserved, false if the port can be
 	 *         used.
 	 */
-	public static boolean isReserved( int port )
+	public static synchronized boolean isPortReserved( int port )
 	{
 		return reservedPorts.contains( port );
 	}
 
-	public static int[] findAvailablePorts( int nPorts )
+	public static synchronized int[] findAvailablePorts( int nPorts )
 	{
-		int dataPort;
-		int controlPort;
+		int dataPort, controlPort, startingPort;
+		
+		startingPort = minUdpPort;
 
 		while ( true ) {
-			dataPort = AvailablePortFinder.getNextAvailable( minUdpPort );
+			dataPort = AvailablePortFinder.getNextAvailable( startingPort );
 
-			if ( isReserved( dataPort ) )
+			if ( isPortReserved( dataPort ) ) {
+				// The port is effectively available, but reserved in 
+				// PortManager. 
+				startingPort += nPorts;
 				continue;
+			}
 
 			if ( nPorts == 1 ) {
 				// There is only the data port
 				int[] a = { dataPort };
 				log.debug( "DataPort: " + dataPort );
+				try {
+					reservePort( dataPort );
+				} catch ( Exception e ) {
+					continue;
+				}
 				return a;
 
 			} else if ( nPorts == 2 ) {
@@ -86,10 +100,17 @@ public class PortManager
 					if ( controlPort != ( dataPort + 1 ) ) {
 						// port are not consequents
 						continue;
-					} else if ( isReserved( controlPort ) ) {
+					} else if ( isPortReserved( controlPort ) ) {
 						continue;
 
 					} else {
+						try {
+							reservePort( dataPort );
+							reservePort( controlPort );
+						} catch ( Exception e ) {
+							continue;
+						}
+						
 						int[] a = { dataPort, controlPort };
 						log.debug( "DataPort: " + dataPort + " - ControlPort: "
 								+ controlPort );
