@@ -31,12 +31,12 @@ public class Main
 	public static void main( String[] args )
 	{
 		// TODO: remove this temp stuffs
-	
+		/*
 		for ( Object key : System.getProperties().keySet() ) {
 			String value = System.getProperty( (String)key );
 			System.out.println( key + " : " + value );
 		}
-		
+		*/
 		/*Properties prop = new Properties();
 		prop.setProperty( "log4j.rootLogger", "DEBUG, A1" );
 		prop.setProperty( "log4j.appender.A1", "org.apache.log4j.ConsoleAppender" );
@@ -44,7 +44,9 @@ public class Main
 		prop.setProperty( "log4j.appender.stdout.layout.ConversionPattern", "%5p [%t] (%F:%L) - %m%n" );
 		PropertyConfigurator.configure( prop );
 		*/ BasicConfigurator.configure();
-		log.warn( "Try.." );
+		
+		new Config();
+		
 		try {
 			log.warn( "Starting.." );
 			new Reactor();
