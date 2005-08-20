@@ -141,13 +141,16 @@ public class RtspDecoder implements ProtocolDecoder
 						} catch ( MalformedURLException e ) {
 							log.info( e );
 							url = null;
-							state = ReadState.Failed;
-							break;
+							session.setAttribute( "state", ReadState.Failed );
+							throw new ProtocolViolationException( "Invalid URL" );
 						}
 						rtspMessage = new RtspRequest();
 						( (RtspRequest) rtspMessage ).setVerb( verb );
-						if ( ( (RtspRequest) rtspMessage ).getVerb() == RtspRequest.Verb.None )							
+						
+						if ( ( (RtspRequest) rtspMessage ).getVerb() == RtspRequest.Verb.None )	 {
+							session.setAttribute( "state", ReadState.Failed );
 							throw new ProtocolViolationException( "Invalid method: " + verb );
+						}
 						
 						( (RtspRequest) rtspMessage ).setUrl( url );
 					}
