@@ -24,6 +24,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
+import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.io.IoHandler;
 import org.apache.mina.io.IoSession;
 import org.apache.mina.io.datagram.DatagramConnector;
@@ -48,9 +49,8 @@ public class Channel
 	private IoSession dataSession = null;
 	private IoSession controlSession = null;
 
-	public Channel( String remoteAddress, int dataPort, int controlPort,
-			IoHandler handler ) throws UnknownHostException, NoPortAvailableException,
-			IOException
+	public Channel( String remoteAddress, int dataPort, int controlPort, IoHandler handler )
+			throws UnknownHostException, NoPortAvailableException, IOException
 	{
 		int[] ports = null;
 		// If we have a controlChannel we need 2 channels
@@ -84,9 +84,23 @@ public class Channel
 		// connections
 		DatagramConnector dataConnector = new DatagramConnector();
 		dataSession = dataConnector.connect( remoteDataAddress, localDataAddress, handler );
-		if ( localControlAddress != null && remoteControlAddress != null )
+		dataSession.setAttribute( "sessionType", PacketType.DataPacket );
+		
+		if ( localControlAddress != null && remoteControlAddress != null ) {
 			controlSession = dataConnector.connect( remoteControlAddress,
 					localControlAddress, handler );
+			controlSession.setAttribute( "sessionType", PacketType.ControlPacket );
+		}
+	}
+
+	public void sendPacket( ByteBuffer packet, PacketType type )
+	{
+		switch ( type ) {
+			case DataPacket:
+				dataSession.write( packet, null );
+			case ControlPacket:
+				controlSession.write( packet, null );
+		}
 	}
 
 	public int getLocalDataPort()

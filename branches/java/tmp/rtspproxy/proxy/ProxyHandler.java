@@ -171,9 +171,9 @@ public class ProxyHandler
 		log.debug( "Connected!" );
 
 		// Save current ProxyHandler into the ProtocolSession
-		serverSession.setAttribute( "proxySession", this );
+		serverSession.setAttribute( "proxyHandler", this );
 
-		System.out.println( "Server session: " + serverSession.getAttributeKeys() );
+		log.debug( "Server session: " + serverSession.getAttributeKeys() );
 	}
 
 	public void closeAll()

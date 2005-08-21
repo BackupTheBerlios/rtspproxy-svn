@@ -46,8 +46,8 @@ public class ServerSide extends ProtocolHandlerAdapter
 	public void sessionClosed( ProtocolSession session )
 	{
 		log.info( "Server connection closed" );
-		ProxySession proxySession = (ProxySession) ( session.getAttribute( "proxySession" ) );
-		proxySession.closeAll();
+		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( "proxyHandler" ) );
+		proxyHandler.closeAll();
 	}
 
 	@Override
@@ -59,237 +59,128 @@ public class ServerSide extends ProtocolHandlerAdapter
 		sessionClosed( session );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestAnnounce(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestAnnounce( ProxySession proxySession, RtspRequest request )
+	public void onRequestAnnounce( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST ANNOUNCE" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestDescribe(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestDescribe( ProxySession proxySession, RtspRequest request )
+	public void onRequestDescribe( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST DESCRIBE" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestGetParam(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestGetParam( ProxySession proxySession, RtspRequest request )
+	public void onRequestGetParam( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST GET_PARAMETER" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestOptions(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestOptions( ProxySession proxySession, RtspRequest request )
+	public void onRequestOptions( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST OPTIONS" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestPause(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestPause( ProxySession proxySession, RtspRequest request )
+	public void onRequestPause( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST PAUSE" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestPlay(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestPlay( ProxySession proxySession, RtspRequest request )
+	public void onRequestPlay( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST PLAY" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestRecord(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestRecord( ProxySession proxySession, RtspRequest request )
+	public void onRequestRecord( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST RECORD" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestRedirect(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestRedirect( ProxySession proxySession, RtspRequest request )
+	public void onRequestRedirect( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST REDIRECT" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestSetParam(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestSetParam( ProxySession proxySession, RtspRequest request )
+	public void onRequestSetParam( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST SET_PARAMETER" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestSetup(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestSetup( ProxySession proxySession, RtspRequest request )
+	public void onRequestSetup( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST SETUP" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onRequestTeardown(rtspproxy.rtsp.RtspRequest)
-	 */
-	public void onRequestTeardown( ProxySession proxySession, RtspRequest request )
+	public void onRequestTeardown( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST TEARDOWN" );
-		proxySession.passToClient( request );
+		proxyHandler.passToClient( request );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponseAnnounce(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponseAnnounce( ProxySession proxySession, RtspResponse response )
+	public void onResponseAnnounce( ProxyHandler proxyHandler, RtspResponse response )
 	{
 		log.debug( "RESPONSE ANNOUNCE" );
-		proxySession.passToClient( response );
+		proxyHandler.passToClient( response );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponseDescribe(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponseDescribe( ProxySession proxySession, RtspResponse response )
+	public void onResponseDescribe( ProxyHandler proxyHandler, RtspResponse response )
 	{
 		log.debug( "RESPONSE DESCRIBE" );
-		proxySession.passToClient( response );
+		proxyHandler.passToClient( response );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponseGetParam(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponseGetParam( ProxySession proxySession, RtspResponse response )
+	public void onResponseGetParam( ProxyHandler proxyHandler, RtspResponse response )
 	{
-		proxySession.passToClient( response );
+		
+		proxyHandler.passToClient( response );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponseOptions(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponseOptions( ProxySession proxySession, RtspResponse response )
+	public void onResponseOptions( ProxyHandler proxyHandler, RtspResponse response )
 	{
-		proxySession.passToClient( response );
+		proxyHandler.passToClient( response );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponsePause(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponsePause( ProxySession proxySession, RtspResponse response )
+	public void onResponsePause( ProxyHandler proxyHandler, RtspResponse response )
 	{
-		proxySession.passToClient( response );
+		proxyHandler.passToClient( response );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponsePlay(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponsePlay( ProxySession proxySession, RtspResponse response )
+	public void onResponsePlay( ProxyHandler proxyHandler, RtspResponse response )
 	{
-		proxySession.passToClient( response );
+		proxyHandler.passToClient( response );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponseRecord(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponseRecord( ProxySession proxySession, RtspResponse response )
+	public void onResponseRecord( ProxyHandler proxyHandler, RtspResponse response )
 	{
-		proxySession.passToClient( response );
+		proxyHandler.passToClient( response );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponseRedirect(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponseRedirect( ProxySession proxySession, RtspResponse response )
+	public void onResponseRedirect( ProxyHandler proxyHandler, RtspResponse response )
 	{
-		proxySession.passToClient( response );
+		proxyHandler.passToClient( response );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponseSetParam(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponseSetParam( ProxySession proxySession, RtspResponse response )
+	public void onResponseSetParam( ProxyHandler proxyHandler, RtspResponse response )
 	{
-		proxySession.passToClient( response );
+		proxyHandler.passToClient( response );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponseSetup(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponseSetup( ProxySession proxySession, RtspResponse response )
+	public void onResponseSetup( ProxyHandler proxyHandler, RtspResponse response )
 	{
-		proxySession.passSetupResponseToClient( response );
+		proxyHandler.passSetupResponseToClient( response );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.proxy.ProxySide#onResponseTeardown(rtspproxy.rtsp.RtspResponse)
-	 */
-	public void onResponseTeardown( ProxySession proxySession, RtspResponse response )
+	public void onResponseTeardown( ProxyHandler proxyHandler, RtspResponse response )
 	{
-		proxySession.passToClient( response );
+		proxyHandler.passToClient( response );
 	}
 
 	@Override
@@ -298,10 +189,10 @@ public class ServerSide extends ProtocolHandlerAdapter
 		RtspMessage rtspMessage = (RtspMessage) message;
 		log.debug( "Received message:\n" + message );
 
-		ProxySession proxySession = (ProxySession) ( session.getAttribute( "proxySession" ) );
-		if ( proxySession == null ) {
-			log.fatal( "proxySession is null" );
-			return;
+		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( "proxyHandler" ) );
+		if ( proxyHandler == null ) {
+			log.fatal( "proxyHandler is null" );
+			throw new NullPointerException( "proxyHandler in session is null" );
 		}
 
 		switch ( rtspMessage.getType() ) {
@@ -309,37 +200,37 @@ public class ServerSide extends ProtocolHandlerAdapter
 				RtspRequest request = (RtspRequest) rtspMessage;
 				switch ( request.getVerb() ) {
 					case ANNOUNCE:
-						onRequestAnnounce( proxySession, request );
+						onRequestAnnounce( proxyHandler, request );
 						break;
 					case DESCRIBE:
-						onRequestDescribe( proxySession, request );
+						onRequestDescribe( proxyHandler, request );
 						break;
 					case GET_PARAMETER:
-						onRequestGetParam( proxySession, request );
+						onRequestGetParam( proxyHandler, request );
 						break;
 					case OPTIONS:
-						onRequestOptions( proxySession, request );
+						onRequestOptions( proxyHandler, request );
 						break;
 					case PAUSE:
-						onRequestPause( proxySession, request );
+						onRequestPause( proxyHandler, request );
 						break;
 					case PLAY:
-						onRequestPlay( proxySession, request );
+						onRequestPlay( proxyHandler, request );
 						break;
 					case RECORD:
-						onRequestRecord( proxySession, request );
+						onRequestRecord( proxyHandler, request );
 						break;
 					case REDIRECT:
-						onRequestRedirect( proxySession, request );
+						onRequestRedirect( proxyHandler, request );
 						break;
 					case SET_PARAMETER:
-						onRequestSetParam( proxySession, request );
+						onRequestSetParam( proxyHandler, request );
 						break;
 					case SETUP:
-						onRequestSetup( proxySession, request );
+						onRequestSetup( proxyHandler, request );
 						break;
 					case TEARDOWN:
-						onRequestTeardown( proxySession, request );
+						onRequestTeardown( proxyHandler, request );
 					default:
 						break;
 				}
@@ -349,37 +240,37 @@ public class ServerSide extends ProtocolHandlerAdapter
 				RtspResponse response = (RtspResponse) rtspMessage;
 				switch ( response.getRequestVerb() ) {
 					case ANNOUNCE:
-						onResponseAnnounce( proxySession, response );
+						onResponseAnnounce( proxyHandler, response );
 						break;
 					case DESCRIBE:
-						onResponseDescribe( proxySession, response );
+						onResponseDescribe( proxyHandler, response );
 						break;
 					case GET_PARAMETER:
-						onResponseGetParam( proxySession, response );
+						onResponseGetParam( proxyHandler, response );
 						break;
 					case OPTIONS:
-						onResponseOptions( proxySession, response );
+						onResponseOptions( proxyHandler, response );
 						break;
 					case PAUSE:
-						onResponsePause( proxySession, response );
+						onResponsePause( proxyHandler, response );
 						break;
 					case PLAY:
-						onResponsePlay( proxySession, response );
+						onResponsePlay( proxyHandler, response );
 						break;
 					case RECORD:
-						onResponseRecord( proxySession, response );
+						onResponseRecord( proxyHandler, response );
 						break;
 					case REDIRECT:
-						onResponseRedirect( proxySession, response );
+						onResponseRedirect( proxyHandler, response );
 						break;
 					case SET_PARAMETER:
-						onResponseSetParam( proxySession, response );
+						onResponseSetParam( proxyHandler, response );
 						break;
 					case SETUP:
-						onResponseSetup( proxySession, response );
+						onResponseSetup( proxyHandler, response );
 						break;
 					case TEARDOWN:
-						onResponseTeardown( proxySession, response );
+						onResponseTeardown( proxyHandler, response );
 					default:
 						break;
 				}

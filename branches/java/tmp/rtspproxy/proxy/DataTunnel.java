@@ -18,10 +18,11 @@
 
 package rtspproxy.proxy;
 
-import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.io.IoSession;
 
 /**
  * Manages various UDP connections handles.
@@ -37,68 +38,34 @@ public class DataTunnel
 		RDT
 	}
 
-	public enum ChannelType {
-		Data, Control
+	private Channel serverChannel = null;
+	private List<Channel> clientChannelList = Collections.synchronizedList( new ArrayList<Channel>() );
+
+	public void setServerChannel( Channel channel )
+	{
+		serverChannel = channel;
 	}
 
-	/**
-	 * Adds two virtual UDP channel, one for data and (if needed) one
-	 * for control messages. 
-	 * @param dataPort
-	 * @param controlPort
-	 */
-	public void addServerChannel( DataChannel channel)
+	public void addClientChannel( Channel channel )
 	{
-		
-	}	
-	
-	public void addClientChannel( DataChannel channel )
-	{
-		
+		clientChannelList.add( channel );
 	}
 
-	public void passToClient( ByteBuffer packet, ChannelType type )
+	public void removeClientChannel( Channel channel )
 	{
-		switch ( type ) {
-			case Data:
-				clientDataSession.write( packet, null );
-			case Control:
-				clientControlSession.write( packet, null );
+		clientChannelList.remove( channel );
+	}
+
+	public void passToClient( ByteBuffer packet, PacketType type )
+	{
+		for ( Channel channel : clientChannelList ) {
+			channel.sendPacket( packet, type );
 		}
 	}
 
-	public void passToServer( ByteBuffer packet, ChannelType type )
+	public void passToServer( ByteBuffer packet, PacketType type )
 	{
-		switch ( type ) {
-			case Data:
-				serverDataSession.write( packet, null );
-			case Control:
-				serverControlSession.write( packet, null );
-		}
-	}
-	
-	public int getClientDataPort() 
-	{
-		return ((InetSocketAddress)clientDataSession.getLocalAddress()).getPort();	
-	}
-	
-	public int getClientControlPort() 
-	{
-		return ((InetSocketAddress)clientControlSession.getLocalAddress()).getPort();	
-	}
-	
-	public int getServerDataPort() 
-	{
-		return ((InetSocketAddress)serverDataSession.getLocalAddress()).getPort();	
-	}
-	
-	public int getServerControlPort() 
-	{
-		return ((InetSocketAddress)serverControlSession.getLocalAddress()).getPort();	
+		serverChannel.sendPacket( packet, type );
 	}
 
-	private IoSession clientDataSession = null;
-	private IoSession clientControlSession = null;
-	private IoSession serverDataSession = null;
-	private IoSession serverControlSession = null;
 }
