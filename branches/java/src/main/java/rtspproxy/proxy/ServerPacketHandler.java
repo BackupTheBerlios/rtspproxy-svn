@@ -41,9 +41,9 @@ public class ServerPacketHandler extends IoHandlerAdapter
 	public void dataRead( IoSession session, ByteBuffer packet ) throws Exception
 	{
 		DataTunnel dataTunnel = (DataTunnel) session.getAttribute( "dataTunnel" );
-		DataTunnel.ChannelType channelType = (DataTunnel.ChannelType) session.getAttribute( "channelType" );
+		PacketType packetType = (PacketType) session.getAttribute( "sessionType" );
 		if ( dataTunnel != null )
-			dataTunnel.passToClient( packet, channelType );
+			dataTunnel.passToClient( packet, packetType );
 	}
 
 	/*
