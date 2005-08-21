@@ -156,7 +156,8 @@ public abstract class RtspMessage
 	{
 		// TODO: Get the proxy signature from a common class
 		String proxy = "RTSP Proxy v3.0 alpha " + "(" + System.getProperty( "os.name" )
-				+ " " + System.getProperty( "os.arch" ) + ")";
+				+ " / " + System.getProperty( "os.version" ) 
+				+ " / " + System.getProperty( "os.arch" ) + ")";   
 		if ( getHeader( "Server" ) != null )
 			setHeader( "Via", proxy );
 		else
