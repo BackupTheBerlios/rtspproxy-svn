@@ -1,0 +1,10 @@
+
+#
+# $Id$
+#
+# $URL$
+#
+
+
+SUBDIRS = lib
+
