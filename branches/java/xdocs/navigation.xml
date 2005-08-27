@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="RTSP Proxy">
+
+  <!-- Page Title -->
+  <title>RTSP Proxy</title>
+
+  <body>
+
+    <!-- Links defined across the top right of the site -->
+    <links>
+      <item name="Merlimat.Net"  href="http://merlimat.net/"/>
+    </links>
+
+    <!-- Menu in the Left Navigation -->
+    <menu name="Menu Name">
+      <!-- Standalone item -->
+      <item name="Item" href="/item.html" />
+
+      <!-- Uncollapsed Submenu -->
+      <item name="Alpha" href="/alpha/index.html">
+        <item name="Alpha One" href="/alpha/one/index.html"/>
+        <item name="Alpha Two" href="/alpha/two/index.html"/>
+      </item>
+
+      <!-- Collapsed Submenu -->
+      <item name="Beta" href="/beta/index.html" collapse="true">
+        <item name="Beta One" href="/beta/one/index.html" collapse="true"/>
+        <item name="Beta Two" href="/beta/two/index.html" collapse="true"/>
+      </item>
+    </menu>
+  </body>
+</project>
