@@ -143,6 +143,11 @@ public class Config
 		properties.setProperty( key, value );
 	}
 
+	public static void setBoolean( String key, boolean value )
+	{
+		properties.setProperty( key, value ? "true" : "false" );
+	}
+
 	/**
 	 * @param key
 	 * @param value
