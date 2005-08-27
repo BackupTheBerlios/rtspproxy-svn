@@ -26,4 +26,5 @@ public enum PacketType
 	
 	/** A control packet (RTCP) */
 	ControlPacket
+	
 }

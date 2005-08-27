@@ -19,31 +19,56 @@
 package rtspproxy.proxy;
 
 import org.apache.log4j.Logger;
-import org.apache.mina.protocol.ProtocolHandlerAdapter;
-import org.apache.mina.protocol.ProtocolSession;
+import org.apache.mina.common.IoFilter;
+import org.apache.mina.common.IoHandlerAdapter;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.filter.codec.ProtocolCodecFactory;
+import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.filter.codec.ProtocolDecoder;
+import org.apache.mina.filter.codec.ProtocolEncoder;
 
+import rtspproxy.rtsp.RtspDecoder;
+import rtspproxy.rtsp.RtspEncoder;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
 
 /**
- * @author mat
- * 
+ * @author Matteo Merli
  */
-public class ServerSide extends ProtocolHandlerAdapter
+public class ServerSide extends IoHandlerAdapter
 {
 
 	static Logger log = Logger.getLogger( ServerSide.class );
 
-	@Override
-	public void sessionCreated( ProtocolSession session )
+	private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
 	{
+
+		public ProtocolEncoder newEncoder()
+		{
+			// Create a new encoder.
+			return new RtspEncoder();
+		}
+
+		public ProtocolDecoder newDecoder()
+		{
+			// Create a new decoder.
+			return new RtspDecoder();
+		}
+	};
+
+	private static IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
+
+	@Override
+	public void sessionCreated( IoSession session ) throws Exception
+	{
+		session.getFilterChain().addLast( "codec", codecFilter );
 		log.info( "Created session to server: " + session.getRemoteAddress() );
 
 	}
 
 	@Override
-	public void sessionClosed( ProtocolSession session )
+	public void sessionClosed( IoSession session )
 	{
 		log.info( "Server connection closed" );
 		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( "proxyHandler" ) );
@@ -51,8 +76,7 @@ public class ServerSide extends ProtocolHandlerAdapter
 	}
 
 	@Override
-	public void exceptionCaught( ProtocolSession session, Throwable cause )
-			throws Exception
+	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
 		// close all: same as sessionClosed()
 		log.info( "Exception: " + cause );
@@ -139,7 +163,7 @@ public class ServerSide extends ProtocolHandlerAdapter
 
 	public void onResponseGetParam( ProxyHandler proxyHandler, RtspResponse response )
 	{
-		
+
 		proxyHandler.passToClient( response );
 	}
 
@@ -184,7 +208,7 @@ public class ServerSide extends ProtocolHandlerAdapter
 	}
 
 	@Override
-	public void messageReceived( ProtocolSession session, Object message )
+	public void messageReceived( IoSession session, Object message )
 	{
 		RtspMessage rtspMessage = (RtspMessage) message;
 		log.debug( "Received message:\n" + message );

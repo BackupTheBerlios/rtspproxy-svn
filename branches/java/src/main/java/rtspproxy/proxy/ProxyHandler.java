@@ -23,9 +23,9 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 
 import org.apache.log4j.Logger;
-import org.apache.mina.io.socket.SocketConnector;
-import org.apache.mina.protocol.ProtocolSession;
-import org.apache.mina.protocol.io.IoProtocolConnector;
+import org.apache.mina.common.ConnectFuture;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.transport.socket.nio.SocketConnector;
 
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
@@ -41,8 +41,8 @@ import rtspproxy.rtsp.RtspTransportList;
 public class ProxyHandler
 {
 
-	private ProtocolSession clientSession = null;
-	private ProtocolSession serverSession = null;
+	private IoSession clientSession = null;
+	private IoSession serverSession = null;
 
 	static Logger log = Logger.getLogger( ProxyHandler.class );
 
@@ -51,7 +51,7 @@ public class ProxyHandler
 	 * 
 	 * @param clientSession
 	 */
-	public ProxyHandler( ProtocolSession clientSession )
+	public ProxyHandler( IoSession clientSession )
 	{
 		this.clientSession = clientSession;
 	}
@@ -150,24 +150,17 @@ public class ProxyHandler
 	{
 		String host = url.getHost();
 		int port = url.getPort();
-		if ( port == -1 )
-			port = 554;
-
-		log.debug( "Connecting to '" + host + "' " + port );
 
 		// Create TCP/IP connector.
-		SocketConnector socketConnector = new SocketConnector();
-		IoProtocolConnector connector = new IoProtocolConnector( socketConnector );
-
-		ServerSideProvider serverSideProvider = new ServerSideProvider();
-
-		log.debug( "Created new serverSideProvider" );
+		SocketConnector connector = new SocketConnector();
 
 		// Start communication.
-		log.debug( "Trying to connect." );
-		serverSession = connector.connect( new InetSocketAddress( host, port ),
-				serverSideProvider );
-
+		log.debug( "Trying to connect to '" + host + "' " + port  );
+		ConnectFuture future = connector.connect( new InetSocketAddress( host, port ),
+                new ServerSide() );
+		future.join();
+		serverSession = future.getSession();
+		
 		log.debug( "Connected!" );
 
 		// Save current ProxyHandler into the ProtocolSession
@@ -184,7 +177,7 @@ public class ProxyHandler
 			serverSession.close();
 	}
 
-	private void sendRequest( ProtocolSession session, RtspRequest request )
+	private void sendRequest( IoSession session, RtspRequest request )
 	{
 		request.setCommonHeaders();
 		try {
@@ -198,7 +191,7 @@ public class ProxyHandler
 		}
 	}
 
-	private void sendResponse( ProtocolSession session, RtspResponse response )
+	private void sendResponse( IoSession session, RtspResponse response )
 	{
 		response.setCommonHeaders();
 		try {

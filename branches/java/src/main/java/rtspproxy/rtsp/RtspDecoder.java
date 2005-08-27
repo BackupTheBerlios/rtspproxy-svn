@@ -23,10 +23,10 @@ import java.net.URL;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.protocol.ProtocolDecoder;
-import org.apache.mina.protocol.ProtocolDecoderOutput;
-import org.apache.mina.protocol.ProtocolSession;
-import org.apache.mina.protocol.ProtocolViolationException;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.filter.codec.ProtocolDecoder;
+import org.apache.mina.filter.codec.ProtocolDecoderOutput;
+import org.apache.mina.filter.codec.ProtocolViolationException;
 
 /**
  * 
@@ -82,11 +82,11 @@ public class RtspDecoder implements ProtocolDecoder
 	 * entire RTSP message wait for other data to arrive, before dispatching the
 	 * message.
 	 * 
-	 * @see org.apache.mina.protocol.ProtocolDecoder#decode(org.apache.mina.protocol.ProtocolSession,
+	 * @see org.apache.mina.protocol.ProtocolDecoder#decode(org.apache.mina.protocol.IoSession,
 	 *      org.apache.mina.common.ByteBuffer,
 	 *      org.apache.mina.protocol.ProtocolDecoderOutput)
 	 */
-	public void decode( ProtocolSession session, ByteBuffer buffer,
+	public void decode( IoSession session, ByteBuffer buffer,
 			ProtocolDecoderOutput out ) throws ProtocolViolationException
 	{
 		StringBuffer decodeBuf = new StringBuffer();
