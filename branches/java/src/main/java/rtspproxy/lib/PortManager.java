@@ -85,12 +85,12 @@ public class PortManager
 		return port;
 	}
 
-	public static synchronized int[] findAvailablePorts( int nPorts )
+	public static synchronized int[] findAvailablePorts( int nPorts, int startFrom )
 		throws NoPortAvailableException
 	{
 		int dataPort, controlPort, startingPort;
 
-		startingPort = minUdpPort;
+		startingPort = startFrom;
 
 		while ( true ) {
 			
