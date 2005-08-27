@@ -39,12 +39,7 @@ public class ClientRtcpPacketHandler extends IoHandlerAdapter
 	@Override
 	public void messageReceived( IoSession session, Object packet ) throws Exception
 	{
-		// DataTunnel dataTunnel = (DataTunnel) session.getAttribute(
-		// "dataTunnel" );
-		// PacketType packetType = (PacketType) session.getAttribute(
-		// "sessionType" );
-		// if ( dataTunnel != null )
-		// dataTunnel.passToServer( (ByteBuffer)packet, packetType );
+		log.debug( "Received RTCP packet" );
 	}
 
 	@Override

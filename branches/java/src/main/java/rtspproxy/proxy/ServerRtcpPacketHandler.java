@@ -19,19 +19,16 @@
 package rtspproxy.proxy;
 
 import org.apache.log4j.Logger;
-import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
-
 /**
  * @author mat
- *
  */
 public class ServerRtcpPacketHandler extends IoHandlerAdapter
 {
 
-	static Logger log = Logger.getLogger( ServerRtpPacketHandler.class );
+	static Logger log = Logger.getLogger( ServerRtcpPacketHandler.class );
 
 	/*
 	 * @see org.apache.mina.io.IoHandlerAdapter#dataRead(org.apache.mina.io.IoSession,
@@ -40,12 +37,7 @@ public class ServerRtcpPacketHandler extends IoHandlerAdapter
 	@Override
 	public void messageReceived( IoSession session, Object packet ) throws Exception
 	{
-		DataTunnel dataTunnel = (DataTunnel) session.getAttribute( "dataTunnel" );
-		PacketType packetType = (PacketType) session.getAttribute( "sessionType" );
-		if ( dataTunnel != null )
-			dataTunnel.passToClient( (ByteBuffer) packet, packetType );
-		else
-			log.debug( "dataTunnel is null" );
+		log.debug( "Receive RTCP packet" );
 	}
 
 	/*
