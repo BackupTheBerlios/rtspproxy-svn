@@ -1,10 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:noNamespaceSchemaLocation="http://maven.apache.org/maven-v4_0_0.xsd" >
+<project
+	noNamespaceSchemaLocation="http://maven.apache.org/maven-v3_0_0.xsd">
+	
+	<!-- 
+		$Id$
+		$URL$
+	 -->
+
+	<modelVersion>3.0.0</modelVersion>
 
 	<name>RTSP Proxy</name>
 	<artifactId>rtspproxy</artifactId>
-	<version>3.0-ALPHA</version>
-	<url>http://merlimat.net/rtsp-proxy/java</url>
+	<package>rtspproxy</package>
+	<currentVersion>3.0-ALPHA</currentVersion>
+	<url>http://merlimat.net/rtsp-proxy-java</url>
+	<inceptionYear>2003</inceptionYear>
+
+	<issueTrackingUrl>
+		http://developer.berlios.de/bugs/?group_id=4526
+	</issueTrackingUrl>
+
 	<licenses>
 		<license>
 			<name>GNU General Public License</name>
@@ -20,15 +35,52 @@
 			<url>http://merlimat.net</url>
 		</developer>
 	</developers>
-	
+
+	<repository>
+		<connection>
+			scm:svn:svn://svn.berlios.de/rtspproxy/branches/java
+		</connection>
+		<url>http://svn.berlios.de/wsvn/rtspproxy/branches/java</url>
+	</repository>
+
+	<siteAddress>ftp.merlimat.net</siteAddress>
+	<siteDirectory>
+		/public_html/rtsp-proxy-java/
+	</siteDirectory>
+	<distributionDirectory>
+		/public_html/files/
+	</distributionDirectory>
+
+
 	<dependencies>
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.9</version>
 		</dependency>
+
 		<dependency>
+			<groupId>directory-network</groupId>
+			<artifactId>mina</artifactId>
+			<version>0.9-SNAPSHOT</version>
+			<properties></properties>
 		</dependency>
+
+		<dependency>
+			<groupId>emma</groupId>
+			<artifactId>emma</artifactId>
+			<version>2.0.latest</version>
+			<url>http://emma.sourceforge.net/</url>
+		</dependency>
+
+		<dependency>
+			<groupId>emma</groupId>
+			<artifactId>maven-emma-plugin</artifactId>
+			<version>0.4</version>
+			<url>http://emma.sourceforge.net/</url>
+			<type>plugin</type>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -45,4 +97,19 @@
 			</includes>
 		</unitTest>
 	</build>
+
+
+	<reports>
+		<report>maven-license-plugin</report>
+		<report>maven-javadoc-plugin</report>
+		<report>maven-changes-plugin</report>
+		<report>maven-jxr-plugin</report>
+		<report>maven-junit-report-plugin</report>
+		<!-- <report>maven-emma-plugin</report> -->
+		<report>maven-jdepend-plugin</report>
+		<report>maven-simian-plugin</report>
+		<report>maven-tasklist-plugin</report>
+	</reports>
+
+
 </project>
