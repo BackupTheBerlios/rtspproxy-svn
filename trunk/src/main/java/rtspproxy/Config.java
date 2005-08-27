@@ -39,12 +39,12 @@ public class Config
 		String[] paths = new String[3];
 
 		// Current directory configuration
-		paths[2] = "rtspproxy.conf";
+		paths[2] = "rtspproxy.properties";
 		// Per user config
 		paths[1] = System.getProperty( "user.home", "" ) + File.separator
-				+ ".rtspproxy.conf";
+				+ ".rtspproxy.properties";
 		// System wide configuration (tipical in unix systems)
-		paths[0] = "/etc/rtspproxy.conf";
+		paths[0] = "/etc/rtspproxy.properties";
 
 		for ( String path : paths ) {
 			try {
@@ -136,5 +136,30 @@ public class Config
 				}
 		}
 		return boolValue;
+	}
+
+	public static void set( String key, String value )
+	{
+		properties.setProperty( key, value );
+	}
+
+	/**
+	 * @param key
+	 * @param value
+	 */
+	public static void setInt( String key, int value )
+	{
+		properties.setProperty( key, Integer.toString( value ) );
+	}
+
+	public static void setIntArray( String key, int[] values )
+	{
+		StringBuilder build = new StringBuilder();
+		for ( int i = 0; i < values.length; i++ ) {
+			if ( i > 0 )
+				build.append( ", " );
+			build.append( Integer.toString( values[i] ) );
+		}
+		properties.setProperty( key, build.toString() );
 	}
 }
