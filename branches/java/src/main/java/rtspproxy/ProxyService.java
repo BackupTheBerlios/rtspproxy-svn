@@ -18,42 +18,30 @@
 
 package rtspproxy;
 
-import org.apache.log4j.Logger;
-import org.apache.mina.registry.ServiceRegistry;
-import org.apache.mina.registry.SimpleServiceRegistry;
-
 /**
- * 
+ * @author Matteo Merli
  */
-public class Reactor
+public interface ProxyService
 {
 
-	static Logger log = Logger.getLogger( Reactor.class );
-
-	private static ServiceRegistry registry = new SimpleServiceRegistry();
+	/**
+	 * Starts the service.
+	 * 
+	 * @throws Exception
+	 */
+	public void start() throws Exception;
 
 	/**
-	 * Constructor. Creates a new Reactor and starts it.
+	 * Stops the service
+	 * 
+	 * @throws Exception
 	 */
-	static public void start() throws Exception
-	{
-		ProxyService rtspService = new RtspService();
-		rtspService.start();
-		
-		ProxyService rtpClientService = new RtpClientService();
-		rtpClientService.start();
-		
-		ProxyService rtpServerService = new RtpServerService();
-		rtpServerService.start();
-	}
-	
-	static public void stop() throws Exception
-	{
-		registry.unbindAll();
-	}
-	
-	protected static synchronized ServiceRegistry getRegistry() {
-		return registry; 
-	}
+	public void stop() throws Exception;
+
+	/**
+	 * @return true if the service is started, false otherwise.
+	 */
+	// TODO: Not really sure if it's needed
+	// public boolean isRunning();
 
 }

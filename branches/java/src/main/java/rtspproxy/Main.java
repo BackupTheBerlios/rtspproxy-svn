@@ -54,10 +54,11 @@ public class Main
 		
 		try {
 			log.warn( "Starting.." );
-			new Reactor();
+			Reactor.start();
 
 		} catch ( Exception e ) {
 			log.fatal( "Exception in the reactor: " + e );
+			e.printStackTrace();
 			System.exit( -1 );
 		}
 	}
