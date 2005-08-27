@@ -74,14 +74,42 @@ public class Config
 		try {
 			return Integer.parseInt( properties.getProperty( key ) );
 		} catch ( Exception e ) {
-			return -1;
+			return defaultValue;
+		}
+	}
+
+	/**
+	 * Convert a list of comma separated integers string into an array of
+	 * integers.
+	 * 
+	 * @param key
+	 * @param defaultValue
+	 * @return
+	 */
+	public static int[] getIntArray( String key, int defaultValue )
+	{
+		try {
+			String toks[] = properties.getProperty( key ).split( "," );
+			int res[] = new int[toks.length];
+			int i = 0;
+			for ( String tok : toks ) {
+				res[i++] = Integer.parseInt( tok.trim() );
+			}
+			return res;
+
+		} catch ( Exception e ) {
+			int res[] = { defaultValue };
+			return res;
 		}
 	}
 
 	/**
 	 * Get a boolean property from config.
-	 * @param key the name of the property
-	 * @param defaultValue its default value
+	 * 
+	 * @param key
+	 *        the name of the property
+	 * @param defaultValue
+	 *        its default value
 	 * @return the boolean value
 	 */
 	public static boolean getBoolean( String key, boolean defaultValue )
@@ -101,10 +129,11 @@ public class Config
 			if ( value.equalsIgnoreCase( "true " ) || value.equalsIgnoreCase( "yes" )
 					|| value.equalsIgnoreCase( "1" ) ) {
 				boolValue = true;
-			} else if ( value.equalsIgnoreCase( "false" )
-					|| value.equalsIgnoreCase( "no" ) || value.equalsIgnoreCase( "0" ) ) {
-				boolValue = false;
-			}
+			} else
+				if ( value.equalsIgnoreCase( "false" ) || value.equalsIgnoreCase( "no" )
+						|| value.equalsIgnoreCase( "0" ) ) {
+					boolValue = false;
+				}
 		}
 		return boolValue;
 	}
