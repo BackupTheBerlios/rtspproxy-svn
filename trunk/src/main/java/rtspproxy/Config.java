@@ -122,20 +122,17 @@ public class Config
 			return defaultValue;
 		}
 
-		boolean boolValue = defaultValue;
+		// Try to convert a a String to a boolean
+		if ( value.equalsIgnoreCase( "true" ) || value.equalsIgnoreCase( "yes" )
+				|| value.equalsIgnoreCase( "1" ) ) {
+			return true;
+		} else
+			if ( value.equalsIgnoreCase( "false" ) || value.equalsIgnoreCase( "no" )
+					|| value.equalsIgnoreCase( "0" ) ) {
+				return false;
+			}
 
-		if ( value != null ) {
-			// Try to convert a a String to a boolean
-			if ( value.equalsIgnoreCase( "true " ) || value.equalsIgnoreCase( "yes" )
-					|| value.equalsIgnoreCase( "1" ) ) {
-				boolValue = true;
-			} else
-				if ( value.equalsIgnoreCase( "false" ) || value.equalsIgnoreCase( "no" )
-						|| value.equalsIgnoreCase( "0" ) ) {
-					boolValue = false;
-				}
-		}
-		return boolValue;
+		return defaultValue;
 	}
 
 	public static void set( String key, String value )
