@@ -2,32 +2,44 @@
 
 <project name="RTSP Proxy">
 
-  <!-- Page Title -->
-  <title>RTSP Proxy</title>
+	<title>RTSP Proxy</title>
 
-  <body>
+	<body>
 
-    <!-- Links defined across the top right of the site -->
-    <links>
-      <item name="Merlimat.Net"  href="http://merlimat.net/"/>
-    </links>
+		<!-- Links defined across the top right of the site -->
+		<links>
+			<item
+				name="Merlimat.Net"
+				href="http://merlimat.net/" />
+		</links>
 
-    <!-- Menu in the Left Navigation -->
-    <menu name="Menu Name">
-      <!-- Standalone item -->
-      <item name="Item" href="/item.html" />
+		<menu name="Rtsp Proxy">
+			<item
+				name="Overview"
+				href="overview.html" />
+			<item
+				name="Install"
+				href="install.html" />
+			<item
+				name="Configuration"
+				href="configuration.html" />
+		</menu>
 
-      <!-- Uncollapsed Submenu -->
-      <item name="Alpha" href="/alpha/index.html">
-        <item name="Alpha One" href="/alpha/one/index.html"/>
-        <item name="Alpha Two" href="/alpha/two/index.html"/>
-      </item>
+		<menu name="Download">
+			<item
+				name="Source Code"
+				href="download/source_code.html" />
+			<item
+				name="Binaries"
+				href="download/binaries.html">
+				<item
+					name="Unix"
+					href="download/unix.html" />
+				<item
+					name="Windows"
+					href="download/windows.html" />
+			</item>
+		</menu>
 
-      <!-- Collapsed Submenu -->
-      <item name="Beta" href="/beta/index.html" collapse="true">
-        <item name="Beta One" href="/beta/one/index.html" collapse="true"/>
-        <item name="Beta Two" href="/beta/two/index.html" collapse="true"/>
-      </item>
-    </menu>
-  </body>
+	</body>
 </project>
