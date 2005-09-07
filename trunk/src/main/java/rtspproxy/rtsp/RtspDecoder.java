@@ -34,9 +34,9 @@ import org.apache.mina.filter.codec.ProtocolViolationException;
 public class RtspDecoder implements ProtocolDecoder
 {
 
-	/** 
-	 * State enumerator that indicates the reached state in the RTSP
-	 * message decoding process.  
+	/**
+	 * State enumerator that indicates the reached state in the RTSP message
+	 * decoding process.
 	 */
 	public enum ReadState {
 		/** Unrecoverable error occurred */
@@ -59,8 +59,9 @@ public class RtspDecoder implements ProtocolDecoder
 
 	static Logger log = Logger.getLogger( RtspDecoder.class );
 
-	/** 
+	/**
 	 * Get a line from a string buffer and delete the line in the buffer.
+	 * 
 	 * @param buffer
 	 * @return
 	 */
@@ -86,8 +87,8 @@ public class RtspDecoder implements ProtocolDecoder
 	 *      org.apache.mina.common.ByteBuffer,
 	 *      org.apache.mina.protocol.ProtocolDecoderOutput)
 	 */
-	public void decode( IoSession session, ByteBuffer buffer,
-			ProtocolDecoderOutput out ) throws ProtocolViolationException
+	public void decode( IoSession session, ByteBuffer buffer, ProtocolDecoderOutput out )
+			throws ProtocolViolationException
 	{
 		StringBuffer decodeBuf = new StringBuffer();
 
@@ -134,24 +135,27 @@ public class RtspDecoder implements ProtocolDecoder
 					} else {
 						// this is a RTSP request
 						String verb = line.split( " " )[0];
-						URL url;
-						try {
-							// log.debug( "url line: " + line.split( " " )[1] );
-							url = new URL( line.split( " " )[1] );
-						} catch ( MalformedURLException e ) {
-							log.info( e );
-							url = null;
-							session.setAttribute( "state", ReadState.Failed );
-							throw new ProtocolViolationException( "Invalid URL" );
+						String strUrl = line.split( " " )[1];
+						URL url = null;
+						if ( !strUrl.equalsIgnoreCase( "*" ) ) {
+							try {
+								url = new URL( strUrl );
+							} catch ( MalformedURLException e ) {
+								log.info( e );
+								url = null;
+								session.setAttribute( "state", ReadState.Failed );
+								throw new ProtocolViolationException( "Invalid URL" );
+							}
 						}
 						rtspMessage = new RtspRequest();
 						( (RtspRequest) rtspMessage ).setVerb( verb );
-						
-						if ( ( (RtspRequest) rtspMessage ).getVerb() == RtspRequest.Verb.None )	 {
+
+						if ( ( (RtspRequest) rtspMessage ).getVerb() == RtspRequest.Verb.None ) {
 							session.setAttribute( "state", ReadState.Failed );
-							throw new ProtocolViolationException( "Invalid method: " + verb );
+							throw new ProtocolViolationException( "Invalid method: "
+									+ verb );
 						}
-						
+
 						( (RtspRequest) rtspMessage ).setUrl( url );
 					}
 					state = ReadState.Header;
@@ -166,12 +170,13 @@ public class RtspDecoder implements ProtocolDecoder
 						String key = a[0];
 						String value = a[1];
 						rtspMessage.setHeader( key, value );
-					} else if ( a.length == 1 ) {
-						String key = a[0];
-						rtspMessage.setHeader( key, "" );
-					} else {
-						log.debug( "Malformed header: " + line );
-					}
+					} else
+						if ( a.length == 1 ) {
+							String key = a[0];
+							rtspMessage.setHeader( key, "" );
+						} else {
+							log.debug( "Malformed header: " + line );
+						}
 					break;
 
 			}
@@ -187,7 +192,7 @@ public class RtspDecoder implements ProtocolDecoder
 			} else {
 				// we have a content buffer to read
 				int bytesToRead = bufferLen - rtspMessage.getBufferSize();
-				
+
 				if ( bytesToRead < decodeBuf.length() ) {
 					log.warn( "We are reading more bytes than Content-Length." );
 				}
