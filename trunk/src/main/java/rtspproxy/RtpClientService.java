@@ -44,10 +44,10 @@ public class RtpClientService implements ProxyService
 
 	public void start() throws IOException, NoPortAvailableException
 	{
-		int rtpPort = Config.getInt( "proxy.client.rtp.port", 6792 );
-		int rtcpPort = Config.getInt( "proxy.client.rtcp.port", 6793 );
+		int rtpPort = Config.getInt( "proxy.client.rtp.port", 6972 );
+		int rtcpPort = Config.getInt( "proxy.client.rtcp.port", 6973 );
 		String netInterface = Config.get( "proxy.client.interface", null );
-		boolean dinPorts = Config.getBoolean( "port.client.dynamicPorts", false );
+		boolean dinPorts = Config.getBoolean( "proxy.client.dynamicPorts", false );
 
 		// If dinPorts is true, we have to first check the availability
 		// of the ports and choose 2 valid ports.
@@ -56,6 +56,10 @@ public class RtpClientService implements ProxyService
 			rtpPort = ports[0];
 			rtcpPort = ports[1];
 		}
+
+		// Update properties with effective ports
+		Config.setInt( "proxy.client.rtp.port", rtpPort );
+		Config.setInt( "proxy.client.rtcp.port", rtcpPort );
 
 		InetSocketAddress rtpAddr = new InetSocketAddress(
 				InetAddress.getByName( netInterface ), rtpPort );
@@ -71,7 +75,8 @@ public class RtpClientService implements ProxyService
 
 			Reactor.getRegistry().bind( rtpService, new ClientRtpPacketHandler() );
 			Reactor.getRegistry().bind( rtcpService, new ClientRtcpPacketHandler() );
-			log.info( "Listening on ports: " + rtpPort + "-" + rtcpPort );
+			log.info( "Listening on: " + InetAddress.getByName( netInterface ) + " "+ rtpPort
+					+ "-" + rtcpPort );
 
 		} catch ( IOException e ) {
 			log.fatal( "Can't start the service. " + e );
