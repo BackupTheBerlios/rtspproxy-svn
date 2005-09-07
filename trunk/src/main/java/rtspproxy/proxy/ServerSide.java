@@ -80,6 +80,7 @@ public class ServerSide extends IoHandlerAdapter
 	{
 		// close all: same as sessionClosed()
 		log.info( "Exception: " + cause );
+		cause.printStackTrace();
 		sessionClosed( session );
 	}
 
@@ -163,47 +164,55 @@ public class ServerSide extends IoHandlerAdapter
 
 	public void onResponseGetParam( ProxyHandler proxyHandler, RtspResponse response )
 	{
-
+		log.debug( "RESPONSE GET_PARAM" );
 		proxyHandler.passToClient( response );
 	}
 
 	public void onResponseOptions( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE OPTIONS" );
 		proxyHandler.passToClient( response );
 	}
 
 	public void onResponsePause( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE PAUSE" );
 		proxyHandler.passToClient( response );
 	}
 
 	public void onResponsePlay( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE PLAY" );
 		proxyHandler.passToClient( response );
 	}
 
 	public void onResponseRecord( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE RECORD" );
 		proxyHandler.passToClient( response );
 	}
 
 	public void onResponseRedirect( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE REDIRECT" );
 		proxyHandler.passToClient( response );
 	}
 
 	public void onResponseSetParam( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE SET_PARAM" );
 		proxyHandler.passToClient( response );
 	}
 
 	public void onResponseSetup( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE SETUP" );
 		proxyHandler.passSetupResponseToClient( response );
 	}
 
 	public void onResponseTeardown( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE TEARDOWN" );
 		proxyHandler.passToClient( response );
 	}
 
@@ -222,6 +231,7 @@ public class ServerSide extends IoHandlerAdapter
 		switch ( rtspMessage.getType() ) {
 			case TypeRequest:
 				RtspRequest request = (RtspRequest) rtspMessage;
+
 				switch ( request.getVerb() ) {
 					case ANNOUNCE:
 						onRequestAnnounce( proxyHandler, request );

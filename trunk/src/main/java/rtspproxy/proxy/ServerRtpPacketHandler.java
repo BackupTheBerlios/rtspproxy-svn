@@ -19,8 +19,11 @@
 package rtspproxy.proxy;
 
 import org.apache.log4j.Logger;
+import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
+
+import rtspproxy.rtp.RtpPacket;
 
 /**
  * @author Matteo Merli
@@ -35,9 +38,20 @@ public class ServerRtpPacketHandler extends IoHandlerAdapter
 	 *      org.apache.mina.common.ByteBuffer)
 	 */
 	@Override
-	public void messageReceived( IoSession session, Object packet ) throws Exception
+	public void messageReceived( IoSession session, Object buffer ) throws Exception
 	{
-		log.debug( "Received RTP packet" );
+		// log.debug( "Received RTP packet" );
+		RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
+		Track track = Track.getByServerSSRC( packet.getSsrc() );
+
+		if ( track == null ) {
+			// drop packet
+			log.debug( "Invalid SSRC identifier: " + Long.toHexString( packet.getSsrc() ) );
+			return;
+		}
+
+		track.setRtpServerSession( session );
+		track.forwardRtpToClient( packet );
 	}
 
 	/*

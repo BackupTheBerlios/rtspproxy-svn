@@ -37,7 +37,7 @@ public class DataTunnel
 		/** RDT only has one channel */
 		RDT
 	}
-
+/*
 	private Channel serverChannel = null;
 	private List<Channel> clientChannelList = Collections.synchronizedList( new ArrayList<Channel>() );
 
@@ -67,5 +67,5 @@ public class DataTunnel
 	{
 		serverChannel.sendPacket( packet, type );
 	}
-
+*/
 }

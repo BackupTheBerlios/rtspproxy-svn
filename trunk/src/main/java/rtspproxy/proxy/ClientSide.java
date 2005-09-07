@@ -27,6 +27,7 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 
+import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspDecoder;
 import rtspproxy.rtsp.RtspEncoder;
 import rtspproxy.rtsp.RtspMessage;
@@ -106,6 +107,16 @@ public class ClientSide extends IoHandlerAdapter
 	public void onRequestOptions( ProxyHandler proxyHandler, RtspRequest request )
 	{
 		log.debug( "REQUEST OPTIONS" );
+		if ( request.getUrl() == null ) {
+			// There isn't a server URL, so with reply with
+			// a standard set of Proxy supported Options
+			RtspResponse response = new RtspResponse();
+			response.setCode( RtspCode.OK );
+			response.setHeader( "Public",
+					"DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE, SET_PARAMETER" );
+			proxyHandler.passToClient( response );
+			return;
+		}
 		proxyHandler.passToServer( request );
 	}
 
@@ -165,46 +176,55 @@ public class ClientSide extends IoHandlerAdapter
 
 	public void onResponseGetParam( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE GET_PARAM" );
 		proxyHandler.passToServer( response );
 	}
 
 	public void onResponseOptions( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE OPTIONS" );
 		proxyHandler.passToServer( response );
 	}
 
 	public void onResponsePause( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE PAUSE" );
 		proxyHandler.passToServer( response );
 	}
 
 	public void onResponsePlay( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE PLAY" );
 		proxyHandler.passToServer( response );
 	}
 
 	public void onResponseRecord( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE RECORD" );
 		proxyHandler.passToServer( response );
 	}
 
 	public void onResponseRedirect( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE REDIRECT" );
 		proxyHandler.passToServer( response );
 	}
 
 	public void onResponseSetParam( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE SET_PARAM" );
 		proxyHandler.passToServer( response );
 	}
 
 	public void onResponseSetup( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE SEUP" );
 		proxyHandler.passToServer( response );
 	}
 
 	public void onResponseTeardown( ProxyHandler proxyHandler, RtspResponse response )
 	{
+		log.debug( "RESPONSE TEARDOWN" );
 		proxyHandler.passToServer( response );
 	}
 
@@ -219,6 +239,7 @@ public class ClientSide extends IoHandlerAdapter
 		switch ( rtspMessage.getType() ) {
 			case TypeRequest:
 				RtspRequest request = (RtspRequest) rtspMessage;
+
 				switch ( request.getVerb() ) {
 					case ANNOUNCE:
 						onRequestAnnounce( proxyHandler, request );
