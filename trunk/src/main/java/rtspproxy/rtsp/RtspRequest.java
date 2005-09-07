@@ -103,18 +103,20 @@ public class RtspRequest extends RtspMessage
 	 */
 	public String toString()
 	{
-		String str = getVerbString() + " ";
-		str += url + " " + "RTSP/1.0" + CRLF;
-		str += getHeadersString();
+		StringBuilder sb = new StringBuilder();
+		sb.append( getVerbString() + " " );
+		sb.append( url != null ? url : "*" );
+		sb.append( " RTSP/1.0\r\n" );
+		sb.append( getHeadersString() );
 
 		// Insert a blank line
-		str += CRLF;
+		sb.append( CRLF );
 
 		if ( getBufferSize() > 0 ) {
-			str += getBuffer();
+			sb.append( getBuffer() );
 		}
 
-		return str;
+		return sb.toString();
 	}
 
 }

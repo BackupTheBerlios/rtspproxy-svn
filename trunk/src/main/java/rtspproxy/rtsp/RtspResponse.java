@@ -29,7 +29,7 @@ public class RtspResponse extends RtspMessage
 	static Logger log = Logger.getLogger( RtspResponse.class );
 
 	RtspCode code;
-	RtspRequest.Verb requestVerb;
+	RtspRequest.Verb requestVerb = RtspRequest.Verb.None;
 
 	public RtspResponse()
 	{
@@ -66,10 +66,10 @@ public class RtspResponse extends RtspMessage
 	 * Serialize the RTSP response to a string.
 	 * 
 	 * <pre>
-	 * "RTSP/1.0" SP [code] SP [reason] CRLF
-	 * [headers] CRLF
-	 * CRLF
-	 * [buf] 
+	 *  &quot;RTSP/1.0&quot; SP [code] SP [reason] CRLF
+	 *  [headers] CRLF
+	 *  CRLF
+	 *  [buf] 
 	 * </pre>
 	 */
 	public String toString()
@@ -87,6 +87,20 @@ public class RtspResponse extends RtspMessage
 		}
 
 		return str;
+	}
+
+	/**
+	 * Construct a new RtspResponse error message.
+	 * 
+	 * @param errorCode
+	 *        the RTSP error code to be sent
+	 * @return a RTSP response message
+	 */
+	public static RtspResponse errorResponse( RtspCode errorCode )
+	{
+		RtspResponse response = new RtspResponse();
+		response.setCode( errorCode );
+		return response;
 	}
 
 }
