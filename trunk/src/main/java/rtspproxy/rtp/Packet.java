@@ -18,7 +18,8 @@
 
 package rtspproxy.rtp;
 
-import java.nio.ByteBuffer;
+import org.apache.mina.common.ByteBuffer;
+
 
 /**
  * Base interface for RTP and RTCP packets

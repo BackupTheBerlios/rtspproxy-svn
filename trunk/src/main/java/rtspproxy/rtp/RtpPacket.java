@@ -18,28 +18,30 @@
 
 package rtspproxy.rtp;
 
-import java.nio.ByteBuffer;
-
 import org.apache.log4j.Logger;
+import org.apache.mina.common.ByteBuffer;
 
 /**
  * This class wraps a RTP packet providing method to convert from and to a
- * {@link ByteBuffer}. <p> A RTP packet is composed of an header and the
- * subsequent payload. <p> The RTP header has the following format:
+ * {@link ByteBuffer}.
+ * <p>
+ * A RTP packet is composed of an header and the subsequent payload.
+ * <p>
+ * The RTP header has the following format:
  * 
  * <pre>
- * 0                   1                   2                   3
- * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |V=2|P|X|  CC   |M|     PT      |       sequence number         |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |                           timestamp                           |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |           synchronization source (SSRC) identifier            |
- * +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
- * |            contributing source (CSRC) identifiers             |
- * |                             ....                              |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *     0                   1                   2                   3
+ *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *     |V=2|P|X|  CC   |M|     PT      |       sequence number         |
+ *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *     |                           timestamp                           |
+ *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *     |           synchronization source (SSRC) identifier            |
+ *     +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+ *     |            contributing source (CSRC) identifiers             |
+ *     |                             ....                              |
+ *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * </pre>
  * 
  * The first twelve octets are present in every RTP packet, while the list of
@@ -53,31 +55,27 @@ public class RtpPacket implements Packet
 	static Logger log = Logger.getLogger( RtpPacket.class );
 
 	/**
-	 * This field identifies the version of RTP.
-	 * 
-	 * The version defined by this specification is two (2). (The value 1 is
-	 * used by the first draft version of RTP and the value 0 is used by the
-	 * protocol initially implemented in the "vat" audio tool.)
+	 * This field identifies the version of RTP. The version defined by this
+	 * specification is two (2). (The value 1 is used by the first draft version
+	 * of RTP and the value 0 is used by the protocol initially implemented in
+	 * the "vat" audio tool.)
 	 */
 	private byte version;
 
 	/**
-	 * Padding flag.
-	 * 
-	 * If the padding bit is set, the packet contains one or more additional
-	 * padding octets at the end which are not part of the payload. The last
-	 * octet of the padding contains a count of how many padding octets should
-	 * be ignored, including itself. Padding may be needed by some encryption
-	 * algorithms with fixed block sizes or for carrying several RTP packets in
-	 * a lower-layer protocol data unit.
+	 * Padding flag. If the padding bit is set, the packet contains one or more
+	 * additional padding octets at the end which are not part of the payload.
+	 * The last octet of the padding contains a count of how many padding octets
+	 * should be ignored, including itself. Padding may be needed by some
+	 * encryption algorithms with fixed block sizes or for carrying several RTP
+	 * packets in a lower-layer protocol data unit.
 	 */
 	private boolean padding;
 
 	/**
-	 * Extension Flag.
-	 * 
-	 * If the extension bit is set, the fixed header MUST be followed by exactly
-	 * one header extension, with a format defined in Section 5.3.1 of the RFC.
+	 * Extension Flag. If the extension bit is set, the fixed header MUST be
+	 * followed by exactly one header extension, with a format defined in
+	 * Section 5.3.1 of the RFC.
 	 */
 	private boolean extension;
 
@@ -101,7 +99,8 @@ public class RtpPacket implements Packet
 	 * interpretation by the application. A profile MAY specify a default static
 	 * mapping of payload type codes to payload formats. Additional payload type
 	 * codes MAY be defined dynamically through non-RTP means (see Section 3).
-	 * <p> A set of default mappings for audio and video is specified in the
+	 * <p>
+	 * A set of default mappings for audio and video is specified in the
 	 * companion RFC 3551 [1]. An RTP source MAY change the payload type during
 	 * a session, but this field SHOULD NOT be used for multiplexing separate
 	 * media streams (see Section 5.2).
@@ -140,15 +139,15 @@ public class RtpPacket implements Packet
 	 * field. If there are more than 15 contributing sources, only 15 can be
 	 * identified.
 	 */
-	private int[] csrc;
+	private int[] csrc = {};
 
 	private short profileExtension;
-	private byte[] headerExtension;
+	private byte[] headerExtension = {};
 
 	/**
 	 * Content of the packet.
 	 */
-	private byte[] payload;
+	private byte[] payload = {};
 
 	/**
 	 * Construct a new RtpPacket reading the fields from a ByteBuffer
@@ -199,6 +198,11 @@ public class RtpPacket implements Packet
 		}
 	}
 
+	protected RtpPacket()
+	{
+		// Creates an empty packet
+	}
+
 	/**
 	 * Convert the packet instance into a {@link ByteBuffer} ready to be sent.
 	 * 
@@ -206,36 +210,40 @@ public class RtpPacket implements Packet
 	 */
 	public ByteBuffer toByteBuffer()
 	{
-		int packetSize = 24 + csrc.length * 4 + payload.length;
+		int packetSize = 12 + csrc.length * 4 + payload.length;
+		if ( extension )
+			packetSize += headerExtension.length;
+		
 		ByteBuffer buffer = ByteBuffer.allocate( packetSize );
+		buffer.limit( packetSize );
 
 		byte c = 0x00;
 		int bPadding = padding ? 1 : 0;
 		int bExtension = extension ? 1 : 0;
-		c = (byte) ( ( version << 6 ) & ( bPadding << 5 ) & ( bExtension << 4 ) & csrcCount );
+		c = (byte) ( ( version << 6 ) | ( bPadding << 5 ) | ( bExtension << 4 ) | csrcCount );
 		buffer.put( c );
 
 		int bMarker = marker ? 1 : 0;
-		c = (byte) ( ( bMarker << 7 ) & payloadType );
+		c = (byte) ( ( bMarker << 7 ) | payloadType );
 		buffer.put( c );
 
 		buffer.putShort( sequence );
 		buffer.putInt( timestamp );
 		buffer.putInt( ssrc );
 
-		for ( byte i = 0; i < csrcCount; i++ ) {
+		for ( byte i = 0; i < Math.min( csrcCount, csrc.length ); i++ ) {
 			buffer.putInt( csrc[i] );
 		}
 
 		// Write the extension header if present
 		if ( extension ) {
 			buffer.putShort( profileExtension );
-			buffer.putShort( (short)headerExtension.length );
+			buffer.putShort( (short) headerExtension.length );
 			buffer.put( headerExtension );
 		}
 
 		buffer.put( payload );
-
+		buffer.rewind();
 		return buffer;
 	}
 
@@ -344,18 +352,18 @@ public class RtpPacket implements Packet
 	/**
 	 * @return Returns the payloadType.
 	 */
-	public byte getPayloadType()
+	public int getPayloadType()
 	{
-		return payloadType;
+		return ( (int) payloadType & 0xFF );
 	}
 
 	/**
 	 * @param payloadType
 	 *        The payloadType to set.
 	 */
-	public void setPayloadType( byte payloadType )
+	public void setPayloadType( int payloadType )
 	{
-		this.payloadType = payloadType;
+		this.payloadType = (byte) ( payloadType & 0xFF );
 	}
 
 	/**
@@ -378,18 +386,18 @@ public class RtpPacket implements Packet
 	/**
 	 * @return Returns the ssrc.
 	 */
-	public int getSsrc()
+	public long getSsrc()
 	{
-		return ssrc;
+		return ( (long) ssrc & 0xFFFFFFFFL );
 	}
 
 	/**
 	 * @param ssrc
 	 *        The ssrc to set.
 	 */
-	public void setSsrc( int ssrc )
+	public void setSsrc( long ssrc )
 	{
-		this.ssrc = ssrc;
+		this.ssrc = (int) ( ssrc & 0xFFFFFFFFL );
 	}
 
 	/**

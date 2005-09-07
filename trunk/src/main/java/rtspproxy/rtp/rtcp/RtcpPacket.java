@@ -18,9 +18,8 @@
 
 package rtspproxy.rtp.rtcp;
 
-import java.nio.ByteBuffer;
-
 import org.apache.log4j.Logger;
+import org.apache.mina.common.ByteBuffer;
 
 import rtspproxy.rtp.Packet;
 
@@ -46,7 +45,7 @@ public class RtcpPacket implements Packet
 
 		NONE(0);
 
-		public final byte value;
+		private final byte value;
 
 		public static Type fromByte( byte value )
 		{
@@ -59,6 +58,11 @@ public class RtcpPacket implements Packet
 		private Type( int value )
 		{
 			this.value = (byte) value;
+		}
+
+		public byte getValue()
+		{
+			return value;
 		}
 	}
 
@@ -76,7 +80,13 @@ public class RtcpPacket implements Packet
 	protected int ssrc;
 
 	// private RtcpInfo rtcpInfo;
+	protected byte[] packetBuffer;
 
+	/**
+	 * TODO: At this moment, the RTCP packet is not completely parsed, only some
+	 * informations are extracted such as the SSRC identificator. The rest of
+	 * the packet is saved but not processed nor validated (for now).
+	 */
 	public RtcpPacket( ByteBuffer buffer )
 	{
 		byte c = buffer.get();
@@ -86,8 +96,24 @@ public class RtcpPacket implements Packet
 		count = (byte) ( c & 0x1F );
 		packetType = buffer.get();
 		length = buffer.getShort();
-		
+
 		ssrc = buffer.getInt();
+
+		// we have already read 2 * 4 = 8 bytes 
+		// out  of ( length + 1 ) * 4 totals
+		int size = Math.min( ((length+1)*4 - 8 ), buffer.remaining() );
+		packetBuffer = new byte[size];
+		buffer.get( packetBuffer );
+
+		/*
+		System.err.println( "version: " + version );
+		System.err.println( "Padding: " + padding );
+		System.err.println( "count: " + count );
+		System.err.println( "packetType: " + Type.fromByte( packetType ) );
+		System.err.println( "length: " + length );
+		System.err.println( "ssrc: " + Long.toHexString( (long) ssrc & 0xFFFFFFFFL ) );
+		System.err.println( "buffer: " + Arrays.toString( packetBuffer ) );
+		*/
 		
 		/**
 		 * <pre>
@@ -105,10 +131,31 @@ public class RtcpPacket implements Packet
 		 * </pre>
 		 */
 	}
-	
-	public int getSsrc() 
+
+	protected RtcpPacket()
 	{
-		return ssrc;
+	}
+
+	/**
+	 * @return Returns the ssrc.
+	 */
+	public long getSsrc()
+	{
+		return ( (long) ssrc & 0xFFFFFFFFL );
+	}
+
+	/**
+	 * @param ssrc
+	 *        The ssrc to set.
+	 */
+	public void setSsrc( long ssrc )
+	{
+		this.ssrc = (int) ( ssrc & 0xFFFFFFFFL );
+	}
+
+	public Type getType()
+	{
+		return Type.fromByte( packetType );
 	}
 
 	/*
@@ -118,8 +165,22 @@ public class RtcpPacket implements Packet
 	 */
 	public ByteBuffer toByteBuffer()
 	{
-		// TODO Auto-generated method stub
-		return null;
-	}
+		int packetSize = ( packetBuffer.length + 1 ) * 4; // content
+		ByteBuffer buffer = ByteBuffer.allocate( packetSize );
+		buffer.limit( packetSize );
 
+		// |V=2|P=1| SC=5 |
+		byte c;
+		c  = (byte) ( ( version << 6 ) & 0xC0 );
+		c |= (byte) ( ( ( padding ? 1 : 0 ) << 5 ) & 0x20 ) ;
+		c |= (byte) ( count & 0x1F );
+		buffer.put( c );
+		buffer.put( packetType );
+		buffer.putShort( length );
+		buffer.putInt( ssrc );
+
+		buffer.put( packetBuffer );
+		buffer.rewind();
+		return buffer;
+	}
 }
