@@ -19,6 +19,7 @@
 package rtspproxy;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import org.apache.log4j.Logger;
@@ -52,7 +53,7 @@ public class RtspService implements ProxyService
 							new InetSocketAddress( netInterface, port ) );
 
 				Reactor.getRegistry().bind( service, new ClientSide() );
-				log.info( "Listening on port: " + port );
+				log.info( "Listening on: " + InetAddress.getByName( netInterface ) + ":"+ port );
 
 			} catch ( IOException e ) {
 				log.fatal( e.getMessage() + " (port = " + port + ")" );
