@@ -18,7 +18,7 @@
 
 package rtspproxy.rtsp;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,7 +34,7 @@ public class RtspTransportList
 	 */
 	public RtspTransportList( String transportHeader )
 	{
-		transportList = new LinkedList<RtspTransport>();
+		transportList = new ArrayList<RtspTransport>();
 
 		for ( String transport : transportHeader.split( "," ) ) {
 			transportList.add( new RtspTransport( transport ) );
@@ -44,6 +44,11 @@ public class RtspTransportList
 	public List<RtspTransport> getList()
 	{
 		return transportList;
+	}
+
+	public RtspTransport get( int index )
+	{
+		return transportList.get( index );
 	}
 
 	/**
@@ -57,7 +62,10 @@ public class RtspTransportList
 	public String toString()
 	{
 		String s = "";
+		int i = 0;
 		for ( RtspTransport t : transportList ) {
+			if ( i++ != 0 )
+				s += ",";
 			s += t.toString();
 		}
 		return s;

@@ -21,40 +21,38 @@ package rtspproxy.rtsp;
 import org.apache.log4j.Logger;
 
 /**
- * Parse the RTSP Transport header field.
- * 
- * Reference Grammar:
+ * Parse the RTSP Transport header field. Reference Grammar:
  * 
  * <pre>
- *    Transport           =    "Transport" ":"
- *                             1\#transport-spec
- *    transport-spec      =    transport-protocol/profile[/lower-transport]
- *                             *parameter
- *    transport-protocol  =    "RTP"
- *    profile             =    "AVP"
- *    lower-transport     =    "TCP" | "UDP"
- *    parameter           =    ( "unicast" | "multicast" )
- *                        |    ";" "destination" [ "=" address ]
- *                        |    ";" "interleaved" "=" channel [ "-" channel ]
- *                        |    ";" "append"
- *                        |    ";" "ttl" "=" ttl
- *                        |    ";" "layers" "=" 1*DIGIT
- *                        |    ";" "port" "=" port [ "-" port ]
- *                        |    ";" "client_port" "=" port [ "-" port ]
- *                        |    ";" "server_port" "=" port [ "-" port ]
- *                        |    ";" "ssrc" "=" ssrc
- *                        |    ";" "mode" = <"> 1\#mode <">
- *    ttl                 =    1*3(DIGIT)
- *    port                =    1*5(DIGIT)
- *    ssrc                =    8*8(HEX)
- *    channel             =    1*3(DIGIT)
- *    address             =    host
- *    mode                =    <"> *Method <"> | Method
- * 
- * 
- *    Example:
- *      Transport: RTP/AVP;multicast;ttl=127;mode="PLAY",
- *                 RTP/AVP;unicast;client_port=3456-3457;mode="PLAY"
+ *         Transport           =    &quot;Transport&quot; &quot;:&quot;
+ *                                  1\#transport-spec
+ *         transport-spec      =    transport-protocol/profile[/lower-transport]
+ *                                  *parameter
+ *         transport-protocol  =    &quot;RTP&quot;
+ *         profile             =    &quot;AVP&quot;
+ *         lower-transport     =    &quot;TCP&quot; | &quot;UDP&quot;
+ *         parameter           =    ( &quot;unicast&quot; | &quot;multicast&quot; )
+ *                             |    &quot;;&quot; &quot;destination&quot; [ &quot;=&quot; address ]
+ *                             |    &quot;;&quot; &quot;interleaved&quot; &quot;=&quot; channel [ &quot;-&quot; channel ]
+ *                             |    &quot;;&quot; &quot;append&quot;
+ *                             |    &quot;;&quot; &quot;ttl&quot; &quot;=&quot; ttl
+ *                             |    &quot;;&quot; &quot;layers&quot; &quot;=&quot; 1*DIGIT
+ *                             |    &quot;;&quot; &quot;port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
+ *                             |    &quot;;&quot; &quot;client_port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
+ *                             |    &quot;;&quot; &quot;server_port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
+ *                             |    &quot;;&quot; &quot;ssrc&quot; &quot;=&quot; ssrc
+ *                             |    &quot;;&quot; &quot;mode&quot; = &lt;&quot;&gt; 1\#mode &lt;&quot;&gt;
+ *         ttl                 =    1*3(DIGIT)
+ *         port                =    1*5(DIGIT)
+ *         ssrc                =    8*8(HEX)
+ *         channel             =    1*3(DIGIT)
+ *         address             =    host
+ *         mode                =    &lt;&quot;&gt; *Method &lt;&quot;&gt; | Method
+ *      
+ *      
+ *         Example:
+ *           Transport: RTP/AVP;multicast;ttl=127;mode=&quot;PLAY&quot;,
+ *                      RTP/AVP;unicast;client_port=3456-3457;mode=&quot;PLAY&quot;
  * </pre>
  */
 public class RtspTransport
@@ -90,6 +88,7 @@ public class RtspTransport
 	int[] server_port = new int[2];
 	String ssrc;
 	String mode;
+	String source;
 
 	/**
 	 * Constructor. Creates a RtspTransport object from a transport header
@@ -114,6 +113,7 @@ public class RtspTransport
 		server_port[1] = 0;
 		ssrc = null;
 		mode = null;
+		source = null;
 
 		parseTransport( transport );
 		if ( transport.compareToIgnoreCase( this.toString() ) != 0 ) {
@@ -138,28 +138,42 @@ public class RtspTransport
 
 			if ( tok.compareToIgnoreCase( "unicast" ) == 0 )
 				deliveryType = DeliveryType.unicast;
-			else if ( tok.compareToIgnoreCase( "multicast" ) == 0 )
-				deliveryType = DeliveryType.multicast;
-			else if ( tok.startsWith( "destination" ) )
-				setDestination( _getStrValue( tok ) );
-			else if ( tok.startsWith( "interleaved" ) )
-				setInterleaved( _getStrValue( tok ) );
-			else if ( tok.startsWith( "append" ) )
-				setAppend( true );
-			else if ( tok.startsWith( "layers" ) )
-				setLayers( Integer.valueOf( _getStrValue( tok ) ) );
-			else if ( tok.startsWith( "ttl" ) )
-				setTTL( Integer.valueOf( _getStrValue( tok ) ) );
-			else if ( tok.startsWith( "port" ) )
-				setPort( _getPairValue( tok ) );
-			else if ( tok.startsWith( "client_port" ) )
-				setClientPort( _getPairValue( tok ) );
-			else if ( tok.startsWith( "server_port" ) )
-				setServerPort( _getPairValue( tok ) );
-			else if ( tok.startsWith( "ssrc" ) )
-				setSSRC( _getStrValue( tok ) );
-			else if ( tok.startsWith( "mode" ) )
-				setMode( _getStrValue( tok ) );
+			else
+				if ( tok.compareToIgnoreCase( "multicast" ) == 0 )
+					deliveryType = DeliveryType.multicast;
+				else
+					if ( tok.startsWith( "destination" ) )
+						setDestination( _getStrValue( tok ) );
+					else
+						if ( tok.startsWith( "interleaved" ) )
+							setInterleaved( _getStrValue( tok ) );
+						else
+							if ( tok.startsWith( "append" ) )
+								setAppend( true );
+							else
+								if ( tok.startsWith( "layers" ) )
+									setLayers( Integer.valueOf( _getStrValue( tok ) ) );
+								else
+									if ( tok.startsWith( "ttl" ) )
+										setTTL( Integer.valueOf( _getStrValue( tok ) ) );
+									else
+										if ( tok.startsWith( "port" ) )
+											setPort( _getPairValue( tok ) );
+										else
+											if ( tok.startsWith( "client_port" ) )
+												setClientPort( _getPairValue( tok ) );
+											else
+												if ( tok.startsWith( "server_port" ) )
+													setServerPort( _getPairValue( tok ) );
+												else
+													if ( tok.startsWith( "ssrc" ) )
+														setSSRC( _getStrValue( tok ) );
+													else
+														if ( tok.startsWith( "mode" ) )
+															setMode( _getStrValue( tok ) );
+														else
+															if ( tok.startsWith( "source" ) )
+																setSource( _getStrValue( tok ) );
 		}
 	}
 
@@ -192,6 +206,8 @@ public class RtspTransport
 			s += ";server_port=" + server_port[0] + "-" + server_port[1];
 		if ( ssrc != null )
 			s += ";ssrc=" + ssrc;
+		if ( source != null )
+			s += ";source=" + source;
 		if ( mode != null )
 			s += ";mode=" + mode;
 		return s;
@@ -402,6 +418,15 @@ public class RtspTransport
 	}
 
 	/**
+	 * @param ssrc
+	 *        The ssrc to set.
+	 */
+	public void setSSRC( long ssrc )
+	{
+		this.ssrc = Long.toHexString( ssrc & 0xFFFFFFFFL ).toUpperCase();
+	}
+
+	/**
 	 * @return Returns the transportProtocol.
 	 */
 	public TransportProtocol getTransportProtocol()
@@ -435,11 +460,21 @@ public class RtspTransport
 		this.ttl = ttl;
 	}
 
+	public void setSource( String source )
+	{
+		this.source = source;
+	}
+
+	public String getSource()
+	{
+		return source;
+	}
+
 	/**
 	 * Get the value part in a string like:
 	 * 
 	 * <pre>
-	 * key=value
+	 * key = value
 	 * </pre>
 	 * 
 	 * @param str
@@ -459,7 +494,7 @@ public class RtspTransport
 	 * Get the value part in a string like:
 	 * 
 	 * <pre>
-	 * key=6344-6345
+	 * key = 6344 - 6345
 	 * </pre>
 	 * 
 	 * @param str
