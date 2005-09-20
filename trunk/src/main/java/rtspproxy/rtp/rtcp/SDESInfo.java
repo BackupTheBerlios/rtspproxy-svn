@@ -61,7 +61,7 @@ public class SDESInfo implements RtcpInfo
 
 	public SDESInfo( RtcpPacket packet, ByteBuffer buffer )
 	{
-		int totalBytesToRead = packet.length * 4;
+		// int totalBytesToRead = packet.length * 4;
 		byte sourceCount = packet.count;
 
 		chunkList = new Chunk[sourceCount];
