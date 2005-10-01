@@ -23,12 +23,21 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
+import rtspproxy.Main;
+
 /**
  * Register the "rtsp://" scheme as a valid protocol.
  */
 public class Handler extends URLStreamHandler
 {
+
 	public static final int DEFAULT_RTSP_PORT = 554;
+
+	static {
+		// Register the "rtsp://" protocol scheme
+		System.setProperty( "java.protocol.handler.pkgs",
+				Main.class.getPackage().getName() );
+	}
 
 	@Override
 	protected URLConnection openConnection( URL url ) throws IOException
