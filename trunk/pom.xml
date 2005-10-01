@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+	xsi:noNamespaceSchemaLocation="http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<!-- 
+		$Id$
+		$URL$
+	-->
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<name>RTSP Proxy</name>
+	<groupId>net.merlimat</groupId>
+	<artifactId>rtspproxy</artifactId>
+	<version>3.0-ALPHA</version>
+	<url>http://merlimat.net/rtsp-proxy-java</url>
+	<inceptionYear>2003</inceptionYear>
+
+	<issueManagement>
+		<system>Berlios</system>
+		<url>http://developer.berlios.de/bugs/?group_id=4526</url>
+	</issueManagement>
+
+	<licenses>
+		<license>
+			<name>GNU General Public License</name>
+			<url>http://www.gnu.org/licenses/gpl.txt</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>merlimat</id>
+			<name>Matteo Merli</name>
+			<email>matteo.merli@gmail.com</email>
+			<!-- <timezone>+1</timezone> -->
+			<url>http://merlimat.net</url>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>
+			scm:svn:svn://svn.berlios.de/rtspproxy/trunk
+		</connection>
+		<url>http://svn.berlios.de/wsvn/rtspproxy</url>
+	</scm>
+
+	<mailingLists>
+		<mailingList>
+			<archive>https://lists.berlios.de/pipermail/rtspproxy-devel</archive>
+		</mailingList>
+	</mailingLists>
+
+	<distributionManagement>
+		<downloadUrl>
+			http://rtspproxy.berlios.de/download.html
+		</downloadUrl>
+	</distributionManagement>
+
+	<!-- 
+		<siteAddress>ftp.merlimat.net</siteAddress>
+		<siteDirectory>/public_html/rtsp-proxy-java/</siteDirectory>
+		<distributionDirectory>/public_html/files/</distributionDirectory>
+	-->
+	<dependencies>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.9</version>
+		</dependency>
+
+		<dependency>
+			<groupId>directory-network</groupId>
+			<artifactId>mina</artifactId>
+			<version>0.9-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+
+	<repositories>
+		<repository>
+			<id>Apache repository</id>
+			<url>http://cvs.apache.org/repository/</url>
+		</repository>
+	</repositories>
+
+	<build>
+		<sourceDirectory>src/main/java</sourceDirectory>
+		<defaultGoal>assembly:assembly</defaultGoal>
+		<unitTestSourceDirectory>src/test/java</unitTestSourceDirectory>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+		<testResources>
+			<includes>**/*Test.java</includes>
+		</testResources>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+					<showWarnings>true</showWarnings>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorId>jar-with-dependencies</descriptorId>
+
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<configuration>
+					<outputEncoding>UTF-8</outputEncoding>
+				
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>
+					maven-project-info-reports-plugin
+				</artifactId>
+			</plugin>
+			<!--  <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>
+					maven-changes-plugin
+				</artifactId>
+			</plugin> -->
+		</plugins>
+	</reporting>
+
+</project>
