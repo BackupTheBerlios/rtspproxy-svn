@@ -34,8 +34,8 @@ public class PortManager
 
 	static Logger log = Logger.getLogger( PortManager.class );
 
-	private static final int minUdpPort = 6790;
-	private static final int maxUdpPort = 49151;
+	protected static final int minUdpPort = 6790;
+	protected static final int maxUdpPort = 49151;
 	private static Set<Integer> reservedPorts = Collections.synchronizedSet( new HashSet<Integer>() );
 
 	// TODO: Using custom exceptions
