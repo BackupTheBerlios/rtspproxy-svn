@@ -18,11 +18,6 @@
 
 package rtspproxy.proxy;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.mina.common.ByteBuffer;
 
 /**
  * Manages various UDP connections handles.

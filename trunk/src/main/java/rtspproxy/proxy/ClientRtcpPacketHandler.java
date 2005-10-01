@@ -43,7 +43,7 @@ public class ClientRtcpPacketHandler extends IoHandlerAdapter
 	public void messageReceived( IoSession session, Object buffer ) throws Exception
 	{
 		RtcpPacket packet = new RtcpPacket( (ByteBuffer) buffer );
-		log.debug( "Received RTCP packet: " + packet.getType() );
+		// log.debug( "Received RTCP packet: " + packet.getType() );
 
 		Track track = (Track)session.getAttribute( "track" ); 
 		/* Track.getByClientSSRC( packet.getSsrc() );
