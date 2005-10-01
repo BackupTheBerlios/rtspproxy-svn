@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="RTSP Proxy">
+
+	<body>
+
+		<!-- Links defined across the top right of the site -->
+		<links>
+			<item
+				name="Merlimat.Net"
+				href="http://merlimat.net/" />
+		</links>
+
+		<menu name="Rtsp Proxy">
+			<item
+				name="Overview"
+				href="overview.html" />
+			<!-- <item
+				name="Install"
+				href="install.html" /> -->
+			<item
+				name="Configuration"
+				href="configuration.html" />
+		</menu>
+
+		<menu name="Project">
+			<item
+				name="Todo"
+				href="todo.html" />
+		</menu>
+		<!-- 
+			<menu name="Download">
+			<item
+			name="Source Code"
+			href="download/source_code.html" />
+			<item
+			name="Binaries"
+			href="download/binaries.html"
+			collapse="true">
+			<item
+			name="Unix"
+			href="download/unix.html" />
+			<item
+			name="Windows"
+			href="download/windows.html" />
+			</item>
+			</menu>
+		-->
+		${reports}
+		
+	</body>
+</project>
