@@ -49,7 +49,7 @@ public class Config
 		for ( String path : paths ) {
 			try {
 				properties.load( new FileInputStream( path ) );
-				log.info( "Reading configurations from '" + path + "'" );
+				log.debug( "Reading configurations from '" + path + "'" );
 				// break;
 
 			} catch ( IOException e ) {
@@ -57,9 +57,8 @@ public class Config
 			}
 		}
 
-		// TODO: remove this
 		for ( Object key : properties.keySet() ) {
-			System.out.println( (String) key + " : "
+			log.debug( (String) key + " : "
 					+ properties.getProperty( (String) key ) );
 		}
 	}
@@ -69,6 +68,12 @@ public class Config
 		return properties.getProperty( key, defaultValue );
 	}
 
+	/**
+	 * 
+	 * @param key
+	 * @param defaultValue
+	 * @return the value of an integer property
+	 */
 	public static int getInt( String key, int defaultValue )
 	{
 		try {
