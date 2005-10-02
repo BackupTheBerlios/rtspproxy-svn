@@ -132,12 +132,12 @@ public abstract class RtspMessage
 	 */
 	public String getHeadersString()
 	{
-		String str = "";
+		StringBuffer buf = new StringBuffer();
 		for ( Object key : headers.keySet() ) {
 			String value = headers.getProperty( (String) key );
-			str += key + ": " + value + CRLF;
+			buf.append( key + ": " + value + CRLF );
 		}
-		return str;
+		return buf.toString();
 	}
 
 	/**

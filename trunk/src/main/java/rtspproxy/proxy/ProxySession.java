@@ -61,7 +61,7 @@ public class ProxySession
 			// Create a 64 bit random number
 			id = new BigInteger( 64, random ).toString();
 
-			if ( clientSessionIds.get( id.toString() ) == null ) {
+			if ( clientSessionIds.get( id ) == null ) {
 				// Ok, the id is unique
 				return id;
 			}

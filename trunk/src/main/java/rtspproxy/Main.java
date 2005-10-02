@@ -34,11 +34,12 @@ public class Main
 	public static void main( String[] args )
 	{
 		// TODO: remove this temp stuffs
-		
+		/*
 		for ( Object key : System.getProperties().keySet() ) {
 			String value = System.getProperty( (String)key );
 			System.out.println( key + " : " + value );
 		}
+		*/
 
 		Properties prop = new Properties();
 		prop.setProperty( "log4j.rootLogger", "WARNING, A1" );

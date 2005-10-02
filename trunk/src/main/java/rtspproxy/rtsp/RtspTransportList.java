@@ -61,14 +61,14 @@ public class RtspTransportList
 
 	public String toString()
 	{
-		String s = "";
+		StringBuffer buf = new StringBuffer();
 		int i = 0;
 		for ( RtspTransport t : transportList ) {
 			if ( i++ != 0 )
-				s += ",";
-			s += t.toString();
+				buf.append( "," );
+			buf.append( t.toString() );
 		}
-		return s;
+		return buf.toString();
 	}
 
 }
