@@ -36,10 +36,15 @@ public class Config
 
 	protected Config()
 	{
-		String[] paths = new String[3];
+		String[] paths = new String[4];
 
 		// Current directory configuration
-		paths[2] = "rtspproxy.properties";
+		paths[3] = "rtspproxy.properties";
+
+		// RtspProxy home folder
+		paths[2] = System.getProperty( "rtspproxy.home" ) + File.separator + "conf"
+				+ File.separator + "rtspproxy.properties";
+
 		// Per user config
 		paths[1] = System.getProperty( "user.home", "" ) + File.separator
 				+ ".rtspproxy.properties";
@@ -58,8 +63,7 @@ public class Config
 		}
 
 		for ( Object key : properties.keySet() ) {
-			log.debug( (String) key + " : "
-					+ properties.getProperty( (String) key ) );
+			log.debug( (String) key + " : " + properties.getProperty( (String) key ) );
 		}
 	}
 
@@ -69,7 +73,6 @@ public class Config
 	}
 
 	/**
-	 * 
 	 * @param key
 	 * @param defaultValue
 	 * @return the value of an integer property
