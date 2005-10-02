@@ -18,11 +18,17 @@
 #   Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
 #   reserved.
 
+#  Modified by Matteo Merli <matteo.merli@gmail.com> 
+#  for RtspProxy
+#
+#  $Id$
+#  $URL$
+
 if [ -f /etc/rtspproxyrc ] ; then
-  . /etc/mavenrc
+  . /etc/rtspproxyrc
 fi
 
-if [ -f "$HOME/.mavenrc" ] ; then
+if [ -f "$HOME/.rtspproxyrc" ] ; then
   . "$HOME/.rtspproxyrc"
 fi
 
@@ -71,7 +77,7 @@ if [ -z "$RTSPPROXY_HOME" ] ; then
     fi
   done
 
-  RTSPPROXY_HOME="$PRGDIR/.."
+  RTSPPROXY_HOME="$PRGDIR"
 
   # make it fully qualified
   RTSPPROXY_HOME=`cd "$RTSPPROXY_HOME" && pwd`
@@ -122,9 +128,16 @@ if $cygwin; then
     HOME=`cygpath --path --windows "$HOME"`
 fi
 
+RTSPPROXY_CLASSPATH="."
+LIST="$(ls ${RTSPPROXY_HOME}/lib/*.jar)"
+for i in $LIST; 
+do
+    RTSPPROXY_CLASSPATH=$RTSPPROXY_CLASSPATH:$i
+done
+
 exec "$JAVACMD" \
   $RTSPPROXY_OPTS \
-  -classpath "${RTSPPROXY_HOME}"/lib/*.jar \
+  -classpath "${RTSPPROXY_CLASSPATH}" \
   "-Drtspproxy.home=${RTSPPROXY_HOME}"  \
-  ${CLASSWORLDS_LAUNCHER} $@
+  rtspproxy.Main $@
 
