@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 /**
  * General configuration system.
@@ -34,16 +35,50 @@ public class Config
 	private static Logger log = Logger.getLogger( Config.class );
 	private static Properties properties = new Properties();
 
+	private static String rtspproxy_home;
+	private static String name;
+	private static String version;
+	private static String proxySignature;
+
 	protected Config()
 	{
-		String[] paths = new String[4];
+		rtspproxy_home = System.getProperty( "rtspproxy.home" );
+		if ( rtspproxy_home == null ) {
+			rtspproxy_home = System.getProperty( "user.dir" );
+			if ( rtspproxy_home == null )
+				rtspproxy_home = "";
+		}
+
+		// Read program name and version
+		Properties jarProps = new Properties();
+
+		try {
+			jarProps.load( Thread.currentThread().getContextClassLoader().getResourceAsStream(
+					"META-INF/application.properties" ) );
+			name = jarProps.getProperty( "application.name" );
+			version = jarProps.getProperty( "application.version" );
+		} catch ( Exception e ) {
+			name = "RtspProxy";
+			version = "";
+		}
+
+		proxySignature = name + " " + version + " (" + System.getProperty( "os.name" )
+				+ " / " + System.getProperty( "os.version" ) + " / "
+				+ System.getProperty( "os.arch" ) + ")";
+
+		String[] paths = new String[5];
+
+		// Used for testing purposes:
+		// checks for the configuration file
+		paths[4] = "src" + File.separator + "resources" + File.separator + "conf"
+				+ File.separator + "rtspproxy.properties";
 
 		// Current directory configuration
 		paths[3] = "rtspproxy.properties";
 
 		// RtspProxy home folder
-		paths[2] = System.getProperty( "rtspproxy.home" ) + File.separator + "conf"
-				+ File.separator + "rtspproxy.properties";
+		paths[2] = rtspproxy_home + File.separator + "conf" + File.separator
+				+ "rtspproxy.properties";
 
 		// Per user config
 		paths[1] = System.getProperty( "user.home", "" ) + File.separator
@@ -54,6 +89,9 @@ public class Config
 		for ( String path : paths ) {
 			try {
 				properties.load( new FileInputStream( path ) );
+				// Immediately apply debug settings!
+				updateDebugSettings();
+
 				log.debug( "Reading configurations from '" + path + "'" );
 				// break;
 
@@ -143,6 +181,11 @@ public class Config
 		return defaultValue;
 	}
 
+	public static boolean getBoolean( String key )
+	{
+		return getBoolean( key, false );
+	}
+
 	public static void set( String key, String value )
 	{
 		properties.setProperty( key, value );
@@ -171,5 +214,71 @@ public class Config
 			build.append( Integer.toString( values[i] ) );
 		}
 		properties.setProperty( key, build.toString() );
+	}
+
+	/**
+	 * @return the home directory of the proxy installation
+	 */
+	public static String getHome()
+	{
+		return rtspproxy_home;
+	}
+
+	private static void updateDebugSettings()
+	{
+		Properties prop = new Properties();
+		// common properties
+		prop.setProperty( "log4j.appender.A1.layout", "org.apache.log4j.PatternLayout" );
+		prop.setProperty( "log4j.appender.A1.layout.ConversionPattern",
+				"%7p [%t] (%F:%L) - %m%n" );
+
+		if ( getBoolean( "log.debug" ) )
+			prop.setProperty( "log4j.rootLogger", "DEBUG, A1" );
+		else
+			// only write important messages
+			prop.setProperty( "log4j.rootLogger", "INFO, A1" );
+
+		if ( getBoolean( "log.logtofile" ) ) {
+			// save logs in a file
+			String filename = get( "log.file", "logs" + File.separator + "rtspproxy.log" );
+			prop.setProperty( "log4j.appender.A1", "org.apache.log4j.RollingFileAppender" );
+			prop.setProperty( "log4j.appender.A1.File", filename );
+
+			// if logs directory does not exists, create it
+			File logs = new File( rtspproxy_home + File.separator + "logs" );
+			if ( !logs.exists() )
+				logs.mkdir();
+
+		} else {
+			// Log to console
+			prop.setProperty( "log4j.appender.A1", "org.apache.log4j.ConsoleAppender" );
+		}
+
+		PropertyConfigurator.configure( prop );
+	}
+
+	/**
+	 * @return Returns the application name.
+	 */
+	public static String getName()
+	{
+		return name;
+	}
+
+	/**
+	 * @return Returns the application version.
+	 */
+	public static String getVersion()
+	{
+		return version;
+	}
+
+	
+	/**
+	 * @return Returns the proxySignature.
+	 */
+	public static String getProxySignature()
+	{
+		return proxySignature;
 	}
 }

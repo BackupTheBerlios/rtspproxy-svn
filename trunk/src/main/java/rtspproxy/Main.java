@@ -17,11 +17,7 @@
  */
 package rtspproxy;
 
-import java.util.Properties;
-
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
 /**
  * 
@@ -35,27 +31,18 @@ public class Main
 	{
 		// TODO: remove this temp stuffs
 		/*
-		for ( Object key : System.getProperties().keySet() ) {
-			String value = System.getProperty( (String)key );
-			System.out.println( key + " : " + value );
-		}
-		*/
+		 * for ( Object key : System.getProperties().keySet() ) { String value =
+		 * System.getProperty( (String)key ); System.out.println( key + " : " +
+		 * value ); }
+		 */
 
-		Properties prop = new Properties();
-		prop.setProperty( "log4j.rootLogger", "WARNING, A1" );
-		prop.setProperty( "log4j.appender.A1", "org.apache.log4j.ConsoleAppender" );
-		prop.setProperty( "log4j.appender.A1.layout", "org.apache.log4j.PatternLayout" );
-		prop.setProperty( "log4j.appender.A1.layout.ConversionPattern", "%7p [%t] (%F:%L) - %m%n" );
-		PropertyConfigurator.configure( prop );
-		
-		// BasicConfigurator.configure();
-		
-		log.setLevel( Level.DEBUG );
-		
+		// Register the "rtsp://" protocol scheme
+		System.setProperty( "java.protocol.handler.pkgs", "rtspproxy" );
+
 		new Config();
-		
+
 		try {
-			// log.warn( "Starting.." );
+			log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
 			Reactor.start();
 
 		} catch ( Exception e ) {

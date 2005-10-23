@@ -20,6 +20,8 @@ package rtspproxy.rtsp;
 
 import java.util.Properties;
 
+import rtspproxy.Config;
+
 /**
  * Base abstract class for RTSP messages. 
  * 
@@ -154,10 +156,7 @@ public abstract class RtspMessage
 	 */
 	public void setCommonHeaders()
 	{
-		// TODO: Get the proxy signature from a common class
-		String proxy = "RTSP Proxy v3.0 alpha " + "(" + System.getProperty( "os.name" )
-				+ " / " + System.getProperty( "os.version" ) 
-				+ " / " + System.getProperty( "os.arch" ) + ")";   
+		String proxy = Config.getProxySignature();
 		if ( getHeader( "Server" ) != null )
 			setHeader( "Via", proxy );
 		else
