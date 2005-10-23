@@ -25,8 +25,8 @@ import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolDecoder;
+import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
-import org.apache.mina.filter.codec.ProtocolViolationException;
 
 /**
  * 
@@ -88,7 +88,7 @@ public class RtspDecoder implements ProtocolDecoder
 	 *      org.apache.mina.protocol.ProtocolDecoderOutput)
 	 */
 	public void decode( IoSession session, ByteBuffer buffer, ProtocolDecoderOutput out )
-			throws ProtocolViolationException
+			throws ProtocolDecoderException
 	{
 		StringBuffer decodeBuf = new StringBuffer();
 
@@ -144,7 +144,7 @@ public class RtspDecoder implements ProtocolDecoder
 								log.info( e );
 								url = null;
 								session.setAttribute( "state", ReadState.Failed );
-								throw new ProtocolViolationException( "Invalid URL" );
+								throw new ProtocolDecoderException( "Invalid URL" );
 							}
 						}
 						rtspMessage = new RtspRequest();
@@ -152,7 +152,7 @@ public class RtspDecoder implements ProtocolDecoder
 
 						if ( ( (RtspRequest) rtspMessage ).getVerb() == RtspRequest.Verb.None ) {
 							session.setAttribute( "state", ReadState.Failed );
-							throw new ProtocolViolationException( "Invalid method: "
+							throw new ProtocolDecoderException( "Invalid method: "
 									+ verb );
 						}
 
@@ -220,5 +220,13 @@ public class RtspDecoder implements ProtocolDecoder
 		// Save attributes in session
 		session.setAttribute( "state", state );
 		session.setAttribute( "rtspMessage", rtspMessage );
+	}
+
+	/* (non-Javadoc)
+	 * @see org.apache.mina.filter.codec.ProtocolDecoder#dispose(org.apache.mina.common.IoSession)
+	 */
+	public void dispose( IoSession arg0 ) throws Exception
+	{
+		// TODO: Check what to do here
 	}
 }

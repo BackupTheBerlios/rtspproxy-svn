@@ -21,8 +21,8 @@ package rtspproxy.rtsp;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolEncoder;
+import org.apache.mina.filter.codec.ProtocolEncoderException;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
-import org.apache.mina.filter.codec.ProtocolViolationException;
 
 /**
  * Encode a RTSP message into a buffer for sending.
@@ -37,7 +37,7 @@ public class RtspEncoder implements ProtocolEncoder
 	 *      java.lang.Object, org.apache.mina.protocol.ProtocolEncoderOutput)
 	 */
 	public void encode( IoSession session, Object message, ProtocolEncoderOutput out )
-			throws ProtocolViolationException
+			throws ProtocolEncoderException
 	{
 		// Serialization to string is already provided in RTSP messages.
 		String val = ( (RtspMessage) message ).toString();
@@ -50,4 +50,11 @@ public class RtspEncoder implements ProtocolEncoder
 		out.write( buf );
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.mina.filter.codec.ProtocolEncoder#dispose(org.apache.mina.common.IoSession)
+	 */
+	public void dispose( IoSession arg0 ) throws Exception
+	{
+		// TODO: Check if need to do something here
+	}
 }
