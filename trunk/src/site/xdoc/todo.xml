@@ -45,6 +45,16 @@
 
 						<tr>
 							<td>
+								<strong>Reverse Proxy</strong>
+							</td>
+							<td>
+								The proxy should be able to work as a
+								front-end for other RTSP servers.
+							</td>
+						</tr>
+
+						<tr>
+							<td>
 								<strong>Daemon mode</strong>
 							</td>
 							<td>
@@ -62,7 +72,7 @@
 								If enabled only authorized user can
 								access to proxy. A generic system should
 								be used, allowing for interchanging
-								different authorization backends.
+								different authorization back-ends.
 							</td>
 						</tr>
 
@@ -76,12 +86,6 @@
 								Interface to monitor all proxy related
 								parameters and to allow on-the-fly
 								configuration modifications.
-							</td>
-						</tr>
-
-						<tr>
-							<td>
-								<strong>Command line options</strong>
 							</td>
 						</tr>
 
