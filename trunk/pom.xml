@@ -15,7 +15,7 @@
 	<version>3.0-ALPHA1</version>
 	<url>http://rtspproxy.berlios.de</url>
 	<inceptionYear>2003</inceptionYear>
-	
+
 	<organization>
 		<name>Matteo Merli</name>
 		<url>http://merlimat.net</url>
@@ -56,7 +56,7 @@
 		<mailingList>
 			<name>Development list</name>
 			<post>rtspproxy-devel@lists.berlios.de</post>
-			
+
 			<archive>
 				http://www.nabble.com/RtspProxy-Devel-f6753.html
 			</archive>
@@ -90,9 +90,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>directory-network</groupId>
+			<groupId>org.apache.directory.network</groupId>
 			<artifactId>mina</artifactId>
-			<version>0.9.0-SNAPSHOT</version>
+			<version>0.9-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -113,7 +113,14 @@
 	-->
 	<build>
 		<defaultGoal>assembly:directory</defaultGoal>
-		
+
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -124,12 +131,14 @@
 					<showWarnings>true</showWarnings>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-				    <descriptor>src/resources/release/default.xml</descriptor>
+					<descriptor>
+						src/resources/release/default.xml
+					</descriptor>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -173,13 +182,15 @@
 						</toAddress>
 					</toAddresses>
 				</configuration>
-			</plugin>	
+			</plugin>
 			<plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-pmd-plugin</artifactId>
-			    <configuration>
-			        <targetJdk implementation="java.lang.String">1.5</targetJdk>
-			    </configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<configuration>
+					<targetJdk implementation="java.lang.String">
+						1.5
+					</targetJdk>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -206,35 +217,35 @@
 				<artifactId>changes-maven-plugin</artifactId>
 			</plugin>
 			<!--
-			<plugin>
+				<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>taglist-maven-plugin</artifactId>
-			</plugin>
-			
-			<plugin>
+				</plugin>
+				
+				<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
-					<charset>UTF-8</charset>
-					<docencoding>UTF-8</docencoding>
-					<link>
-						http://java.sun.com/j2se/1.5.0/docs/api/,
-						http://www.junit.org/junit/javadoc/3.8.1/,
-						http://directory.apache.org/subprojects/network/apidocs/
-					</link>
-					<minmemory>128m</minmemory>
-					<maxmemory>512</maxmemory>
+				<charset>UTF-8</charset>
+				<docencoding>UTF-8</docencoding>
+				<link>
+				http://java.sun.com/j2se/1.5.0/docs/api/,
+				http://www.junit.org/junit/javadoc/3.8.1/,
+				http://directory.apache.org/subprojects/network/apidocs/
+				</link>
+				<minmemory>128m</minmemory>
+				<maxmemory>512</maxmemory>
 				</configuration>
 				<version>2.0-beta-1</version>
-			</plugin>
+				</plugin>
 			-->
-			<!--
+			<!-- 
 			<plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-pmd-plugin</artifactId>
-			    <configuration>
-			        <targetJdk implementation="java.lang.String">1.5</targetJdk>
-			    </configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<configuration>
+					<targetJdk implementation="java.lang.String">1.5</targetJdk>
+				</configuration>
 			</plugin>
 			 -->
 		</plugins>
