@@ -19,10 +19,13 @@ package rtspproxy;
 
 import org.apache.log4j.Logger;
 
+import rtspproxy.lib.SignalInterceptor;
+import rtspproxy.lib.SignalInterceptorException;
+
 /**
  * 
  */
-public class Main
+public class Main extends SignalInterceptor
 {
 
 	static Logger log = Logger.getLogger( "rtspproxy" );
@@ -41,6 +44,17 @@ public class Main
 
 		new Config();
 
+		// Register the signal handler
+		try {
+			Main main = new Main();
+			main.register( "TERM" );
+			main.register( "INT" );
+			log.debug( "Signal handlig enabled." );
+
+		} catch ( SignalInterceptorException sie ) {
+			log.warn( "Unable to register signal handling." );
+		}
+
 		try {
 			log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
 			Reactor.start();
@@ -51,4 +65,18 @@ public class Main
 			System.exit( -1 );
 		}
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see rtspproxy.lib.SignalInterceptor#handle(java.lang.String)
+	 */
+	@Override
+	protected boolean handle( String signalName )
+	{
+		log.info( "Received signal: " + signalName );
+		// TODO: Do graceful shutdown here!
+		return true;
+	}
+
 }
