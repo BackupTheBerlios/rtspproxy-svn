@@ -137,6 +137,7 @@ done
 
 exec "$JAVACMD" \
   $RTSPPROXY_OPTS \
+  -server \
   -classpath "${RTSPPROXY_CLASSPATH}" \
   "-Drtspproxy.home=${RTSPPROXY_HOME}"  \
   rtspproxy.Main $@

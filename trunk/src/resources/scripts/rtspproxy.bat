@@ -127,7 +127,7 @@ SET RTSPPROXY_JAVA_EXE="%JAVA_HOME%\bin\java.exe"
 
 @REM Start RTSPPROXY
 for %%i in ("%RTSPPROXY_HOME%"\lib\*.jar) do set RTSPPROXY_JAR="%%i"
-%RTSPPROXY_JAVA_EXE% %RTSPPROXY_OPTS% -classpath %RTSPPROXY_JAR%  "-Drtspproxy.home=%RTSPPROXY_HOME%" rtspproxy.Main %RTSPPROXY_CMD_LINE_ARGS%
+%RTSPPROXY_JAVA_EXE% %RTSPPROXY_OPTS% -server -classpath %RTSPPROXY_JAR%  "-Drtspproxy.home=%RTSPPROXY_HOME%" rtspproxy.Main %RTSPPROXY_CMD_LINE_ARGS%
 goto end
 
 :error
