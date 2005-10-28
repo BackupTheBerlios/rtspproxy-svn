@@ -18,8 +18,6 @@
 
 package rtspproxy.proxy;
 
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -28,14 +26,10 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.log4j.Logger;
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.transport.socket.nio.DatagramConnector;
 
-import rtspproxy.Config;
-import rtspproxy.lib.PortManager;
-import rtspproxy.rtp.Packet;
+import rtspproxy.RtpClientService;
+import rtspproxy.RtpServerService;
 import rtspproxy.rtp.RtpPacket;
 import rtspproxy.rtp.rtcp.RtcpPacket;
 
@@ -62,17 +56,12 @@ public class Track
 	/** Maps a client SSRC id to a Track */
 	private static List<Long> proxySsrcList = new LinkedList<Long>();
 
-	private DatagramSocket datagramSocket = null;
-
-	private String clientHost;
+	private InetAddress clientAddress;
 	private int clientRtpPort;
 	private int clientRtcpPort;
-	private String serverHost;
+	private InetAddress serverAddress;
 	private int serverRtpPort;
 	private int serverRtcpPort;
-
-	private int proxyRtpPort;
-	private int proxyRtcpPort;
 
 	/**
 	 * Construct a new Track.
@@ -84,12 +73,6 @@ public class Track
 	{
 		this.url = url;
 		setProxySSRC( newSSRC() );
-
-		try {
-			datagramSocket = new DatagramSocket();
-		} catch ( Exception e ) {
-			// do nothing
-		}
 	}
 
 	/**
@@ -177,14 +160,11 @@ public class Track
 		// modify the SSRC for the server
 		packet.setSsrc( (int) proxySSRC );
 
-		try {
-			rtpServerSession.write( packet.toByteBuffer() );
-		} catch ( NullPointerException e ) {
-			log.warn( "rtpServerSession is null" );
-			sendDatagram( packet, serverHost, serverRtpPort );
-		} catch ( Exception e ) {
-			log.error( e );
-		}
+		if ( rtpServerSession == null )
+			rtpServerSession = RtpServerService.newRtpSession( new InetSocketAddress(
+					serverAddress, serverRtpPort ) );
+
+		rtpServerSession.write( packet.toByteBuffer() );
 	}
 
 	public void forwardRtcpToServer( RtcpPacket packet )
@@ -192,92 +172,43 @@ public class Track
 		// modify the SSRC for the server
 		packet.setSsrc( (int) proxySSRC );
 
-		try {
-			rtcpServerSession.write( packet.toByteBuffer() );
-		} catch ( NullPointerException e ) {
-			log.warn( "rtcpServerSession is null" );
-			sendDatagram( packet, serverHost, serverRtcpPort );
-		} catch ( Exception e ) {
-			log.error( e );
-		}
+		if ( rtcpServerSession == null )
+			rtcpServerSession = RtpServerService.newRtcpSession( new InetSocketAddress(
+					serverAddress, serverRtcpPort ) );
+
+		rtcpServerSession.write( packet.toByteBuffer() );
 	}
 
 	public void forwardRtpToClient( RtpPacket packet )
 	{
-		// modify the SSRC for the server
+		// modify the SSRC for the client
 		packet.setSsrc( (int) proxySSRC );
-		try {
-			rtpClientSession.write( packet.toByteBuffer() );
-		} catch ( NullPointerException e ) {
-			log.error( "rtpClientSession is null" );
-			sendDatagram( packet, clientHost, clientRtpPort );
-		} catch ( Exception e ) {
-			log.error( e );
+
+		if ( rtpClientSession == null ) {
+			rtpClientSession = RtpClientService.newRtpSession( new InetSocketAddress(
+					clientAddress, clientRtpPort ) );
+			
+			// Client packets needs this attribute to find 
+			// the track
+			rtpClientSession.setAttribute( "track", this );
 		}
+
+		rtpClientSession.write( packet.toByteBuffer() );
 	}
 
 	public void forwardRtcpToClient( RtcpPacket packet )
 	{
-		// modify the SSRC for the server
+		// modify the SSRC for the client
 		packet.setSsrc( (int) proxySSRC );
-		try {
-			rtcpClientSession.write( packet.toByteBuffer() );
-		} catch ( NullPointerException e ) {
-			log.error( "rtcpClientSession is null" );
-			sendDatagram( packet, clientHost, clientRtcpPort );
-		} catch ( Exception e ) {
-			log.error( e );
+		
+		if ( rtcpClientSession == null ) {
+			rtcpClientSession = RtpClientService.newRtcpSession( new InetSocketAddress(
+					clientAddress, clientRtcpPort ) );
+			
+			// Client packets needs this attribute to find 
+			// the track
+			rtcpClientSession.setAttribute( "track", this );
 		}
-	}
-
-	private void sendDatagram( Packet packet, String host, int port )
-	{
-		ByteBuffer buffer = packet.toByteBuffer();
-		byte[] data = new byte[buffer.remaining()];
-		buffer.get( data );
-
-		try {
-			DatagramPacket datagram = new DatagramPacket( data, data.length,
-					new InetSocketAddress( host, port ) );
-			datagramSocket.send( datagram );
-		} catch ( Exception e ) {
-			// do nothing
-		}
-	}
-
-	public synchronized void bind() throws Exception
-	{
-		String netInterface = Config.get( "proxy.client.interface", null );
-
-		int[] ports = PortManager.findAvailablePorts( 2, 7000 ); // 6970 );
-		proxyRtpPort = ports[0];
-		proxyRtcpPort = ports[1];
-
-		InetSocketAddress proxyRtpAddr = new InetSocketAddress(
-				InetAddress.getByName( netInterface ), proxyRtpPort );
-		InetSocketAddress proxyRtcpAddr = new InetSocketAddress(
-				InetAddress.getByName( netInterface ), proxyRtcpPort );
-		InetSocketAddress clientRtpAddr = new InetSocketAddress(
-				InetAddress.getByName( clientHost ), clientRtpPort );
-		InetSocketAddress clientRtcpAddr = new InetSocketAddress(
-				InetAddress.getByName( clientHost ), clientRtcpPort );
-
-		// Create Datagram connector.
-		DatagramConnector connector = new DatagramConnector();
-
-		ConnectFuture future = connector.connect( clientRtpAddr, proxyRtpAddr,
-				new ClientRtpPacketHandler() );
-		future.join();
-		rtpClientSession = future.getSession();
-		rtpClientSession.setAttribute( "track", this );
-
-		future = connector.connect( clientRtcpAddr, proxyRtcpAddr,
-				new ClientRtcpPacketHandler() );
-		future.join();
-		rtcpClientSession = future.getSession();
-		rtcpClientSession.setAttribute( "track", this );
-
-		log.debug( "Connected to Client RTP/RTCP" );
 	}
 
 	// / SSRC ID generation
@@ -307,9 +238,9 @@ public class Track
 	 * @param clientHost
 	 *        The clientHost to set.
 	 */
-	public void setClientHost( String clientHost )
+	public void setClientAddress( InetAddress clientAddress )
 	{
-		this.clientHost = clientHost;
+		this.clientAddress = clientAddress;
 	}
 
 	/**
@@ -334,9 +265,9 @@ public class Track
 	 * @param serverHost
 	 *        The serverHost to set.
 	 */
-	public void setServerHost( String serverHost )
+	public void setServerAddress( InetAddress serverAddress )
 	{
-		this.serverHost = serverHost;
+		this.serverAddress = serverAddress;
 	}
 
 	/**
@@ -355,22 +286,6 @@ public class Track
 	public void setServerRtpPort( int serverRtpPort )
 	{
 		this.serverRtpPort = serverRtpPort;
-	}
-
-	/**
-	 * @return Returns the proxyRtcpPort.
-	 */
-	public int getProxyRtcpPort()
-	{
-		return proxyRtcpPort;
-	}
-
-	/**
-	 * @return Returns the proxyRtpPort.
-	 */
-	public int getProxyRtpPort()
-	{
-		return proxyRtpPort;
 	}
 
 }

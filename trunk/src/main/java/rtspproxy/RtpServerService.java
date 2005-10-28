@@ -21,8 +21,10 @@ package rtspproxy;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 import org.apache.log4j.Logger;
+import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
 import org.apache.mina.registry.Service;
 
@@ -37,6 +39,9 @@ public class RtpServerService implements ProxyService
 {
 
 	static Logger log = Logger.getLogger( RtpServerService.class );
+
+	static InetSocketAddress rtpAddress = null;
+	static InetSocketAddress rtcpAddress = null;
 
 	/*
 	 * (non-Javadoc)
@@ -62,22 +67,23 @@ public class RtpServerService implements ProxyService
 		Config.setInt( "proxy.server.rtp.port", rtpPort );
 		Config.setInt( "proxy.server.rtcp.port", rtcpPort );
 
-		InetSocketAddress rtpAddr = new InetSocketAddress(
-				InetAddress.getByName( netInterface ), rtpPort );
-		InetSocketAddress rtcpAddr = new InetSocketAddress(
-				InetAddress.getByName( netInterface ), rtcpPort );
+		rtpAddress = new InetSocketAddress( InetAddress.getByName( netInterface ),
+				rtpPort );
+		rtcpAddress = new InetSocketAddress( InetAddress.getByName( netInterface ),
+				rtcpPort );
 
 		try {
 			Service rtpService, rtcpService;
 
-			rtpService = new Service( "RtpServerService", TransportType.DATAGRAM, rtpAddr );
+			rtpService = new Service( "RtpServerService", TransportType.DATAGRAM,
+					rtpAddress );
 			rtcpService = new Service( "RtcpServerService", TransportType.DATAGRAM,
-					rtcpAddr );
+					rtcpAddress );
 
 			Reactor.getRegistry().bind( rtpService, new ServerRtpPacketHandler() );
 			Reactor.getRegistry().bind( rtcpService, new ServerRtcpPacketHandler() );
-			log.info( "Listening on: " + InetAddress.getByName( netInterface ) + " "+ rtpPort
-					+ "-" + rtcpPort );
+			log.info( "Listening on: " + InetAddress.getByName( netInterface ) + " "
+					+ rtpPort + "-" + rtcpPort );
 
 		} catch ( IOException e ) {
 			log.fatal( "Can't start the service. " + e );
@@ -101,4 +107,43 @@ public class RtpServerService implements ProxyService
 		}
 	}
 
+	public static IoSession newRtpSession( SocketAddress remoteAddress )
+	{
+		return Reactor.getRegistry().getAcceptor( TransportType.DATAGRAM ).newSession(
+				remoteAddress, rtpAddress );
+	}
+	
+	public static IoSession newRtcpSession( SocketAddress remoteAddress )
+	{
+		return Reactor.getRegistry().getAcceptor( TransportType.DATAGRAM ).newSession(
+				remoteAddress, rtcpAddress );
+	}
+	
+	public static InetSocketAddress getRtpAddress()
+	{
+		return rtpAddress;
+	}
+
+	public static InetSocketAddress getRtcpAddress()
+	{
+		return rtcpAddress;
+	}
+	
+	public static InetAddress getHostAddress()
+	{
+		/* The InetAddress (IP) is the same for both RTP
+		 * and RTCP.
+		 */
+		return rtpAddress.getAddress();
+	}
+	
+	public static int getRtpPort()
+	{
+		return rtpAddress.getPort();
+	}
+	
+	public static int getRtcpPort()
+	{
+		return rtcpAddress.getPort();
+	}
 }

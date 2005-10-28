@@ -30,6 +30,7 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 
 import rtspproxy.Config;
+import rtspproxy.RtpClientService;
 import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
@@ -243,31 +244,34 @@ public class ProxyHandler
 
 		// Setting client and server info on the track
 		if ( transport.getSource() != null ) {
-			track.setServerHost( transport.getSource() );
+			try {
+				track.setServerAddress( InetAddress.getByName( transport.getSource() ) );
+			} catch ( UnknownHostException e ) {
+				log.warn( "Unknown host: " + transport.getSource() );
+			}
 		} else {
-			track.setServerHost( ( (InetSocketAddress) serverSession.getRemoteAddress() ).getHostName() );
+			track.setServerAddress( ( (InetSocketAddress) serverSession.getRemoteAddress() ).getAddress() );
 		}
 		int[] serverPorts = transport.getServerPort();
 		track.setServerRtpPort( serverPorts[0] );
 		track.setServerRtcpPort( serverPorts[1] );
 
-		track.setClientHost( ( (InetSocketAddress) clientSession.getRemoteAddress() ).getHostName() );
+		track.setClientAddress( ( (InetSocketAddress) clientSession.getRemoteAddress() ).getAddress() );
 		int clientPorts[] = (int[]) clientSession.getAttribute( "clientPorts" );
 		track.setClientRtpPort( clientPorts[0] );
 		track.setClientRtcpPort( clientPorts[1] );
-		try {
-			track.bind();
-		} catch ( Exception e ) {
-			log.error( "Unable to create UDP sockets.." );
-			return;
-		}
+
+		/*
+		 * TODO: remove try { track.bind(); } catch ( Exception e ) { log.error(
+		 * "Unable to create UDP sockets.." ); return; }
+		 */
 
 		if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
 			log.debug( "Transport is TCP based." );
 		} else {
 			transport.setSSRC( track.getProxySSRC() );
-			transport.setServerPort( new int[] { track.getProxyRtpPort(),
-					track.getProxyRtcpPort() } );
+			transport.setServerPort( new int[] { RtpClientService.getRtpPort(),
+					RtpClientService.getRtcpPort() } );
 			// transport.setClientPort( );
 			try {
 				transport.setSource( InetAddress.getByName( netInterface ).getHostAddress() );
@@ -317,6 +321,7 @@ public class ProxyHandler
 			serverSession = future.getSession();
 
 		} catch ( IOException e ) {
+			log.warn( "Destination unreachable: " + host + ":" + port );
 			sendResponse( clientSession,
 					RtspResponse.errorResponse( RtspCode.DestinationUnreachable ) );
 			throw e;
@@ -330,6 +335,9 @@ public class ProxyHandler
 		log.debug( "Server session: " + serverSession.getAttributeKeys() );
 	}
 
+	/**
+	 * Closes both sides of communication.
+	 */
 	public void closeAll()
 	{
 		if ( clientSession != null && clientSession.isConnected() )
@@ -338,6 +346,14 @@ public class ProxyHandler
 			serverSession.close();
 	}
 
+	/**
+	 * Sends an RTSP request message
+	 * 
+	 * @param session
+	 *        current IoSession
+	 * @param request
+	 *        the message
+	 */
 	private void sendRequest( IoSession session, RtspRequest request )
 	{
 		request.setCommonHeaders();
@@ -348,6 +364,14 @@ public class ProxyHandler
 		}
 	}
 
+	/**
+	 * Sends an RTSP response message
+	 * 
+	 * @param session
+	 *        current IoSession
+	 * @param response
+	 *        the message
+	 */
 	private void sendResponse( IoSession session, RtspResponse response )
 	{
 		response.setCommonHeaders();

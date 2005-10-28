@@ -40,8 +40,8 @@ public class Reactor
 		ProxyService rtspService = new RtspService();
 		rtspService.start();
 		
-		// ProxyService rtpClientService = new RtpClientService();
-		// rtpClientService.start();
+		ProxyService rtpClientService = new RtpClientService();
+		rtpClientService.start();
 		
 		ProxyService rtpServerService = new RtpServerService();
 		rtpServerService.start();
