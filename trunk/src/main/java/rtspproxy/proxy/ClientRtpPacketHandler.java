@@ -18,6 +18,8 @@
 
 package rtspproxy.proxy;
 
+import java.net.InetSocketAddress;
+
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
@@ -42,15 +44,15 @@ public class ClientRtpPacketHandler extends IoHandlerAdapter
 		RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
 		log.debug( "Received RTP packet: " + packet.getSequence() );
 		
-		Track track = (Track)session.getAttribute( "track" ); 
-		/* = Track.getByClientSSRC( packet.getSsrc() );
+		// Track track = (Track)session.getAttribute( "track" ); 
+		Track track = Track.getByClientAddress( (InetSocketAddress)session.getRemoteAddress() );
 
 		if ( track == null ) {
 			// drop packet
 			log.debug( "Invalid SSRC identifier: " + Long.toHexString( packet.getSsrc() ) );
 			return;
 		}
-		*/
+
 		track.forwardRtpToServer( packet );
 	}
 

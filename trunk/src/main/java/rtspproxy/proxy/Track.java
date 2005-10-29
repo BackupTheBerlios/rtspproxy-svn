@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.apache.log4j.Logger;
@@ -56,6 +57,8 @@ public class Track
 	/** Maps a client SSRC id to a Track */
 	private static List<Long> proxySsrcList = new LinkedList<Long>();
 
+	private static Map<InetSocketAddress, Track> clientAddressMap = new HashMap<InetSocketAddress, Track>();
+
 	private InetAddress clientAddress;
 	private int clientRtpPort;
 	private int clientRtcpPort;
@@ -82,13 +85,15 @@ public class Track
 	 *        SSRC id returned by a client.
 	 * @return
 	 */
-	/*
-	 * public static Track getByClientSSRC( long clientSsrc ) {
-	 * System.err.println( "clientSsrc: " + Long.toHexString( clientSsrc ) );
-	 * System.err.print( "List of clientSssrcs: " ); for ( long ssrc :
-	 * clientSsrcMap.keySet() ) { System.err.print( Long.toHexString( ssrc ) + " " ); }
-	 * System.err.println(); return clientSsrcMap.get( Long.valueOf( clientSsrc ) ); }
-	 */
+
+	public static Track getByClientAddress( InetSocketAddress clientAddress )
+	{
+		// for ( InetSocketAddress addr : clientAddressMap.keySet() ) {
+		//	log.debug( "Addr: " + addr + " - Class: " + addr.getAddress().getClass() );
+		// }
+		return clientAddressMap.get( clientAddress );
+	}
+
 	public static Track getByServerSSRC( long serverSsrc )
 	{
 		return serverSsrcMap.get( Long.valueOf( serverSsrc ) );
@@ -187,8 +192,8 @@ public class Track
 		if ( rtpClientSession == null ) {
 			rtpClientSession = RtpClientService.newRtpSession( new InetSocketAddress(
 					clientAddress, clientRtpPort ) );
-			
-			// Client packets needs this attribute to find 
+
+			// Client packets needs this attribute to find
 			// the track
 			rtpClientSession.setAttribute( "track", this );
 		}
@@ -200,12 +205,12 @@ public class Track
 	{
 		// modify the SSRC for the client
 		packet.setSsrc( (int) proxySSRC );
-		
+
 		if ( rtcpClientSession == null ) {
 			rtcpClientSession = RtpClientService.newRtcpSession( new InetSocketAddress(
 					clientAddress, clientRtcpPort ) );
-			
-			// Client packets needs this attribute to find 
+
+			// Client packets needs this attribute to find
 			// the track
 			rtcpClientSession.setAttribute( "track", this );
 		}
@@ -238,54 +243,25 @@ public class Track
 	 * @param clientHost
 	 *        The clientHost to set.
 	 */
-	public void setClientAddress( InetAddress clientAddress )
+	public void setClientAddress( InetAddress clientAddress, int rtpPort, int rtcpPort )
 	{
 		this.clientAddress = clientAddress;
-	}
-
-	/**
-	 * @param clientRtcpPort
-	 *        The clientRtcpPort to set.
-	 */
-	public void setClientRtcpPort( int clientRtcpPort )
-	{
-		this.clientRtcpPort = clientRtcpPort;
-	}
-
-	/**
-	 * @param clientRtpPort
-	 *        The clientRtpPort to set.
-	 */
-	public void setClientRtpPort( int clientRtpPort )
-	{
-		this.clientRtpPort = clientRtpPort;
+		this.clientRtpPort = rtpPort;
+		this.clientRtcpPort = rtcpPort;
+		
+		clientAddressMap.put( new InetSocketAddress( clientAddress, rtpPort ), this );
+		clientAddressMap.put( new InetSocketAddress( clientAddress, rtcpPort ), this );
 	}
 
 	/**
 	 * @param serverHost
 	 *        The serverHost to set.
 	 */
-	public void setServerAddress( InetAddress serverAddress )
+	public void setServerAddress( InetAddress serverAddress, int rtpPort, int rtcpPort )
 	{
 		this.serverAddress = serverAddress;
-	}
-
-	/**
-	 * @param serverRtcpPort
-	 *        The serverRtcpPort to set.
-	 */
-	public void setServerRtcpPort( int serverRtcpPort )
-	{
-		this.serverRtcpPort = serverRtcpPort;
-	}
-
-	/**
-	 * @param serverRtpPort
-	 *        The serverRtpPort to set.
-	 */
-	public void setServerRtpPort( int serverRtpPort )
-	{
-		this.serverRtpPort = serverRtpPort;
+		this.serverRtpPort = rtpPort;
+		this.serverRtcpPort = rtcpPort;
 	}
 
 }

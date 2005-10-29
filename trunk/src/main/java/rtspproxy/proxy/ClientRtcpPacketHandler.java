@@ -18,6 +18,8 @@
 
 package rtspproxy.proxy;
 
+import java.net.InetSocketAddress;
+
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
@@ -45,15 +47,19 @@ public class ClientRtcpPacketHandler extends IoHandlerAdapter
 		RtcpPacket packet = new RtcpPacket( (ByteBuffer) buffer );
 		// log.debug( "Received RTCP packet: " + packet.getType() );
 
-		Track track = (Track)session.getAttribute( "track" ); 
-		/* Track.getByClientSSRC( packet.getSsrc() );
+		// / Track track = (Track)session.getAttribute( "track" );
+
+		Track track = Track.getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
 
 		if ( track == null ) {
 			// drop packet
-			log.debug( "Invalid SSRC identifier: " + Long.toHexString( packet.getSsrc() ) );
+			log.debug( "Invalid address: "
+					+ (InetSocketAddress) session.getRemoteAddress()
+					+ " - Class: "
+					+ ( (InetSocketAddress) session.getRemoteAddress() ).getAddress().getClass() );
 			return;
 		}
-		*/
+
 		track.forwardRtcpToServer( packet );
 	}
 
@@ -61,6 +67,7 @@ public class ClientRtcpPacketHandler extends IoHandlerAdapter
 	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
 		log.debug( "Exception: " + cause );
+		cause.printStackTrace();
 		session.close();
 	}
 }

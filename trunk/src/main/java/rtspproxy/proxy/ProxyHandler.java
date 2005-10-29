@@ -19,6 +19,7 @@
 package rtspproxy.proxy;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
@@ -243,23 +244,27 @@ public class ProxyHandler
 				(String) clientSession.getAttribute( "setupURL" ), transport.getSSRC() );
 
 		// Setting client and server info on the track
+		InetAddress serverAddress = null;
 		if ( transport.getSource() != null ) {
 			try {
-				track.setServerAddress( InetAddress.getByName( transport.getSource() ) );
+				serverAddress = InetAddress.getByName( transport.getSource() );
 			} catch ( UnknownHostException e ) {
 				log.warn( "Unknown host: " + transport.getSource() );
 			}
 		} else {
-			track.setServerAddress( ( (InetSocketAddress) serverSession.getRemoteAddress() ).getAddress() );
+			serverAddress = ( (InetSocketAddress) serverSession.getRemoteAddress() ).getAddress();
 		}
 		int[] serverPorts = transport.getServerPort();
-		track.setServerRtpPort( serverPorts[0] );
-		track.setServerRtcpPort( serverPorts[1] );
+		track.setServerAddress( serverAddress, serverPorts[0], serverPorts[1] );
 
-		track.setClientAddress( ( (InetSocketAddress) clientSession.getRemoteAddress() ).getAddress() );
+		InetAddress clientAddress = null;
+		try {
+			clientAddress = Inet4Address.getByName( ( (InetSocketAddress) clientSession.getRemoteAddress() ).getHostName() );
+		} catch ( UnknownHostException e ) {
+			log.warn( "Unknown host: " );
+		}
 		int clientPorts[] = (int[]) clientSession.getAttribute( "clientPorts" );
-		track.setClientRtpPort( clientPorts[0] );
-		track.setClientRtcpPort( clientPorts[1] );
+		track.setClientAddress( clientAddress, clientPorts[0], clientPorts[1] );
 
 		/*
 		 * TODO: remove try { track.bind(); } catch ( Exception e ) { log.error(
