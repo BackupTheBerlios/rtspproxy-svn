@@ -75,7 +75,15 @@ public class Main extends SignalInterceptor
 	protected boolean handle( String signalName )
 	{
 		log.info( "Received signal: " + signalName );
-		// TODO: Do graceful shutdown here!
+		try {
+			log.info( "Stopping " + Config.getName() + " " + Config.getVersion() );
+			Reactor.stop();
+
+		} catch ( Exception e ) {
+			log.fatal( "Exception in the reactor: " + e );
+			e.printStackTrace();
+		}
+		
 		return true;
 	}
 
