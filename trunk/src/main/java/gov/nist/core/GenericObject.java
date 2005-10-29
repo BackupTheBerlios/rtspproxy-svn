@@ -2,9 +2,13 @@
  * Product of NIST/ITL Advanced Networking Technologies Division (ANTD).      *
  ******************************************************************************/
 package gov.nist.core;
-import java.lang.reflect.*;
 import java.io.Serializable;
-import java.util.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
 * The base class from which all the other classes in the
@@ -45,7 +49,7 @@ public abstract class GenericObject implements Serializable, Cloneable {
 	protected static final String HT = Separators.HT;
 	protected static final String PERCENT = Separators.PERCENT;
 
-	protected static final Set immutableClasses = new HashSet (10);
+	protected static final Set<Class> immutableClasses = new HashSet<Class> (10);
 	protected static final String[] immutableClassNames ={ 
 		"String", "Character",
 		"Boolean", "Byte", "Short", "Integer", "Long",
@@ -212,7 +216,7 @@ public abstract class GenericObject implements Serializable, Cloneable {
 					continue;
 				}
 				Class fieldType = f.getType();
-				String fieldName = f.getName();
+				/// String fieldName = f.getName();
 				String fname = fieldType.toString();
 				try {
 					// Primitive fields are printed with type: value

@@ -1,8 +1,10 @@
 package gov.nist.javax.sdp.parser;
-import java.util.*;
-import gov.nist.core.*;
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.PackageNames;
+
+import java.lang.reflect.Constructor;
 import java.text.ParseException;
-import java.lang.reflect.*;
+import java.util.Hashtable;
 
 /** Factory for creating parsers for the SDP stuff.
 *
@@ -13,7 +15,7 @@ import java.lang.reflect.*;
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 */
 public class ParserFactory {
-	private static Hashtable parserTable;
+	private static Hashtable<String,Class> parserTable;
 	private static Class[] constructorArgs;
 	private static final String packageName =
 		PackageNames.SDP_PACKAGE + ".parser";
@@ -32,7 +34,7 @@ public class ParserFactory {
 	static {
 		constructorArgs = new Class[1];
 		constructorArgs[0] = String.class;
-		parserTable = new Hashtable();
+		parserTable = new Hashtable<String,Class>();
 		parserTable.put("a", getParser("AttributeFieldParser"));
 		parserTable.put("b", getParser("BandwidthFieldParser"));
 		parserTable.put("c", getParser("ConnectionFieldParser"));

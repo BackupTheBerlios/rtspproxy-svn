@@ -1,6 +1,10 @@
 package gov.nist.javax.sdp.parser;
 
-import gov.nist.javax.sdp.fields.*;
+import gov.nist.javax.sdp.fields.Email;
+import gov.nist.javax.sdp.fields.EmailAddress;
+import gov.nist.javax.sdp.fields.EmailField;
+import gov.nist.javax.sdp.fields.SDPField;
+
 import java.text.ParseException;
 
 /** 
@@ -83,7 +87,7 @@ public class EmailFieldParser extends SDPParser {
 
 				} else {
 					int i = rest.indexOf("@");
-					int j = rest.indexOf("\n");
+					/// int j = rest.indexOf("\n");
 					if (i != -1) {
 						email.setUserName(rest.substring(0, i));
 						email.setHostName(rest.substring(i + 1));

@@ -1,9 +1,10 @@
 package gov.nist.javax.sdp.parser;
-import java.util.*;
-import gov.nist.core.*;
-import gov.nist.javax.sdp.fields.*;
-import gov.nist.javax.sdp.*;
+import gov.nist.core.ParserCore;
+import gov.nist.javax.sdp.SessionDescriptionImpl;
+import gov.nist.javax.sdp.fields.SDPField;
+
 import java.text.ParseException;
+import java.util.Vector;
 // Acknowledgement: this includes a bug fix submitted by 
 // Rafael Barriuso rbarriuso@dit.upm.es
 
@@ -12,12 +13,12 @@ import java.text.ParseException;
 public class SDPAnnounceParser extends ParserCore {
 
 	protected Lexer lexer;
-	protected Vector sdpMessage;
+	protected Vector<String> sdpMessage;
 
 	/** Creates new SDPAnnounceParser 
 	 * @param sdpMessage Vector of messages to parse.
 	 */
-	public SDPAnnounceParser(Vector sdpMessage) {
+	public SDPAnnounceParser(Vector<String> sdpMessage) {
 		this.sdpMessage = sdpMessage;
 	}
 
@@ -31,12 +32,12 @@ public class SDPAnnounceParser extends ParserCore {
 		// Return trivially if there is no sdp announce message
 		// to be parsed. Bruno Konik noticed this bug.
 		if (message == null ) return;
-		sdpMessage = new Vector();
+		sdpMessage = new Vector<String>();
 		// Strip off leading and trailing junk.
 		String sdpAnnounce = message.trim() + "\r\n";
 		// Bug fix by Andreas Bystrom.
 		while (start < sdpAnnounce.length()) {
-			int add = 0;
+			/// int add = 0;
 			int index = sdpAnnounce.indexOf("\n", start);
 			int index2 = sdpAnnounce.indexOf("\r", start);
 

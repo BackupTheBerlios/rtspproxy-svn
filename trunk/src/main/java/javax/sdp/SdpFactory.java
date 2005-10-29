@@ -87,7 +87,7 @@ public class SdpFactory extends Object {
         TimeField timeImpl=new TimeField();
         timeImpl.setZero();
         timeDescriptionImpl.setTime(timeImpl);
-        Vector times=new Vector();
+        Vector<TimeDescriptionImpl> times=new Vector<TimeDescriptionImpl>();
         times.addElement(timeDescriptionImpl);
         sessionDescriptionImpl.setTimeDescriptions(times);
         
@@ -380,7 +380,7 @@ public class SdpFactory extends Object {
             mediaImpl.setProtocol(transport);
             mediaDescriptionImpl.setMedia(mediaImpl);
 	    // Bug fix contributed by Paloma Ortega.
-	    Vector payload=new Vector();
+	    Vector<String> payload=new Vector<String>();
  	    for (int i=0;i<staticRtpAvpTypes.length;i++)
    		payload.add(new Integer(staticRtpAvpTypes[i]).toString());
  	    mediaImpl.setMediaFormats(payload);
@@ -413,7 +413,7 @@ public class SdpFactory extends Object {
             mediaImpl.setPortCount(numPorts);
             mediaImpl.setProtocol(transport);
             
-            Vector formatsV = new Vector(formats.length);
+            Vector<String> formatsV = new Vector<String>(formats.length);
             for(int i = 0; i < formats.length; i ++)
                 formatsV.add(formats[i]);
             mediaImpl.setMediaFormats(formatsV);
@@ -629,7 +629,7 @@ public class SdpFactory extends Object {
          ZoneField timeZoneAdjustmentImpl=new ZoneField();
         try {
            
-            Hashtable map=new Hashtable();
+            Hashtable<Date,Integer> map=new Hashtable<Date,Integer>();
             map.put(d,new Integer(offset));
             timeZoneAdjustmentImpl.setZoneAdjustments(map);
         }

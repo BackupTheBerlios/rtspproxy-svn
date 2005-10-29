@@ -1,8 +1,11 @@
 package gov.nist.javax.sdp.parser;
-import gov.nist.javax.sdp.fields.*;
-import gov.nist.core.*;
-import java.text.*;
-import java.util.*;
+import gov.nist.core.Debug;
+import gov.nist.core.Token;
+import gov.nist.javax.sdp.fields.MediaField;
+import gov.nist.javax.sdp.fields.SDPField;
+
+import java.text.ParseException;
+import java.util.Vector;
 
 /**
  * Parser for Media field.
@@ -74,7 +77,7 @@ public class MediaFieldParser extends SDPParser {
 			mediaField.setProto(transport);
 
 			// The formats list:
-			Vector formatList = new Vector();
+			Vector<String> formatList = new Vector<String>();
 			while (lexer.hasMoreChars()) {
 				if (lexer.lookAhead(0) == '\n' || lexer.lookAhead(0) == '\r')
 					break;
