@@ -7,7 +7,6 @@ package gov.nist.core;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -49,10 +48,7 @@ public class LogWriter {
 	/** Print writer that is used to write out the log file.
 	 */
 	private PrintWriter printWriter;
-	/** print stream for writing out trace
-	 */
-	private PrintStream traceWriter = System.out;
-
+	
 	/** Flag to indicate that logging is enabled. This needs to be
 	* static and public in order to globally turn logging on or off.
 	*/
@@ -60,11 +56,6 @@ public class LogWriter {
 
 	private int lineCount;
 
-	/**
-	*  Debugging trace stream.
-	*/
-	private static final PrintStream trace = System.out;
-	
 	/** trace level
 	 */
 	// protected     static int traceLevel = TRACE_DEBUG;

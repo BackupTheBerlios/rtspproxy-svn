@@ -17,6 +17,7 @@ import javax.sdp.*;
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 *
 */
+@SuppressWarnings("serial")
 public class RepeatField extends SDPField implements javax.sdp.RepeatTime {
 	protected TypedTime repeatInterval;
 	protected TypedTime activeDuration;

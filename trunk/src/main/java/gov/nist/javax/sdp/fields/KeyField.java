@@ -15,6 +15,7 @@ import javax.sdp.*;
 *@author Oliver Deruelle <deruelle@antd.nist.gov> 
 *@author M. Ranganathan <mranga@nist.gov>  <br/>
 */
+@SuppressWarnings("serial")
 public class KeyField extends SDPField implements javax.sdp.Key {
 	protected String type;
 	protected String keyData;

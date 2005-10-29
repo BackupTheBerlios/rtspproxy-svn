@@ -15,6 +15,7 @@ import javax.sdp.*;
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 *
 */
+@SuppressWarnings("serial")
 public class PhoneField extends SDPField implements javax.sdp.Phone {
 	protected String name;
 	protected String phoneNumber;

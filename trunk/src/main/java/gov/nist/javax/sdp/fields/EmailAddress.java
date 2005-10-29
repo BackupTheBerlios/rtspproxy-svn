@@ -14,6 +14,7 @@ import gov.nist.core.*;
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 *
 */
+@SuppressWarnings("serial")
 public class EmailAddress extends SDPObject {
 	protected String displayName;
 	protected Email email;

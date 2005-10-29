@@ -13,6 +13,7 @@ package gov.nist.core;
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 *
 */
+@SuppressWarnings("serial")
 public class NameValue extends GenericObject {
 	protected boolean isQuotedString;
 	protected String separator;

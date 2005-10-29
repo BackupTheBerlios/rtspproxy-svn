@@ -14,6 +14,7 @@ import javax.sdp.*;
 *
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 */
+@SuppressWarnings("serial")
 public class EmailField extends SDPField implements javax.sdp.EMail {
 
 	protected EmailAddress emailAddress;

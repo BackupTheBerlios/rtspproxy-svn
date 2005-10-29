@@ -3,7 +3,8 @@
  **************************************************************************/
 package gov.nist.core;
 
-import java.net.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * Stores hostname.
@@ -21,6 +22,7 @@ import java.net.*;
  * Marc Bednarek <bednarek@nist.gov> (Bugfixes).<br/>
  *
  */
+@SuppressWarnings("serial")
 public class Host extends GenericObject {
 	protected static final int HOSTNAME = 1;
 	protected static final int IPV4ADDRESS = 2;

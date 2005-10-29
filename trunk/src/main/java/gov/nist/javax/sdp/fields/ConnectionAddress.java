@@ -15,6 +15,7 @@ import gov.nist.core.Separators;
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 *
 */
+@SuppressWarnings("serial")
 public class ConnectionAddress extends SDPObject {
 	protected Host address;
 	protected int ttl;

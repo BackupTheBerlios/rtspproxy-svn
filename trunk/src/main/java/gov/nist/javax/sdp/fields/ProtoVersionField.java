@@ -16,6 +16,7 @@ import javax.sdp.*;
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 *
 */
+@SuppressWarnings("serial")
 public class ProtoVersionField extends SDPField implements javax.sdp.Version {
 	protected int protoVersion;
 

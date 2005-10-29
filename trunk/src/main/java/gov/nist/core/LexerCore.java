@@ -56,15 +56,15 @@ public class LexerCore extends StringTokenizer {
 	public static final int AND = (int) '&';
 	public static final int UNDERSCORE = (int) '_';
 
-	protected static Hashtable globalSymbolTable;
-	protected static Hashtable lexerTables;
-	protected Hashtable currentLexer;
+	protected static Hashtable<Integer,String> globalSymbolTable;
+	protected static Hashtable<String,Hashtable> lexerTables;
+	protected Hashtable<String,Integer> currentLexer;
 	protected String currentLexerName;
 	protected Token currentMatch;
 
 	static {
-		globalSymbolTable = new Hashtable();
-		lexerTables = new Hashtable();
+		globalSymbolTable = new Hashtable<Integer,String>();
+		lexerTables = new Hashtable<String,Hashtable>();
 	}
 
 	protected void addKeyword(String name, int value) {
@@ -85,10 +85,11 @@ public class LexerCore extends StringTokenizer {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	protected Hashtable addLexer(String lexerName) {
-		currentLexer = (Hashtable) lexerTables.get(lexerName);
+		currentLexer = (Hashtable<String,Integer>) lexerTables.get(lexerName);
 		if (currentLexer == null) {
-			currentLexer = new Hashtable();
+			currentLexer = new Hashtable<String,Integer>();
 			lexerTables.put(lexerName, currentLexer);
 		}
 		return currentLexer;
@@ -101,7 +102,7 @@ public class LexerCore extends StringTokenizer {
 	}
 
 	protected LexerCore() {
-		this.currentLexer = new Hashtable();
+		this.currentLexer = new Hashtable<String,Integer>();
 		this.currentLexerName = "charLexer";
 	}
 
@@ -146,9 +147,9 @@ public class LexerCore extends StringTokenizer {
 		return (Token) peekNextToken(1).elementAt(0);
 	}
 
-	public Vector peekNextToken(int ntokens) throws ParseException {
+	public Vector<Token> peekNextToken(int ntokens) throws ParseException {
 		int old = ptr;
-		Vector retval = new Vector();
+		Vector<Token> retval = new Vector<Token>();
 		for (int i = 0; i < ntokens; i++) {
 			Token tok = new Token();
 			if (startsId()) {

@@ -15,6 +15,7 @@ import javax.sdp.*;
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 *
 */
+@SuppressWarnings("serial")
 public class ConnectionField extends SDPField implements javax.sdp.Connection {
 	protected String nettype;
 	protected String addrtype;

@@ -17,6 +17,7 @@ import javax.sdp.SdpParseException;
  * @author M. Ranganathan <mranga@nist.gov> <br/> <a href="{@docRoot}/uncopyright.html">This
  *         code is in the public domain.</a>
  */
+@SuppressWarnings("serial")
 public class AttributeField extends SDPField implements javax.sdp.Attribute
 {
 

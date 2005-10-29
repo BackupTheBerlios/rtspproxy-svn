@@ -2,9 +2,10 @@
 * Product of NIST/ITL Advanced Networking Technologies Division (ANTD).        *
 *******************************************************************************/
 package gov.nist.core;
-import java.util.ListIterator;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
 * Implements a simple NameValue association with a quick lookup 
@@ -19,6 +20,7 @@ import java.util.LinkedList;
 *
 */
 
+@SuppressWarnings("serial")
 public class NameValueList extends GenericObjectList {
 
 	public NameValueList(String listName) {
@@ -160,7 +162,7 @@ public class NameValueList extends GenericObjectList {
 	 *@return a list iterator that has the names of the parameters.
 	 */
 	public Iterator getNames() {
-		LinkedList ll = new LinkedList();
+		List<String> ll = new LinkedList<String>();
 		Iterator iterator = this.getIterator();
 		while (iterator.hasNext()) {
 			String name = ((NameValue) iterator.next()).name;

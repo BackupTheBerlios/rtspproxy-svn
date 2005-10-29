@@ -12,6 +12,7 @@ import javax.sdp.*;
 *@author M. Ranganathan <mranga@nist.gov>  <br/>
 */
 
+@SuppressWarnings("serial")
 public class InformationField extends SDPField implements javax.sdp.Info {
 	protected String information;
 

@@ -13,6 +13,7 @@ package gov.nist.javax.sdp.fields;
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 *
 */
+@SuppressWarnings("serial")
 public class SDPFormat extends SDPObject {
 	protected String format;
 
