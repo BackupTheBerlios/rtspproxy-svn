@@ -53,7 +53,8 @@ public class RtspService implements ProxyService
 							new InetSocketAddress( netInterface, port ) );
 
 				Reactor.getRegistry().bind( service, new ClientSide() );
-				log.info( "Listening on: " + InetAddress.getByName( netInterface ) + ":"+ port );
+				log.info( "RtspService Started - Listening on: "
+						+ InetAddress.getByName( netInterface ) + ":" + port );
 
 			} catch ( IOException e ) {
 				log.fatal( e.getMessage() + " (port = " + port + ")" );
@@ -67,5 +68,7 @@ public class RtspService implements ProxyService
 		for ( Object service : Reactor.getRegistry().getServices( "RtspService" ) ) {
 			Reactor.getRegistry().unbind( (Service) service );
 		}
+
+		log.info( "RtspService Stopped" );
 	}
 }

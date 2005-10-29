@@ -50,8 +50,8 @@ public class RtpServerService implements ProxyService
 	 */
 	public void start() throws Exception
 	{
-		int rtpPort = Config.getInt( "proxy.server.rtp.port", 6970 );
-		int rtcpPort = Config.getInt( "proxy.server.rtcp.port", 6971 );
+		int rtpPort = Config.getInt( "proxy.server.rtp.port", 8000 );
+		int rtcpPort = Config.getInt( "proxy.server.rtcp.port", 8001 );
 		String netInterface = Config.get( "proxy.server.interface", null );
 		boolean dinPorts = Config.getBoolean( "proxy.server.dynamicPorts", false );
 
@@ -82,8 +82,9 @@ public class RtpServerService implements ProxyService
 
 			Reactor.getRegistry().bind( rtpService, new ServerRtpPacketHandler() );
 			Reactor.getRegistry().bind( rtcpService, new ServerRtcpPacketHandler() );
-			log.info( "Listening on: " + InetAddress.getByName( netInterface ) + " "
-					+ rtpPort + "-" + rtcpPort );
+			log.info( "RtpServerService Started - Listening on: "
+					+ InetAddress.getByName( netInterface ) + " " + rtpPort + "-"
+					+ rtcpPort );
 
 		} catch ( IOException e ) {
 			log.fatal( "Can't start the service. " + e );
@@ -105,6 +106,8 @@ public class RtpServerService implements ProxyService
 		for ( Object service : Reactor.getRegistry().getServices( "RtcpServerService" ) ) {
 			Reactor.getRegistry().unbind( (Service) service );
 		}
+
+		log.info( "RtpServerService Stopped" );
 	}
 
 	public static IoSession newRtpSession( SocketAddress remoteAddress )
@@ -112,13 +115,13 @@ public class RtpServerService implements ProxyService
 		return Reactor.getRegistry().getAcceptor( TransportType.DATAGRAM ).newSession(
 				remoteAddress, rtpAddress );
 	}
-	
+
 	public static IoSession newRtcpSession( SocketAddress remoteAddress )
 	{
 		return Reactor.getRegistry().getAcceptor( TransportType.DATAGRAM ).newSession(
 				remoteAddress, rtcpAddress );
 	}
-	
+
 	public static InetSocketAddress getRtpAddress()
 	{
 		return rtpAddress;
@@ -128,20 +131,20 @@ public class RtpServerService implements ProxyService
 	{
 		return rtcpAddress;
 	}
-	
+
 	public static InetAddress getHostAddress()
 	{
-		/* The InetAddress (IP) is the same for both RTP
-		 * and RTCP.
+		/*
+		 * The InetAddress (IP) is the same for both RTP and RTCP.
 		 */
 		return rtpAddress.getAddress();
 	}
-	
+
 	public static int getRtpPort()
 	{
 		return rtpAddress.getPort();
 	}
-	
+
 	public static int getRtcpPort()
 	{
 		return rtcpAddress.getPort();
