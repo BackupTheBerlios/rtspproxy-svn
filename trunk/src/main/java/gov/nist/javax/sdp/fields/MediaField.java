@@ -271,6 +271,7 @@ public class MediaField extends SDPField implements Media
 		return encoded_string;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object clone()
 	{
 		MediaField retval = (MediaField) super.clone();

@@ -2,9 +2,11 @@
 * Product of NIST/ITL Advanced Networking Technologies Division (ANTD).        *
 *******************************************************************************/
 package gov.nist.core;
-import java.util.*;
-import java.lang.reflect.*;
 import java.io.Serializable;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 /**
 * Implements a homogenous consistent linked list.   All the objects in
@@ -20,6 +22,7 @@ import java.io.Serializable;
 *<a href="{@docRoot}/uncopyright.html">This code is in the public domain.</a>
 *
 */
+@SuppressWarnings("unchecked")
 public abstract class GenericObjectList
 	extends LinkedList
 	implements Serializable, Cloneable {

@@ -24,6 +24,7 @@ import java.util.Set;
 *
 */
 
+@SuppressWarnings("unchecked")
 public abstract class GenericObject implements Serializable, Cloneable {
 	// Useful constants.
 	protected static final String SEMICOLON = Separators.SEMICOLON;
@@ -163,8 +164,8 @@ public abstract class GenericObject implements Serializable, Cloneable {
 			// If a clone method exists for the object, then
 			// invoke it
 			try {
-				Method meth = c.getMethod("clone", null);
-				clone_obj = meth.invoke(obj, null);
+				Method meth = c.getMethod("clone", (Class[])null);
+				clone_obj = meth.invoke(obj, (Object[])null);
 			} catch (SecurityException ex) {
 			} catch (IllegalArgumentException ex) {
 				InternalErrorHandler.handleException(ex);
