@@ -206,7 +206,7 @@
 						</tr>
 						<tr>
 							<td>
-								<code>proxy.clients.rtcp.port</code>
+								<code>proxy.client.rtcp.port</code>
 							</td>
 							<td>Integer</td>
 							<td>6971</td>
