@@ -169,12 +169,12 @@ public class Config
 		}
 
 		// Try to convert a a String to a boolean
-		if ( value.equalsIgnoreCase( "true" ) || value.equalsIgnoreCase( "yes" )
-				|| value.equalsIgnoreCase( "1" ) ) {
+		if ( "true".equalsIgnoreCase( value ) || "yes".equalsIgnoreCase( value )
+				|| "1".equalsIgnoreCase( value ) ) {
 			return true;
 		} else
-			if ( value.equalsIgnoreCase( "false" ) || value.equalsIgnoreCase( "no" )
-					|| value.equalsIgnoreCase( "0" ) ) {
+			if ( "false".equalsIgnoreCase( value ) || "no".equalsIgnoreCase( value )
+					|| "0".equalsIgnoreCase( value ) ) {
 				return false;
 			}
 
