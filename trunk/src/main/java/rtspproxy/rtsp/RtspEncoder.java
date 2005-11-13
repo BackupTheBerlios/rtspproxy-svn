@@ -55,6 +55,6 @@ public class RtspEncoder implements ProtocolEncoder
 	 */
 	public void dispose( IoSession arg0 ) throws Exception
 	{
-		// TODO: Check if need to do something here
+		// Don't need to do nothing
 	}
 }
