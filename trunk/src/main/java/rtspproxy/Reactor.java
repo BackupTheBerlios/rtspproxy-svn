@@ -58,12 +58,16 @@ public class Reactor
 		rtpServerService.start();
 	}
 
-	static public void stop() throws Exception
+	static public void stop()
 	{
-		// registry.unbindAll();
-		rtspService.stop();
-		rtpClientService.stop();
-		rtpServerService.stop();
+		try {
+			// registry.unbindAll();
+			rtspService.stop();
+			rtpClientService.stop();
+			rtpServerService.stop();
+		} catch ( Exception e ) {
+			log.debug( "Error shutting down:" + e );
+		}
 
 		if ( isStandalone )
 			System.exit( 0 );
