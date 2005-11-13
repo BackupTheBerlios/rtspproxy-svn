@@ -31,10 +31,17 @@ public class Reactor
 	static Logger log = Logger.getLogger( Reactor.class );
 
 	private static ServiceRegistry registry = new SimpleServiceRegistry();
-	
+
 	private static ProxyService rtspService;
 	private static ProxyService rtpClientService;
 	private static ProxyService rtpServerService;
+
+	private static boolean isStandalone = false;
+
+	public static void setStandalone( boolean standalone )
+	{
+		isStandalone = standalone;
+	}
 
 	/**
 	 * Constructor. Creates a new Reactor and starts it.
@@ -43,24 +50,28 @@ public class Reactor
 	{
 		rtspService = new RtspService();
 		rtspService.start();
-		
+
 		rtpClientService = new RtpClientService();
 		rtpClientService.start();
-		
+
 		rtpServerService = new RtpServerService();
 		rtpServerService.start();
 	}
-	
+
 	static public void stop() throws Exception
 	{
 		// registry.unbindAll();
 		rtspService.stop();
 		rtpClientService.stop();
 		rtpServerService.stop();
+
+		if ( isStandalone )
+			System.exit( 0 );
 	}
-	
-	protected static synchronized ServiceRegistry getRegistry() {
-		return registry; 
+
+	protected static synchronized ServiceRegistry getRegistry()
+	{
+		return registry;
 	}
 
 }

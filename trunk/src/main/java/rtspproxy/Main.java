@@ -57,6 +57,7 @@ public class Main extends SignalInterceptor
 
 		try {
 			log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
+			Reactor.setStandalone( true );
 			Reactor.start();
 
 		} catch ( Exception e ) {
@@ -83,7 +84,7 @@ public class Main extends SignalInterceptor
 			log.fatal( "Exception in the reactor: " + e );
 			e.printStackTrace();
 		}
-		
+
 		return true;
 	}
 
