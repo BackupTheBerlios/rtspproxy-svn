@@ -1,19 +1,14 @@
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   Copyright (C) 2005 - Matteo Merli - matteo.merli@gmail.com            *
- *                                                                         *
- ***************************************************************************/
+/*******************************************************************************
+ * * This program is free software; you can redistribute it and/or modify * it
+ * under the terms of the GNU General Public License as published by * the Free
+ * Software Foundation; either version 2 of the License, or * (at your option)
+ * any later version. * * Copyright (C) 2005 - Matteo Merli -
+ * matteo.merli@gmail.com * *
+ ******************************************************************************/
 
 /*
  * $Id$
- * 
  * $URL$
- * 
  */
 
 package rtspproxy.proxy;
@@ -43,17 +38,18 @@ public class ServerSide extends IoHandlerAdapter
 
 	private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
 	{
+		// Decoders can be shared 
+		private ProtocolEncoder rtspEncoder = new RtspEncoder();
+		private ProtocolDecoder rtspDecoder = new RtspDecoder();
 
-		public ProtocolEncoder newEncoder()
+		public ProtocolEncoder getEncoder()
 		{
-			// Create a new encoder.
-			return new RtspEncoder();
+			return rtspEncoder;
 		}
 
-		public ProtocolDecoder newDecoder()
+		public ProtocolDecoder getDecoder()
 		{
-			// Create a new decoder.
-			return new RtspDecoder();
+			return rtspDecoder;
 		}
 	};
 
@@ -159,6 +155,44 @@ public class ServerSide extends IoHandlerAdapter
 	public void onResponseDescribe( ProxyHandler proxyHandler, RtspResponse response )
 	{
 		log.debug( "RESPONSE DESCRIBE" );
+
+		// TODO: Remove. This is a test
+		/*
+		if ( response.getHeader( "Content-Type" ) != null
+				&& response.getHeader( "Content-Type" ).equals( "application/sdp" ) ) {
+
+			String sdpDescription = response.getBuffer().toString();
+			SdpFactory sdpFactory = new SdpFactory();
+			try {
+				SessionDescription sessionDescription = sdpFactory.createSessionDescription( sdpDescription );
+
+				log.debug( "sessionDescription = " + sessionDescription );
+				String range = sessionDescription.getAttribute( "range" );
+				if ( range != null ) {
+					log.debug( "Range: " + range );
+					Npt npt = Npt.fromString( range );
+					log.debug( "Range parsed:" + npt );
+					log.debug( "Start: " + npt.getTimeStart() + "  -  End: "
+							+ npt.getTimeEnd() );
+				}
+
+				for ( MediaDescription m : sessionDescription.getMediaDescriptions( false ) ) {
+					log.debug( "m = " + m.toString() );
+					Media media = m.getMedia();
+					Vector formats = media.getMediaFormats( false );
+					log.debug( "formats = " + formats );
+				}
+
+				for ( TimeDescription td : sessionDescription.getTimeDescriptions( false ) ) {
+					log.debug( " Time: " + td.getTime() );
+				}
+			} catch ( SdpParseException e ) {
+				log.debug( "Error parsing SDP: " + e );
+			} catch ( SdpException e ) {
+				log.debug( "Generic SDP error: " + e );
+			}
+		}
+		*/
 		proxyHandler.passToClient( response );
 	}
 

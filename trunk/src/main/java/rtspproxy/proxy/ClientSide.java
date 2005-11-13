@@ -27,6 +27,7 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 
+import rtspproxy.auth.AuthorizationFilter;
 import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspDecoder;
 import rtspproxy.rtsp.RtspEncoder;
@@ -35,7 +36,7 @@ import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
 
 /**
- * @author mat
+ * @author Matteo Merli
  */
 public class ClientSide extends IoHandlerAdapter
 {
@@ -45,16 +46,18 @@ public class ClientSide extends IoHandlerAdapter
 	private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
 	{
 
-		public ProtocolEncoder newEncoder()
+		// Decoders can be shared 
+		private ProtocolEncoder rtspEncoder = new RtspEncoder();
+		private ProtocolDecoder rtspDecoder = new RtspDecoder();
+
+		public ProtocolEncoder getEncoder()
 		{
-			// Create a new encoder.
-			return new RtspEncoder();
+			return rtspEncoder;
 		}
 
-		public ProtocolDecoder newDecoder()
+		public ProtocolDecoder getDecoder()
 		{
-			// Create a new decoder.
-			return new RtspDecoder();
+			return rtspDecoder;
 		}
 	};
 
@@ -63,7 +66,9 @@ public class ClientSide extends IoHandlerAdapter
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
-		session.getFilterChain().addLast( "codec", codecFilter );
+		session.getFilterChain().addFirst( "codec", codecFilter );
+		session.getFilterChain().addLast( "authorizaton", new AuthorizationFilter() );
+
 		log.info( "New connection from " + session.getRemoteAddress() );
 		// Creates a new ProxyHandler
 		ProxyHandler proxyHandler = new ProxyHandler( session );
