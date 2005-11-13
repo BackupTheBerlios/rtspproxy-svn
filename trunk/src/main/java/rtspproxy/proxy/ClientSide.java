@@ -80,7 +80,8 @@ public class ClientSide extends IoHandlerAdapter
 	{
 		log.info( "Client connection closed" );
 		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( "proxyHandler" ) );
-		proxyHandler.closeAll();
+		if ( proxyHandler != null )
+			proxyHandler.closeAll();
 	}
 
 	@Override
@@ -88,6 +89,7 @@ public class ClientSide extends IoHandlerAdapter
 	{
 		// close all: same as sessionClosed()
 		log.info( "Exception: " + cause );
+		cause.printStackTrace();
 		sessionClosed( session );
 	}
 
