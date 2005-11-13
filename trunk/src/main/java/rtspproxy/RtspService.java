@@ -23,9 +23,11 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import org.apache.log4j.Logger;
+import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.TransportType;
 import org.apache.mina.registry.Service;
 
+import rtspproxy.auth.IpAddressFilter;
 import rtspproxy.proxy.ClientSide;
 import rtspproxy.rtsp.Handler;
 
@@ -35,7 +37,7 @@ import rtspproxy.rtsp.Handler;
 public class RtspService implements ProxyService
 {
 
-	static Logger log = Logger.getLogger( RtspService.class );
+	private static Logger log = Logger.getLogger( RtspService.class );
 
 	public void start() throws IOException
 	{
@@ -53,6 +55,7 @@ public class RtspService implements ProxyService
 							new InetSocketAddress( netInterface, port ) );
 
 				Reactor.getRegistry().bind( service, new ClientSide() );
+
 				log.info( "RtspService Started - Listening on: "
 						+ InetAddress.getByName( netInterface ) + ":" + port );
 
@@ -60,6 +63,19 @@ public class RtspService implements ProxyService
 				log.fatal( e.getMessage() + " (port = " + port + ")" );
 				throw e;
 			}
+		}
+
+		IoAcceptor acceptor = Reactor.getRegistry().getAcceptor( TransportType.SOCKET );
+		try {
+			boolean enableIpAddressFilter = Config.getBoolean(
+					"auth.ipAddressFilter.enable", false );
+			if ( enableIpAddressFilter )
+				acceptor.getFilterChain().addLast( "ipfilter", new IpAddressFilter() );
+
+		} catch ( Exception e ) {
+			log.fatal( "Cannot register session filter: " + e );
+			e.printStackTrace();
+			Reactor.stop();
 		}
 	}
 

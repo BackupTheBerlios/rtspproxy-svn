@@ -7,6 +7,10 @@
 	<body>
 
 		<release version="3.0-ALPHA2-SNAPSHOT" date="in SVN">
+			<action dev="merlimat" type="add">
+				Added preliminary implementation of the IP address and
+				host name filter.
+			</action>
 			<action dev="merlimat" type="fix">
 				Fixed several NullPointerException.
 			</action>
