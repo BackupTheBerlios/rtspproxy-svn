@@ -61,7 +61,7 @@ public class RtspTransportList
 
 	public String toString()
 	{
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		int i = 0;
 		for ( RtspTransport t : transportList ) {
 			if ( i++ != 0 )

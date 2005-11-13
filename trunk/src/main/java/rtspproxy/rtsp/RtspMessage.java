@@ -134,7 +134,7 @@ public abstract class RtspMessage
 	 */
 	public String getHeadersString()
 	{
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		for ( Object key : headers.keySet() ) {
 			String value = headers.getProperty( (String) key );
 			buf.append( key + ": " + value + CRLF );
