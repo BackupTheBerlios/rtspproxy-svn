@@ -18,7 +18,6 @@
 
 package rtspproxy;
 
-import junit.framework.Assert;
 import junit.framework.TestCase;
 
 /**
@@ -47,8 +46,9 @@ public class ConfigTest extends TestCase
 	{
 		Config.set( "testKey", "testValue" );
 
-		Assert.assertEquals( Config.get( "testKey", null ), "testValue" );
-		Assert.assertEquals( Config.get( "notPresentKey", null ), null );
+		assertEquals( "testValue", Config.get( "testKey", null ) );
+		assertNull( Config.get( "notPresentKey", null ) );
+		assertEquals( "test", Config.get( "notPresentKey", "test" ) );
 	}
 
 	/*
@@ -59,7 +59,8 @@ public class ConfigTest extends TestCase
 		int value = 12345678;
 		Config.setInt( "testKeyInt", value );
 
-		Assert.assertEquals( Config.getInt( "testKeyInt", 0 ), value );
+		assertEquals( value, Config.getInt( "testKeyInt", 0 ) );
+		assertEquals( 0, Config.getInt( "notPresentKey", 0 ) );
 	}
 
 	/*
@@ -72,12 +73,10 @@ public class ConfigTest extends TestCase
 
 		int results[] = Config.getIntArray( "testIntArray", 0 );
 
-		if ( results.length != values.length )
-			Assert.assertTrue( false );
+		assertEquals( values.length, results.length );
 
 		for ( int i = 0; i < values.length; i++ ) {
-			if ( values[i] != results[i] )
-				Assert.assertTrue( false );
+			assertEquals( values[i], results[i] );
 		}
 	}
 
@@ -89,8 +88,17 @@ public class ConfigTest extends TestCase
 		Config.setBoolean( "testTrue", true );
 		Config.setBoolean( "testFalse", false );
 
-		Assert.assertTrue( Config.getBoolean( "testTrue", false ) );
-		Assert.assertFalse( Config.getBoolean( "testFalse", false ) );
+		assertTrue( Config.getBoolean( "testTrue" ) );
+		assertTrue( Config.getBoolean( "testTrue", false ) );
+		assertTrue( Config.getBoolean( "testTrue", true ) );
+
+		assertFalse( Config.getBoolean( "testFalse" ) );
+		assertFalse( Config.getBoolean( "testFalse", false ) );
+		assertFalse( Config.getBoolean( "testFalse", true ) );
+
+		assertFalse( Config.getBoolean( "notPresentKey" ) );
+		assertTrue( Config.getBoolean( "notPresentKey", true ) );
+		assertFalse( Config.getBoolean( "notPresentKey", false ) );
 	}
 
 }
