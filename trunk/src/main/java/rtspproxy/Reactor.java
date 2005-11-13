@@ -62,11 +62,14 @@ public class Reactor
 	{
 		try {
 			// registry.unbindAll();
-			rtspService.stop();
-			rtpClientService.stop();
-			rtpServerService.stop();
+			if ( rtspService != null )
+				rtspService.stop();
+			if ( rtpClientService != null )
+				rtpClientService.stop();
+			if ( rtpServerService != null )
+				rtpServerService.stop();
 		} catch ( Exception e ) {
-			log.debug( "Error shutting down:" + e );
+			log.debug( "Error shutting down: " + e  );
 		}
 
 		if ( isStandalone )
