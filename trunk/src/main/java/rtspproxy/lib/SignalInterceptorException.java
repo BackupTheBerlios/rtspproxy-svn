@@ -32,6 +32,7 @@ package rtspproxy.lib;
 /**
  * @see SignalInterceptor#register
  */
+@SuppressWarnings("serial")
 public class SignalInterceptorException extends Exception
 {
 
