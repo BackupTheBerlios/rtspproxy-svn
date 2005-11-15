@@ -69,7 +69,7 @@ goto end
 :chkMHome
 if not "%RTSPPROXY_HOME%"=="" goto valMHome
 
-if "%OS%"=="Windows_NT" SET RTSPPROXY_HOME=%~dps0\..
+if "%OS%"=="Windows_NT" SET RTSPPROXY_HOME=%~dps0\.
 if not "%RTSPPROXY_HOME%"=="" goto valMHome
 
 echo.
@@ -81,7 +81,7 @@ set ERROR_CODE=1
 goto end
 
 :valMHome
-if exist "%RTSPPROXY_HOME%\bin\rtspproxy.bat" goto init
+if exist "%RTSPPROXY_HOME%\rtspproxy.bat" goto init
 
 echo.
 echo ERROR: RTSPPROXY_HOME is set to an invalid directory.
@@ -126,8 +126,10 @@ goto Win9xApp
 SET RTSPPROXY_JAVA_EXE="%JAVA_HOME%\bin\java.exe"
 
 @REM Start RTSPPROXY
-for %%i in ("%RTSPPROXY_HOME%"\lib\*.jar) do set RTSPPROXY_JAR="%%i"
-%RTSPPROXY_JAVA_EXE% %RTSPPROXY_OPTS% -server -classpath %RTSPPROXY_JAR%  "-Drtspproxy.home=%RTSPPROXY_HOME%" rtspproxy.Main %RTSPPROXY_CMD_LINE_ARGS%
+SetLocal EnableDelayedExpansion
+SET RTSPROXY_CLASSPATH=
+for %%i in ("%RTSPPROXY_HOME%"\lib\*.jar) do set RTSPROXY_CLASSPATH=!RTSPROXY_CLASSPATH!%%i;
+%RTSPPROXY_JAVA_EXE% %RTSPPROXY_OPTS% -classpath "%RTSPROXY_CLASSPATH%"  "-Drtspproxy.home=%RTSPPROXY_HOME%" rtspproxy.Main %RTSPPROXY_CMD_LINE_ARGS%
 goto end
 
 :error
@@ -153,4 +155,5 @@ if exist "%HOME%\rtspproxyrc_post.bat" call "%HOME%\rtspproxyrc_post.bat"
 if "%RTSPPROXY_BATCH_PAUSE%" == "on" pause
 
 exit /B %ERROR_CODE%
+
 
