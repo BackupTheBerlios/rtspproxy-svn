@@ -48,7 +48,7 @@ public class ProxyHandler
 	private IoSession clientSession = null;
 	private IoSession serverSession = null;
 
-	static Logger log = Logger.getLogger( ProxyHandler.class );
+	private static Logger log = Logger.getLogger( ProxyHandler.class );
 
 	/**
 	 * Creates a new ProxyHandler from a client side protocol session.
