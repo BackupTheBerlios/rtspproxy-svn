@@ -19,18 +19,11 @@
 package rtspproxy.proxy;
 
 import org.apache.log4j.Logger;
-import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.filter.codec.ProtocolCodecFactory;
-import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.codec.ProtocolDecoder;
-import org.apache.mina.filter.codec.ProtocolEncoder;
 
-import rtspproxy.auth.AuthorizationFilter;
+import rtspproxy.lib.Exceptions;
 import rtspproxy.rtsp.RtspCode;
-import rtspproxy.rtsp.RtspDecoder;
-import rtspproxy.rtsp.RtspEncoder;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
@@ -41,36 +34,14 @@ import rtspproxy.rtsp.RtspResponse;
 public class ClientSide extends IoHandlerAdapter
 {
 
-	static Logger log = Logger.getLogger( ClientSide.class );
-
-	private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
-	{
-
-		// Decoders can be shared 
-		private ProtocolEncoder rtspEncoder = new RtspEncoder();
-		private ProtocolDecoder rtspDecoder = new RtspDecoder();
-
-		public ProtocolEncoder getEncoder()
-		{
-			return rtspEncoder;
-		}
-
-		public ProtocolDecoder getDecoder()
-		{
-			return rtspDecoder;
-		}
-	};
-
-	private static IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
+	private static Logger log = Logger.getLogger( ClientSide.class );
 
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
-		session.getFilterChain().addFirst( "codec", codecFilter );
-		session.getFilterChain().addLast( "authorizaton", new AuthorizationFilter() );
-
 		log.info( "New connection from " + session.getRemoteAddress() );
-		// Creates a new ProxyHandler
+		// Creates a new ProxyHandler and saves it 
+		// as a Session attribute
 		ProxyHandler proxyHandler = new ProxyHandler( session );
 		session.setAttribute( "proxyHandler", proxyHandler );
 	}
@@ -78,10 +49,11 @@ public class ClientSide extends IoHandlerAdapter
 	@Override
 	public void sessionClosed( IoSession session )
 	{
-		log.info( "Client connection closed" );
 		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( "proxyHandler" ) );
-		if ( proxyHandler != null )
+		if ( proxyHandler != null ) {
 			proxyHandler.closeAll();
+			log.info( "Client connection closed" );
+		}
 	}
 
 	@Override
@@ -89,7 +61,7 @@ public class ClientSide extends IoHandlerAdapter
 	{
 		// close all: same as sessionClosed()
 		log.info( "Exception: " + cause );
-		cause.printStackTrace();
+		Exceptions.logStackTrace( cause );
 		sessionClosed( session );
 	}
 
@@ -115,7 +87,7 @@ public class ClientSide extends IoHandlerAdapter
 	{
 		log.debug( "REQUEST OPTIONS" );
 		if ( request.getUrl() == null ) {
-			// There isn't a server URL, so with reply with
+			// There isn't a server URL, so we reply with
 			// a standard set of Proxy supported Options
 			RtspResponse response = new RtspResponse();
 			response.setCode( RtspCode.OK );
