@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
 public class RtspResponse extends RtspMessage
 {
 
-	static Logger log = Logger.getLogger( RtspResponse.class );
+	private static Logger log = Logger.getLogger( RtspResponse.class );
 
 	RtspCode code;
 	RtspRequest.Verb requestVerb = RtspRequest.Verb.None;

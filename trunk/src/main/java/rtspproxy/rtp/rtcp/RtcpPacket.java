@@ -18,7 +18,6 @@
 
 package rtspproxy.rtp.rtcp;
 
-import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
 
 import rtspproxy.rtp.Packet;
@@ -29,7 +28,7 @@ import rtspproxy.rtp.Packet;
 public class RtcpPacket implements Packet
 {
 
-	static Logger log = Logger.getLogger( RtcpPacket.class );
+	// private static Logger log = Logger.getLogger( RtcpPacket.class );
 
 	public enum Type {
 		/** Sender Report */

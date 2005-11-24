@@ -25,20 +25,23 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
+import rtspproxy.lib.Exceptions;
 import rtspproxy.rtp.rtcp.RtcpPacket;
 
 /**
+ * Handles RTCP packets from client and forward them to server. The RTSP 
+ * session is obtained using the client IP address and port.
+ * 
  * @author Matteo Merli
  */
 public class ClientRtcpPacketHandler extends IoHandlerAdapter
 {
 
-	static Logger log = Logger.getLogger( ClientRtcpPacketHandler.class );
+	private static Logger log = Logger.getLogger( ClientRtcpPacketHandler.class );
 
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
-
 	}
 
 	@Override
@@ -67,7 +70,7 @@ public class ClientRtcpPacketHandler extends IoHandlerAdapter
 	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
 		log.debug( "Exception: " + cause );
-		cause.printStackTrace();
+		Exceptions.logStackTrace( cause );
 		session.close();
 	}
 }

@@ -51,7 +51,7 @@ public class RtspDecoder implements ProtocolDecoder
 		Dispatch
 	}
 
-	static Logger log = Logger.getLogger( RtspDecoder.class );
+	private static Logger log = Logger.getLogger( RtspDecoder.class );
 
 	private static final Pattern rtspRequestPattern = Pattern.compile( "([A-Z]+) ([^ ]+) RTSP/1.0" );
 	private static final Pattern rtspResponsePattern = Pattern.compile( "RTSP/1.0 ([0-9]+) .+" );

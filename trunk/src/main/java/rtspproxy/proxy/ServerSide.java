@@ -34,7 +34,7 @@ import rtspproxy.rtsp.RtspResponse;
 public class ServerSide extends IoHandlerAdapter
 {
 
-	static Logger log = Logger.getLogger( ServerSide.class );
+	private static Logger log = Logger.getLogger( ServerSide.class );
 
 	private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
 	{

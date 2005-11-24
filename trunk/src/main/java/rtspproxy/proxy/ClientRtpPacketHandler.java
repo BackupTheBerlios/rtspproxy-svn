@@ -25,17 +25,24 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
+import rtspproxy.lib.Exceptions;
 import rtspproxy.rtp.RtpPacket;
 
+/**
+ * Handles RTP packets from clients arriving at the proxy public port.
+ * This is a special case, because generally clients will not send
+ * any RTP packet (only RTCP).
+ * 
+ * @author Matteo Merli
+ */
 public class ClientRtpPacketHandler extends IoHandlerAdapter
 {
 
-	static Logger log = Logger.getLogger( ClientRtpPacketHandler.class );
+	private static Logger log = Logger.getLogger( ClientRtpPacketHandler.class );
 
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
-
 	}
 
 	@Override
@@ -43,9 +50,9 @@ public class ClientRtpPacketHandler extends IoHandlerAdapter
 	{
 		RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
 		log.debug( "Received RTP packet: " + packet.getSequence() );
-		
+
 		// Track track = (Track)session.getAttribute( "track" ); 
-		Track track = Track.getByClientAddress( (InetSocketAddress)session.getRemoteAddress() );
+		Track track = Track.getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
 
 		if ( track == null ) {
 			// drop packet
@@ -60,6 +67,7 @@ public class ClientRtpPacketHandler extends IoHandlerAdapter
 	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
 		log.debug( "Exception: " + cause );
+		Exceptions.logStackTrace( cause );
 		session.close();
 	}
 }

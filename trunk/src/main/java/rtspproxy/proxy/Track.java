@@ -40,7 +40,7 @@ import rtspproxy.rtp.rtcp.RtcpPacket;
 public class Track
 {
 
-	static Logger log = Logger.getLogger( Track.class );
+	private static Logger log = Logger.getLogger( Track.class );
 
 	private String url;
 

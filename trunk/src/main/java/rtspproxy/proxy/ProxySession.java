@@ -32,11 +32,19 @@ import org.apache.log4j.Logger;
 public class ProxySession
 {
 
-	static Logger log = Logger.getLogger( ProxySession.class );
+	private static Logger log = Logger.getLogger( ProxySession.class );
 
+	/** Map IDs for RTSP session with servers to ProxySession objects. */
 	private static Map<String, ProxySession> serverSessionIds = Collections.synchronizedMap( new HashMap<String, ProxySession>() );
+	
+	/** Map IDs for RTSP session with clients to ProxySession objects. */
 	private static Map<String, ProxySession> clientSessionIds = Collections.synchronizedMap( new HashMap<String, ProxySession>() );
 
+	/**
+	 * 
+	 * @param clientSessionId a string containing the RTSP session ID
+	 * @return a ProxySession
+	 */
 	public static ProxySession getByClientSessionID( String clientSessionId )
 	{
 		return clientSessionIds.get( clientSessionId );

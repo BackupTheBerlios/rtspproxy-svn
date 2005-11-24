@@ -31,7 +31,7 @@ import rtspproxy.rtp.rtcp.RtcpPacket;
 public class ServerRtcpPacketHandler extends IoHandlerAdapter
 {
 
-	static Logger log = Logger.getLogger( ServerRtcpPacketHandler.class );
+	private static Logger log = Logger.getLogger( ServerRtcpPacketHandler.class );
 
 	/*
 	 * @see org.apache.mina.io.IoHandlerAdapter#dataRead(org.apache.mina.io.IoSession,

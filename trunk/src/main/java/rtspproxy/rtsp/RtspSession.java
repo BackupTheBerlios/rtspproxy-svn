@@ -38,7 +38,7 @@ public class RtspSession
 	private HashMap<String, Track> tracks = new HashMap<String, Track>();
 
 	// Static access
-	static Logger log = Logger.getLogger( RtspSession.class );
+	private static Logger log = Logger.getLogger( RtspSession.class );
 	private static HashMap<Long, RtspSession> sessions = new HashMap<Long, RtspSession>();
 
 	/**

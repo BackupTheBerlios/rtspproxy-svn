@@ -52,7 +52,7 @@ import org.apache.mina.common.ByteBuffer;
 public class RtpPacket implements Packet
 {
 
-	static Logger log = Logger.getLogger( RtpPacket.class );
+	private static Logger log = Logger.getLogger( RtpPacket.class );
 
 	/**
 	 * This field identifies the version of RTP. The version defined by this
@@ -176,7 +176,7 @@ public class RtpPacket implements Packet
 
 		// CSRC list
 		csrc = new int[csrcCount];
-		for ( byte i = 0; i < csrcCount; i++ ) {
+		for ( int i = 0; i < csrcCount; i++ ) {
 			csrc[i] = buffer.getInt();
 		}
 

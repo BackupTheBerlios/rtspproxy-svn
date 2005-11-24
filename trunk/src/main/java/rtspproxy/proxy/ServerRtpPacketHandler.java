@@ -23,6 +23,7 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
+import rtspproxy.lib.Exceptions;
 import rtspproxy.rtp.RtpPacket;
 
 /**
@@ -31,7 +32,7 @@ import rtspproxy.rtp.RtpPacket;
 public class ServerRtpPacketHandler extends IoHandlerAdapter
 {
 
-	static Logger log = Logger.getLogger( ServerRtpPacketHandler.class );
+	private static Logger log = Logger.getLogger( ServerRtpPacketHandler.class );
 
 	/*
 	 * @see org.apache.mina.io.IoHandlerAdapter#dataRead(org.apache.mina.io.IoSession,
@@ -64,6 +65,7 @@ public class ServerRtpPacketHandler extends IoHandlerAdapter
 	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
 		log.debug( "Exception: " + cause );
+		Exceptions.logStackTrace( cause );
 		session.close();
 	}
 
@@ -75,7 +77,6 @@ public class ServerRtpPacketHandler extends IoHandlerAdapter
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
-
 	}
 
 }

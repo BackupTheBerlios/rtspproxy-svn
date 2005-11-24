@@ -41,12 +41,18 @@ public class RtspEncoder implements ProtocolEncoder
 	{
 		// Serialization to string is already provided in RTSP messages.
 		String val = ( (RtspMessage) message ).toString();
+		/*
 		ByteBuffer buf = ByteBuffer.allocate( val.length() );
 		for ( int i = 0; i < val.length(); i++ ) {
 			buf.put( (byte) val.charAt( i ) );
 		}
 
 		buf.flip();
+		*/
+		
+		// TODO: Alternative implementation, should be better.
+		ByteBuffer buf = ByteBuffer.wrap( val.getBytes() );
+		
 		out.write( buf );
 	}
 
