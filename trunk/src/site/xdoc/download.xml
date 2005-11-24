@@ -37,22 +37,22 @@
 						<tr>
 							<td>
 								<a
-									href="download/rtspproxy-3.0-ALPHA1-src.zip">
+									href="http://download.berlios.de/rtspproxy/rtspproxy-3.0-ALPHA1-src.zip">
 									rtspproxy-3.0-ALPHA1-src.zip
 								</a>
 							</td>
 							<td>Sources</td>
-							<td>332 KB</td>
+							<td>336 KB</td>
 						</tr>
 						<tr>
 							<td>
 								<a
-									href="download/rtspproxy-3.0-ALPHA1-bin.zip">
+									href="http://download.berlios.de/rtspproxy/rtspproxy-3.0-ALPHA1-bin.zip">
 									rtspproxy-3.0-ALPHA1-bin.zip
 								</a>
 							</td>
 							<td>Binaries</td>
-							<td>1000 KB</td>
+							<td>975 KB</td>
 						</tr>
 					</tbody>
 				</table>

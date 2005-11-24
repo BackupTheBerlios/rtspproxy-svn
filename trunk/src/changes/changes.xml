@@ -12,6 +12,9 @@
 				host name filter.
 			</action>
 			<action dev="merlimat" type="fix">
+				Fixed Windows startup script.
+			</action>
+			<action dev="merlimat" type="fix">
 				Fixed several NullPointerException.
 			</action>
 			<action dev="merlimat" type="update">
