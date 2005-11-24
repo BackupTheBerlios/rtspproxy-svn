@@ -58,7 +58,7 @@ import org.apache.log4j.Logger;
 public class RtspTransport
 {
 
-	static Logger log = Logger.getLogger( RtspTransport.class );
+	private static Logger log = Logger.getLogger( RtspTransport.class );
 
 	public enum TransportProtocol {
 		None, RTP, RDT, RAW
@@ -179,38 +179,40 @@ public class RtspTransport
 
 	public String toString()
 	{
-		String s = "";
-		s += transportProtocol;
+		StringBuilder sb = new StringBuilder();
+		sb.append( transportProtocol );
 		if ( profile != Profile.None ) {
-			s += "/" + profile;
+			sb.append( "/" ).append( profile );
 			if ( lowerTransport != LowerTransport.None )
-				s += "/" + lowerTransport;
+				sb.append( "/" ).append( lowerTransport );
 		}
 		if ( deliveryType != DeliveryType.None )
-			s += ";" + deliveryType;
+			sb.append( ";" ).append( deliveryType );
 		if ( destination != null )
-			s += ";destination=" + destination;
+			sb.append( ";destination=" ).append( destination );
 		if ( interleaved != null )
-			s += ";interleaved=" + interleaved;
+			sb.append( ";interleaved=" ).append( interleaved );
 		if ( append )
-			s += ";append";
+			sb.append( ";append" );
 		if ( layers > 0 )
-			s += ";layers=" + layers;
+			sb.append( ";layers=" ).append( layers );
 		if ( ttl > 0 )
-			s += ";ttl=" + ttl;
+			sb.append( ";ttl=" ).append( ttl );
 		if ( port[0] > 0 )
-			s += ";port=" + port[0] + "-" + port[1];
+			sb.append( ";port=" ).append( port[0] ).append( "-" ).append( port[1] );
 		if ( client_port[0] > 0 )
-			s += ";client_port=" + client_port[0] + "-" + client_port[1];
+			sb.append( ";client_port=" ).append( client_port[0] ).append( "-" ).append(
+					client_port[1] );
 		if ( server_port[0] > 0 )
-			s += ";server_port=" + server_port[0] + "-" + server_port[1];
+			sb.append( ";server_port=" ).append( server_port[0] ).append( "-" ).append(
+					server_port[1] );
 		if ( ssrc != null )
-			s += ";ssrc=" + ssrc;
+			sb.append( ";ssrc=" ).append( ssrc );
 		if ( source != null )
-			s += ";source=" + source;
+			sb.append( ";source=" ).append( source );
 		if ( mode != null )
-			s += ";mode=" + mode;
-		return s;
+			sb.append( ";mode=" ).append( mode );
+		return sb.toString();
 	}
 
 	/**
@@ -509,8 +511,8 @@ public class RtspTransport
 			return pair;
 
 		try {
-			pair[0] = Integer.valueOf( list[1].split( "-" )[0] ).intValue();
-			pair[1] = Integer.valueOf( list[1].split( "-" )[1] ).intValue();
+			pair[0] = Integer.parseInt( list[1].split( "-" )[0] );
+			pair[1] = Integer.parseInt( list[1].split( "-" )[1] );
 
 			// log.debug("Client ports: " + 1);
 			// Integers.parse();
