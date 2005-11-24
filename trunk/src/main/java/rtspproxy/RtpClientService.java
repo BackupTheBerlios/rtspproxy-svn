@@ -42,7 +42,7 @@ import rtspproxy.proxy.ClientRtpPacketHandler;
 public class RtpClientService implements ProxyService
 {
 
-	static Logger log = Logger.getLogger( RtpClientService.class );
+	private static Logger log = Logger.getLogger( RtpClientService.class );
 
 	static InetSocketAddress rtpAddress = null;
 	static InetSocketAddress rtcpAddress = null;

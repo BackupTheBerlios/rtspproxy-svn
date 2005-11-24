@@ -28,7 +28,7 @@ import org.apache.mina.registry.SimpleServiceRegistry;
 public class Reactor
 {
 
-	static Logger log = Logger.getLogger( Reactor.class );
+	private static Logger log = Logger.getLogger( Reactor.class );
 
 	private static ServiceRegistry registry = new SimpleServiceRegistry();
 

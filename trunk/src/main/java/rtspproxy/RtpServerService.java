@@ -38,7 +38,7 @@ import rtspproxy.proxy.ServerRtpPacketHandler;
 public class RtpServerService implements ProxyService
 {
 
-	static Logger log = Logger.getLogger( RtpServerService.class );
+	private static Logger log = Logger.getLogger( RtpServerService.class );
 
 	static InetSocketAddress rtpAddress = null;
 	static InetSocketAddress rtcpAddress = null;

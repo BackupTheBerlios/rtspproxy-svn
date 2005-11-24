@@ -32,7 +32,7 @@ import org.apache.log4j.Logger;
 public class PortManager
 {
 
-	static Logger log = Logger.getLogger( PortManager.class );
+	private static Logger log = Logger.getLogger( PortManager.class );
 
 	protected static final int minUdpPort = 6790;
 	protected static final int maxUdpPort = 49151;
