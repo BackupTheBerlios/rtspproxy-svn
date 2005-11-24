@@ -19,6 +19,7 @@ package rtspproxy;
 
 import org.apache.log4j.Logger;
 
+import rtspproxy.lib.Exceptions;
 import rtspproxy.lib.SignalInterceptor;
 import rtspproxy.lib.SignalInterceptorException;
 
@@ -62,7 +63,7 @@ public class Main extends SignalInterceptor
 
 		} catch ( Exception e ) {
 			log.fatal( "Exception in the reactor: " + e );
-			e.printStackTrace();
+			Exceptions.logStackTrace( e );
 			System.exit( -1 );
 		}
 	}
@@ -82,7 +83,7 @@ public class Main extends SignalInterceptor
 
 		} catch ( Exception e ) {
 			log.fatal( "Exception in the reactor: " + e );
-			e.printStackTrace();
+			Exceptions.logStackTrace( e );
 		}
 
 		return true;
