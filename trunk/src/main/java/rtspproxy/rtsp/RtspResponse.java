@@ -18,7 +18,12 @@
 
 package rtspproxy.rtsp;
 
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+
 import org.apache.log4j.Logger;
+import org.apache.mina.common.ByteBuffer;
 
 /**
  * Wraps up a RTSP response message.
@@ -87,6 +92,26 @@ public class RtspResponse extends RtspMessage
 		}
 
 		return str;
+	}
+	
+	/**
+	 * serialize the RTSP response message into a byte buffer.
+	 */
+	public ByteBuffer toByteBuffer() throws Exception {
+		try {
+			String msg = this.toString();
+			ByteBuffer buffer = ByteBuffer.allocate(msg.length() * 2); // wild gues ??
+			Charset cs = Charset.defaultCharset(); // Charset.forName("UTF-8");
+
+			buffer.setAutoExpand(true);
+			buffer.putString(msg, cs.newEncoder());
+
+			return buffer;
+		} catch(Exception e) {
+			log.info("failed to serialize message to byte buffer", e);
+			
+			throw e;
+		}
 	}
 
 	/**

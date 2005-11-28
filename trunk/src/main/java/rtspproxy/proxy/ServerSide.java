@@ -75,8 +75,8 @@ public class ServerSide extends IoHandlerAdapter
 	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
 		// close all: same as sessionClosed()
-		log.info( "Exception: " + cause );
-		cause.printStackTrace();
+		log.info( "Exception: " + cause.getMessage(), cause );
+		// cause.printStackTrace();
 		sessionClosed( session );
 	}
 

@@ -55,7 +55,7 @@ public class RtspDecoder implements ProtocolDecoder
 
 	private static final Pattern rtspRequestPattern = Pattern.compile( "([A-Z]+) ([^ ]+) RTSP/1.0" );
 	private static final Pattern rtspResponsePattern = Pattern.compile( "RTSP/1.0 ([0-9]+) .+" );
-	private static final Pattern rtspHeaderPattern = Pattern.compile( "([a-zA-Z\\-]+):\\s?(.*)" );
+	private static final Pattern rtspHeaderPattern = Pattern.compile( "([a-zA-Z\\-]+[0-9]?):\\s?(.*)" );
 
 	/**
 	 * Get a line from a string buffer and delete the line in the buffer.

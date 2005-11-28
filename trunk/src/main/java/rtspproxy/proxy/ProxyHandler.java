@@ -117,11 +117,21 @@ public class ProxyHandler
 				// Session is Ok
 				message.setHeader( "Session", proxySession.getClientSessionIdString() );
 			} else {
-				// Error. The client specified a session ID but it's
-				// not valid
-				sendResponse( clientSession,
-						RtspResponse.errorResponse( RtspCode.SessionNotFound ) );
-				return;
+				if(message.getType() == RtspMessage.Type.TypeResponse) {
+					// create a proxy session on the fly if message is a response. Certain mobile handset clients
+					// tend to start a RSTP session without its own session id and wait for the session object from the
+					// remote server
+					proxySession = new ProxySession();
+					
+					proxySession.setServerSessionId(message.getHeader("Session"));
+					message.setHeader("Session", proxySession.getClientSessionIdString());
+				} else {
+					// Error. The client specified a session ID but it's
+					// not valid
+					sendResponse( clientSession,
+							RtspResponse.errorResponse( RtspCode.SessionNotFound ) );
+					return;
+				}
 			}
 		}
 		switch ( message.getType() ) {
@@ -382,6 +392,7 @@ public class ProxyHandler
 		response.setCommonHeaders();
 		try {
 			session.write( response );
+			// session.write( response.toByteBuffer());
 		} catch ( Exception e ) {
 			log.error( e.getCause() );
 		}

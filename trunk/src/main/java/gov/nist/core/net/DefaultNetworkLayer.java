@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.SocketException;
 
 /* Added by Daniel J. Martinez Manzano <dani@dif.um.es> */
+
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.SSLServerSocket;
@@ -21,7 +22,6 @@ import javax.net.ssl.SSLServerSocketFactory;
  *
  */
 public class DefaultNetworkLayer implements NetworkLayer {
-
     private SSLSocketFactory       sslSocketFactory;
     private SSLServerSocketFactory sslServerSocketFactory;
 

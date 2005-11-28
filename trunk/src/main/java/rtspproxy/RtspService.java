@@ -35,6 +35,7 @@ import org.apache.mina.registry.Service;
 
 import rtspproxy.auth.AuthenticationFilter;
 import rtspproxy.auth.IpAddressFilter;
+import rtspproxy.filter.impl.RequestUrlRewritingImpl;
 import rtspproxy.lib.Exceptions;
 import rtspproxy.proxy.ClientSide;
 import rtspproxy.rtsp.Handler;

@@ -22,6 +22,9 @@ import org.apache.log4j.Logger;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
+// import rtspproxy.auth.AuthorizationFilter;
+import rtspproxy.Config;
+import rtspproxy.filter.impl.RequestUrlRewritingImpl;
 import rtspproxy.lib.Exceptions;
 import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspMessage;
@@ -39,6 +42,12 @@ public class ClientSide extends IoHandlerAdapter
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
+		String rewritingFilter = Config.get("filter.requestUrlRewriting.implementationClass", null);
+		
+		if(rewritingFilter != null)
+			session.getFilterChain().addLast("requestUrlRewriting", new RequestUrlRewritingImpl(rewritingFilter));
+
+		
 		log.info( "New connection from " + session.getRemoteAddress() );
 		// Creates a new ProxyHandler and saves it 
 		// as a Session attribute
