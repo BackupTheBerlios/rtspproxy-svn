@@ -19,14 +19,22 @@
 package rtspproxy.proxy;
 
 import org.apache.log4j.Logger;
+import org.apache.mina.common.IoFilter;
+import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
+import org.apache.mina.filter.codec.ProtocolCodecFactory;
+import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.filter.codec.ProtocolDecoder;
+import org.apache.mina.filter.codec.ProtocolEncoder;
 
 // import rtspproxy.auth.AuthorizationFilter;
 import rtspproxy.Config;
 import rtspproxy.filter.impl.RequestUrlRewritingImpl;
 import rtspproxy.lib.Exceptions;
 import rtspproxy.rtsp.RtspCode;
+import rtspproxy.rtsp.RtspDecoder;
+import rtspproxy.rtsp.RtspEncoder;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
@@ -39,15 +47,39 @@ public class ClientSide extends IoHandlerAdapter
 
 	private static Logger log = Logger.getLogger( ClientSide.class );
 
+	private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
+	{
+
+		// Decoders can be shared 
+		private ProtocolEncoder rtspEncoder = new RtspEncoder();
+		private ProtocolDecoder rtspDecoder = new RtspDecoder();
+
+		public ProtocolEncoder getEncoder()
+		{
+			return rtspEncoder;
+		}
+
+		public ProtocolDecoder getDecoder()
+		{
+			return rtspDecoder;
+		}
+	};
+
+	private static IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
+
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
+		IoFilterChain filterChain = session.getFilterChain();
+		
+		// The codec filter is always present
+		filterChain.addLast( "codec", codecFilter );
+
 		String rewritingFilter = Config.get("filter.requestUrlRewriting.implementationClass", null);
 		
 		if(rewritingFilter != null)
-			session.getFilterChain().addLast("requestUrlRewriting", new RequestUrlRewritingImpl(rewritingFilter));
+			filterChain.addLast("requestUrlRewriting", new RequestUrlRewritingImpl(rewritingFilter));
 
-		
 		log.info( "New connection from " + session.getRemoteAddress() );
 		// Creates a new ProxyHandler and saves it 
 		// as a Session attribute

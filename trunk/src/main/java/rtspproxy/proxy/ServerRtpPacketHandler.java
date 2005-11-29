@@ -18,6 +18,8 @@
 
 package rtspproxy.proxy;
 
+import java.net.InetSocketAddress;
+
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
@@ -46,9 +48,17 @@ public class ServerRtpPacketHandler extends IoHandlerAdapter
 		Track track = Track.getByServerSSRC( packet.getSsrc() );
 
 		if ( track == null ) {
-			// drop packet
-			log.debug( "Invalid SSRC identifier: " + Long.toHexString( packet.getSsrc() ) );
-			return;
+			track = Track.getByServerRtpPort((InetSocketAddress)session.getRemoteAddress());
+			
+			if(track == null) {
+				// drop packet
+				log.debug( "Invalid SSRC identifier: " + Long.toHexString( packet.getSsrc() ) );
+				return;
+			} else {
+				// hot-wire the ssrc into the track
+				log.debug( "Adding SSRC identifier: " + Long.toHexString( packet.getSsrc() ) );
+				track.setServerSSRC(packet.getSsrc());
+			}
 		}
 
 		track.setRtpServerSession( session );

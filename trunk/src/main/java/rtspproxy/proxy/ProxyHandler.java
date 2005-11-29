@@ -19,11 +19,13 @@
 package rtspproxy.proxy;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Random;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ConnectFuture;
@@ -200,7 +202,6 @@ public class ProxyHandler
 			if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
 				log.debug( "Transport is TCP based." );
 			} else {
-
 				// / int clientPort[] = transport.getClientPort();
 				transport.setClientPort( new int[] { proxyRtpPort, proxyRtcpPort } );
 				log.debug( "Transport Rewritten: " + transport );

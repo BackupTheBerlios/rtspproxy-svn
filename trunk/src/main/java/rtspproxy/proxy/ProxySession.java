@@ -101,7 +101,8 @@ public class ProxySession
 	public Track addTrack( String url, String serverSsrc )
 	{
 		Track track = new Track( url );
-		track.setServerSSRC( serverSsrc );
+		if(serverSsrc != null)
+			track.setServerSSRC( serverSsrc );
 		trackList.put( url, track );
 		return track;
 	}

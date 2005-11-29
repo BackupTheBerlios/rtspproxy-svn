@@ -67,6 +67,53 @@ public class Track
 	private int serverRtcpPort;
 
 	/**
+	 * 
+	 */
+	private static class ServerPortInfo {
+		// server address and rtp port
+		private InetAddress serverAddress;
+		private int serverRtpPort;
+		
+		/**
+		 * constructor
+		 */
+		private ServerPortInfo(InetSocketAddress sockAddr) {
+			this.serverAddress = sockAddr.getAddress();
+			this.serverRtpPort = sockAddr.getPort();
+		}
+		/**
+		 * constructor
+		 */
+		private ServerPortInfo(InetAddress address, int port) {
+			this.serverAddress = address;
+			this.serverRtpPort = port;
+		}
+		
+		/**
+		 * overide equals
+		 */
+		@Override
+		public boolean equals(Object o) {
+			if(!(o instanceof ServerPortInfo))
+				return false;
+			
+			ServerPortInfo spi = (ServerPortInfo)o;
+			
+			return (this.serverAddress.equals(spi.serverAddress) && (this.serverRtpPort == spi.serverRtpPort));
+		}
+		
+		/**
+		 * return hash value
+		 */
+		@Override
+		public int hashCode() {
+			return (this.serverAddress.hashCode() ^ this.serverRtpPort);
+		}
+	} 
+	
+	private static Map<ServerPortInfo, Track> serverPortMap = new HashMap<ServerPortInfo, Track>();
+	
+	/**
 	 * Construct a new Track.
 	 * 
 	 * @param url
@@ -108,6 +155,26 @@ public class Track
 		return serverSsrcMap.get( Long.parseLong( serverSsrc ) );
 	}
 
+	/**
+	 * get the track by looking at server address and server rtp port.
+	 * Used as a workaround for streaming servers which do not hand out a ssrc in the setup handshake
+	 * @return a Track instnace if a matching pair is found or null
+	 */
+	public static Track getByServerRtpPort(InetAddress server, int port) {
+		ServerPortInfo spi = new ServerPortInfo(server, port);
+		return serverPortMap.get(spi);
+	}
+
+	/**
+	 * get the track by looking at server address and server rtp port.
+	 * Used as a workaround for streaming servers which do not hand out a ssrc in the setup handshake
+	 * @return a Track instnace if a matching pair is found or null
+	 */
+	public static Track getByServerRtpPort(InetSocketAddress sockAddr) {
+		ServerPortInfo spi = new ServerPortInfo(sockAddr);
+		return serverPortMap.get(spi);
+	}
+	
 	public long getProxySSRC()
 	{
 		return proxySSRC;
@@ -127,6 +194,12 @@ public class Track
 	public void setServerSSRC( String serverSSRC )
 	{
 		this.serverSSRC = Long.parseLong( serverSSRC, 16 ) & 0xFFFFFFFFL;
+		serverSsrcMap.put( this.serverSSRC, this );
+	}
+
+	public void setServerSSRC( long serverSSRC )
+	{
+		this.serverSSRC = serverSSRC;
 		serverSsrcMap.put( this.serverSSRC, this );
 	}
 
@@ -262,6 +335,8 @@ public class Track
 		this.serverAddress = serverAddress;
 		this.serverRtpPort = rtpPort;
 		this.serverRtcpPort = rtcpPort;
+		
+		serverPortMap.put( new ServerPortInfo(this.serverAddress, this.serverRtpPort), this);
 	}
 
 }
