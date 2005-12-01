@@ -15,6 +15,7 @@ package rtspproxy.proxy;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.common.IoFilter;
+import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
@@ -22,6 +23,8 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 
+import rtspproxy.Config;
+import rtspproxy.filter.impl.RequestUrlRewritingImpl;
 import rtspproxy.rtsp.RtspDecoder;
 import rtspproxy.rtsp.RtspEncoder;
 import rtspproxy.rtsp.RtspMessage;
@@ -58,7 +61,17 @@ public class ServerSide extends IoHandlerAdapter
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
-		session.getFilterChain().addLast( "codec", codecFilter );
+		IoFilterChain filterChain = session.getFilterChain();
+		
+		// The codec filter is always present
+		filterChain.addLast( "codec", codecFilter );
+
+		String rewritingFilter = Config.get("filter.requestUrlRewriting.implementationClass", null);
+		
+		if(rewritingFilter != null)
+			filterChain.addLast("requestUrlRewriting", new RequestUrlRewritingImpl(rewritingFilter));
+
+		// session.getFilterChain().addLast( "codec", codecFilter );
 		log.info( "Created session to server: " + session.getRemoteAddress() );
 
 	}

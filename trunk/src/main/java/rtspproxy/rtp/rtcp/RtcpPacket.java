@@ -164,7 +164,7 @@ public class RtcpPacket implements Packet
 	 */
 	public ByteBuffer toByteBuffer()
 	{
-		int packetSize = ( packetBuffer.length + 1 ) * 4; // content
+		int packetSize = ( packetBuffer.length + 2 ) * 4; // content
 		ByteBuffer buffer = ByteBuffer.allocate( packetSize );
 		buffer.limit( packetSize );
 

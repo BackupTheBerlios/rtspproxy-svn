@@ -30,5 +30,11 @@ public interface RequestUrlRewritingFilter {
 	 * rewrite the request URL.
 	 * @return a replacement URL or null if the URL is not to be modified.
 	 */
-	public URL rewriteUrl(URL request);
+	public URL rewriteRequestUrl(URL request);
+
+	/**
+	 * rewrite an URL in a response header.
+	 * @return a replacement URL or null if the URL is not to be modified.
+	 */
+	public URL rewriteResponseHeaderUrl(URL request);
 }
