@@ -50,13 +50,12 @@ public class ClientRtpPacketHandler extends IoHandlerAdapter
 	{
 		RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
 		log.debug( "Received RTP packet: " + packet.getSequence() );
-
-		// Track track = (Track)session.getAttribute( "track" ); 
+ 
 		Track track = Track.getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
 
 		if ( track == null ) {
 			// drop packet
-			log.debug( "Invalid SSRC identifier: " + Long.toHexString( packet.getSsrc() ) );
+			log.info( "Packet received from unknown client: " + session.getRemoteAddress() );
 			return;
 		}
 
