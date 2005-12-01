@@ -68,7 +68,7 @@ public class ProxyHandler
 			ProxySession proxySession = ProxySession.getByClientSessionID( message.getHeader( "Session" ) );
 			if ( proxySession != null ) {
 				// Session is Ok
-				message.setHeader( "Session", proxySession.getServerSessionId() );
+				message.setHeader( "Session", proxySession.getServerSessionIdString() );
 			} else {
 				// Error. The client specified a session ID but it's
 				// not valid
@@ -172,7 +172,7 @@ public class ProxyHandler
 			ProxySession proxySession = ProxySession.getByClientSessionID( request.getHeader( "Session" ) );
 			if ( proxySession != null ) {
 				// Session ID is ok
-				request.setHeader( "Session", proxySession.getServerSessionId() );
+				request.setHeader( "Session", proxySession.getServerSessionIdString() );
 			} else {
 				// Error. The client specified a session ID but it's
 				// not valid
@@ -206,6 +206,7 @@ public class ProxyHandler
 			if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
 				log.debug( "Transport is TCP based." );
 			} else {
+
 				// / int clientPort[] = transport.getClientPort();
 				transport.setClientPort( new int[] { proxyRtpPort, proxyRtcpPort } );
 				log.debug( "Transport Rewritten: " + transport );
@@ -276,20 +277,15 @@ public class ProxyHandler
 		try {
 			clientAddress = Inet4Address.getByName( ( (InetSocketAddress) clientSession.getRemoteAddress() ).getHostName() );
 		} catch ( UnknownHostException e ) {
-			log.warn( "Unknown host: " );
+			log.warn( "Unknown host: " + clientSession.getRemoteAddress() );
 		}
 		int clientPorts[] = (int[]) clientSession.getAttribute( "clientPorts" );
 		track.setClientAddress( clientAddress, clientPorts[0], clientPorts[1] );
 
-		/*
-		 * TODO: remove try { track.bind(); } catch ( Exception e ) { log.error(
-		 * "Unable to create UDP sockets.." ); return; }
-		 */
-
 		if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
 			log.debug( "Transport is TCP based." );
 		} else {
-			transport.setSSRC( track.getProxySSRC() );
+			transport.setSSRC( track.getProxySSRC().toHexString() );
 			transport.setServerPort( new int[] { RtpClientService.getRtpPort(),
 					RtpClientService.getRtcpPort() } );
 			// transport.setClientPort( );
@@ -397,7 +393,6 @@ public class ProxyHandler
 		response.setCommonHeaders();
 		try {
 			session.write( response );
-			// session.write( response.toByteBuffer());
 		} catch ( Exception e ) {
 			log.error( e.getCause() );
 		}

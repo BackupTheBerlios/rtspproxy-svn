@@ -18,11 +18,14 @@
 
 package rtspproxy.proxy;
 
+import java.net.InetSocketAddress;
+
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
+import rtspproxy.lib.Exceptions;
 import rtspproxy.rtp.rtcp.RtcpPacket;
 
 /**
@@ -33,10 +36,6 @@ public class ServerRtcpPacketHandler extends IoHandlerAdapter
 
 	private static Logger log = Logger.getLogger( ServerRtcpPacketHandler.class );
 
-	/*
-	 * @see org.apache.mina.io.IoHandlerAdapter#dataRead(org.apache.mina.io.IoSession,
-	 *      org.apache.mina.common.ByteBuffer)
-	 */
 	@Override
 	public void messageReceived( IoSession session, Object buffer ) throws Exception
 	{
@@ -45,33 +44,31 @@ public class ServerRtcpPacketHandler extends IoHandlerAdapter
 		Track track = Track.getByServerSSRC( packet.getSsrc() );
 
 		if ( track == null ) {
-			// drop packet
-			log.debug( "Invalid SSRC identifier: " + Long.toHexString( packet.getSsrc() ) );
-			return;
+			track = Track.getByServerAddress( (InetSocketAddress) session.getRemoteAddress() );
+
+			if ( track == null ) {
+				// drop packet
+				log.debug( "Invalid SSRC identifier: " + packet.getSsrc().toHexString() );
+				return;
+			} else {
+				// hot-wire the ssrc into the track
+				log.debug( "Adding SSRC identifier: " + packet.getSsrc().toHexString() );
+				track.setServerSSRC( packet.getSsrc() );
+			}
 		}
 
 		track.setRtcpServerSession( session );
 		track.forwardRtcpToClient( packet );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.mina.io.IoHandlerAdapter#exceptionCaught(org.apache.mina.io.IoSession,
-	 *      java.lang.Throwable)
-	 */
 	@Override
 	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
 		log.debug( "Exception: " + cause );
+		Exceptions.logStackTrace( cause );
 		session.close();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.mina.io.IoHandlerAdapter#sessionCreated(org.apache.mina.io.IoSession)
-	 */
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{

@@ -20,6 +20,8 @@ package rtspproxy.rtp.rtcp;
 
 import org.apache.mina.common.ByteBuffer;
 
+import rtspproxy.lib.number.UnsignedByte;
+import rtspproxy.lib.number.UnsignedInt;
 import rtspproxy.rtp.Packet;
 
 /**
@@ -44,22 +46,22 @@ public class RtcpPacket implements Packet
 
 		NONE(0);
 
-		private final byte value;
+		private final UnsignedByte value;
 
-		public static Type fromByte( byte value )
+		public static Type valueOf( UnsignedByte value )
 		{
 			for ( Type t : Type.values() )
-				if ( t.value == value )
+				if ( t.value.equals(value) )
 					return t;
 			return NONE;
 		}
 
 		private Type( int value )
 		{
-			this.value = (byte) value;
+			this.value = new UnsignedByte( value );
 		}
 
-		public byte getValue()
+		public UnsignedByte getValue()
 		{
 			return value;
 		}
@@ -72,11 +74,11 @@ public class RtcpPacket implements Packet
 	/** varies by packet type */
 	protected byte count;
 	/** RTCP packet type */
-	protected byte packetType;
+	protected UnsignedByte packetType;
 	/** pkt len in words, w/o this word */
 	protected short length;
 
-	protected int ssrc;
+	protected UnsignedInt ssrc;
 
 	// private RtcpInfo rtcpInfo;
 	protected byte[] packetBuffer;
@@ -93,10 +95,10 @@ public class RtcpPacket implements Packet
 		version = (byte) ( ( c & 0xC0 ) >> 6 );
 		padding = ( ( c & 0x20 ) >> 5 ) == 1;
 		count = (byte) ( c & 0x1F );
-		packetType = buffer.get();
+		packetType = new UnsignedByte( buffer.get() );
 		length = buffer.getShort();
 
-		ssrc = buffer.getInt();
+		ssrc = new UnsignedInt( buffer.getInt() );
 
 		// we have already read 2 * 4 = 8 bytes 
 		// out  of ( length + 1 ) * 4 totals
@@ -138,23 +140,23 @@ public class RtcpPacket implements Packet
 	/**
 	 * @return Returns the ssrc.
 	 */
-	public long getSsrc()
+	public UnsignedInt getSsrc()
 	{
-		return ( (long) ssrc & 0xFFFFFFFFL );
+		return ssrc;
 	}
 
 	/**
 	 * @param ssrc
 	 *        The ssrc to set.
 	 */
-	public void setSsrc( long ssrc )
+	public void setSsrc( UnsignedInt ssrc )
 	{
-		this.ssrc = (int) ( ssrc & 0xFFFFFFFFL );
+		this.ssrc = ssrc;
 	}
 
 	public Type getType()
 	{
-		return Type.fromByte( packetType );
+		return Type.valueOf( packetType );
 	}
 
 	/*
@@ -174,9 +176,9 @@ public class RtcpPacket implements Packet
 		c |= (byte) ( ( ( padding ? 1 : 0 ) << 5 ) & 0x20 ) ;
 		c |= (byte) ( count & 0x1F );
 		buffer.put( c );
-		buffer.put( packetType );
+		buffer.put( packetType.getBytes() );
 		buffer.putShort( length );
-		buffer.putInt( ssrc );
+		buffer.put( ssrc.getBytes() );
 
 		buffer.put( packetBuffer );
 		buffer.rewind();

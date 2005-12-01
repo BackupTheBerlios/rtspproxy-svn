@@ -31,6 +31,7 @@ import org.apache.mina.common.IoSession;
 
 import rtspproxy.RtpClientService;
 import rtspproxy.RtpServerService;
+import rtspproxy.lib.number.UnsignedInt;
 import rtspproxy.rtp.RtpPacket;
 import rtspproxy.rtp.rtcp.RtcpPacket;
 
@@ -44,8 +45,8 @@ public class Track
 
 	private String url;
 
-	private long serverSSRC = 0;
-	private long proxySSRC = 0;
+	private UnsignedInt serverSSRC = new UnsignedInt( 0 );
+	private UnsignedInt proxySSRC = new UnsignedInt( 0 );;
 
 	private IoSession rtpServerSession = null;
 	private IoSession rtcpServerSession = null;
@@ -53,11 +54,12 @@ public class Track
 	private IoSession rtcpClientSession = null;
 
 	/** Maps a server SSRC id to a Track */
-	private static HashMap<Long, Track> serverSsrcMap = new HashMap<Long, Track>();
+	private static HashMap<UnsignedInt, Track> serverSsrcMap = new HashMap<UnsignedInt, Track>();
 	/** Maps a client SSRC id to a Track */
-	private static List<Long> proxySsrcList = new LinkedList<Long>();
+	private static List<UnsignedInt> proxySsrcList = new LinkedList<UnsignedInt>();
 
 	private static Map<InetSocketAddress, Track> clientAddressMap = new HashMap<InetSocketAddress, Track>();
+	private static Map<InetSocketAddress, Track> serverAddressMap = new HashMap<InetSocketAddress, Track>();
 
 	private InetAddress clientAddress;
 	private int clientRtpPort;
@@ -66,53 +68,6 @@ public class Track
 	private int serverRtpPort;
 	private int serverRtcpPort;
 
-	/**
-	 * 
-	 */
-	private static class ServerPortInfo {
-		// server address and rtp port
-		private InetAddress serverAddress;
-		private int serverRtpPort;
-		
-		/**
-		 * constructor
-		 */
-		private ServerPortInfo(InetSocketAddress sockAddr) {
-			this.serverAddress = sockAddr.getAddress();
-			this.serverRtpPort = sockAddr.getPort();
-		}
-		/**
-		 * constructor
-		 */
-		private ServerPortInfo(InetAddress address, int port) {
-			this.serverAddress = address;
-			this.serverRtpPort = port;
-		}
-		
-		/**
-		 * overide equals
-		 */
-		@Override
-		public boolean equals(Object o) {
-			if(!(o instanceof ServerPortInfo))
-				return false;
-			
-			ServerPortInfo spi = (ServerPortInfo)o;
-			
-			return (this.serverAddress.equals(spi.serverAddress) && (this.serverRtpPort == spi.serverRtpPort));
-		}
-		
-		/**
-		 * return hash value
-		 */
-		@Override
-		public int hashCode() {
-			return (this.serverAddress.hashCode() ^ this.serverRtpPort);
-		}
-	} 
-	
-	private static Map<ServerPortInfo, Track> serverPortMap = new HashMap<ServerPortInfo, Track>();
-	
 	/**
 	 * Construct a new Track.
 	 * 
@@ -126,78 +81,61 @@ public class Track
 	}
 
 	/**
-	 * Obtain a Track using the client SSRC id.
+	 * Get the track by looking at client socket address.
 	 * 
-	 * @param clientSsrc
-	 *        SSRC id returned by a client.
-	 * @return
+	 * @return a Track instance if a matching pair is found or null
 	 */
-
 	public static Track getByClientAddress( InetSocketAddress clientAddress )
 	{
-		// for ( InetSocketAddress addr : clientAddressMap.keySet() ) {
-		//	log.debug( "Addr: " + addr + " - Class: " + addr.getAddress().getClass() );
-		// }
 		return clientAddressMap.get( clientAddress );
 	}
 
-	public static Track getByServerSSRC( long serverSsrc )
+	/**
+	 * Get the track by looking at server socket address.
+	 * <p>
+	 * Used as a workaround for streaming servers which do not hand out a ssrc
+	 * in the setup handshake.
+	 * 
+	 * @return a Track instance if a matching pair is found or null
+	 */
+	public static Track getByServerAddress( InetSocketAddress serverAddress )
 	{
-		return serverSsrcMap.get( Long.valueOf( serverSsrc ) );
+		return serverAddressMap.get( serverAddress );
 	}
 
-	/*
-	 * public static Track getByClientSSRC( String clientSsrc ) { return
-	 * clientSsrcMap.get( Long.parseLong( clientSsrc ) ); }
-	 */
+	public static Track getByServerSSRC( UnsignedInt serverSsrc )
+	{
+		return serverSsrcMap.get( serverSsrc );
+	}
+
 	public static Track getByServerSSRC( String serverSsrc )
 	{
-		return serverSsrcMap.get( Long.parseLong( serverSsrc ) );
+		return serverSsrcMap.get( UnsignedInt.fromString( serverSsrc ) );
 	}
 
-	/**
-	 * get the track by looking at server address and server rtp port.
-	 * Used as a workaround for streaming servers which do not hand out a ssrc in the setup handshake
-	 * @return a Track instnace if a matching pair is found or null
-	 */
-	public static Track getByServerRtpPort(InetAddress server, int port) {
-		ServerPortInfo spi = new ServerPortInfo(server, port);
-		return serverPortMap.get(spi);
-	}
-
-	/**
-	 * get the track by looking at server address and server rtp port.
-	 * Used as a workaround for streaming servers which do not hand out a ssrc in the setup handshake
-	 * @return a Track instnace if a matching pair is found or null
-	 */
-	public static Track getByServerRtpPort(InetSocketAddress sockAddr) {
-		ServerPortInfo spi = new ServerPortInfo(sockAddr);
-		return serverPortMap.get(spi);
-	}
-	
-	public long getProxySSRC()
+	public UnsignedInt getProxySSRC()
 	{
 		return proxySSRC;
 	}
 
 	public void setProxySSRC( String proxySSRC )
 	{
-		this.proxySSRC = Long.parseLong( proxySSRC, 16 ) & 0xFFFFFFFFL;
+		this.proxySSRC = UnsignedInt.fromString( proxySSRC, 16 );
 		proxySsrcList.add( this.proxySSRC );
 	}
 
-	public long getServerSSRC()
+	public UnsignedInt getServerSSRC()
 	{
 		return serverSSRC;
 	}
 
 	public void setServerSSRC( String serverSSRC )
 	{
-		this.serverSSRC = Long.parseLong( serverSSRC, 16 ) & 0xFFFFFFFFL;
+		this.serverSSRC = UnsignedInt.fromString( serverSSRC, 16 );
 		serverSsrcMap.put( this.serverSSRC, this );
 	}
 
-	public void setServerSSRC( long serverSSRC )
+	public void setServerSSRC( UnsignedInt serverSSRC )
 	{
 		this.serverSSRC = serverSSRC;
 		serverSsrcMap.put( this.serverSSRC, this );
@@ -236,7 +174,7 @@ public class Track
 	public void forwardRtpToServer( RtpPacket packet )
 	{
 		// modify the SSRC for the server
-		packet.setSsrc( (int) proxySSRC );
+		packet.setSsrc( proxySSRC );
 
 		if ( rtpServerSession == null )
 			rtpServerSession = RtpServerService.newRtpSession( new InetSocketAddress(
@@ -248,7 +186,7 @@ public class Track
 	public void forwardRtcpToServer( RtcpPacket packet )
 	{
 		// modify the SSRC for the server
-		packet.setSsrc( (int) proxySSRC );
+		packet.setSsrc( proxySSRC );
 
 		if ( rtcpServerSession == null )
 			rtcpServerSession = RtpServerService.newRtcpSession( new InetSocketAddress(
@@ -260,7 +198,7 @@ public class Track
 	public void forwardRtpToClient( RtpPacket packet )
 	{
 		// modify the SSRC for the client
-		packet.setSsrc( (int) proxySSRC );
+		packet.setSsrc( proxySSRC );
 
 		if ( rtpClientSession == null ) {
 			rtpClientSession = RtpClientService.newRtpSession( new InetSocketAddress(
@@ -277,7 +215,7 @@ public class Track
 	public void forwardRtcpToClient( RtcpPacket packet )
 	{
 		// modify the SSRC for the client
-		packet.setSsrc( (int) proxySSRC );
+		packet.setSsrc( proxySSRC );
 
 		if ( rtcpClientSession == null ) {
 			rtcpClientSession = RtpClientService.newRtcpSession( new InetSocketAddress(
@@ -321,7 +259,7 @@ public class Track
 		this.clientAddress = clientAddress;
 		this.clientRtpPort = rtpPort;
 		this.clientRtcpPort = rtcpPort;
-		
+
 		clientAddressMap.put( new InetSocketAddress( clientAddress, rtpPort ), this );
 		clientAddressMap.put( new InetSocketAddress( clientAddress, rtcpPort ), this );
 	}
@@ -335,8 +273,9 @@ public class Track
 		this.serverAddress = serverAddress;
 		this.serverRtpPort = rtpPort;
 		this.serverRtcpPort = rtcpPort;
-		
-		serverPortMap.put( new ServerPortInfo(this.serverAddress, this.serverRtpPort), this);
+
+		serverAddressMap.put( new InetSocketAddress( serverAddress, rtpPort ), this );
+		serverAddressMap.put( new InetSocketAddress( serverAddress, rtcpPort ), this );
 	}
 
 }

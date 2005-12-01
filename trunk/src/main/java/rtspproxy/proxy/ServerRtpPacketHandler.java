@@ -48,17 +48,20 @@ public class ServerRtpPacketHandler extends IoHandlerAdapter
 		Track track = Track.getByServerSSRC( packet.getSsrc() );
 
 		if ( track == null ) {
-			track = Track.getByServerRtpPort((InetSocketAddress)session.getRemoteAddress());
-			
-			if(track == null) {
+			track = Track.getByServerAddress( (InetSocketAddress) session.getRemoteAddress() );
+
+			if ( track == null ) {
 				// drop packet
-				log.debug( "Invalid SSRC identifier: " + Long.toHexString( packet.getSsrc() ) );
+				log.debug( "Invalid SSRC identifier: "
+						+ packet.getSsrc().toHexString() );
 				return;
 			} else {
 				// hot-wire the ssrc into the track
-				log.debug( "Adding SSRC identifier: " + Long.toHexString( packet.getSsrc() ) );
-				track.setServerSSRC(packet.getSsrc());
+				log.debug( "Adding SSRC identifier: "
+						+ packet.getSsrc().toHexString() );
+				track.setServerSSRC( packet.getSsrc() );
 			}
+
 		}
 
 		track.setRtpServerSession( session );

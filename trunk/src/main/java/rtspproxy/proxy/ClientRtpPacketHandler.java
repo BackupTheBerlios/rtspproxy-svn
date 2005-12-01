@@ -50,12 +50,12 @@ public class ClientRtpPacketHandler extends IoHandlerAdapter
 	{
 		RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
 		log.debug( "Received RTP packet: " + packet.getSequence() );
- 
+
 		Track track = Track.getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
 
 		if ( track == null ) {
 			// drop packet
-			log.info( "Packet received from unknown client: " + session.getRemoteAddress() );
+			log.debug( "Packet received from unknown client: " + session.getRemoteAddress() ); 
 			return;
 		}
 

@@ -21,6 +21,10 @@ package rtspproxy.rtp;
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
 
+import rtspproxy.lib.number.UnsignedByte;
+import rtspproxy.lib.number.UnsignedInt;
+import rtspproxy.lib.number.UnsignedShort;
+
 /**
  * This class wraps a RTP packet providing method to convert from and to a
  * {@link ByteBuffer}.
@@ -30,18 +34,18 @@ import org.apache.mina.common.ByteBuffer;
  * The RTP header has the following format:
  * 
  * <pre>
- *     0                   1                   2                   3
- *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *     |V=2|P|X|  CC   |M|     PT      |       sequence number         |
- *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *     |                           timestamp                           |
- *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *     |           synchronization source (SSRC) identifier            |
- *     +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
- *     |            contributing source (CSRC) identifiers             |
- *     |                             ....                              |
- *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *        0                   1                   2                   3
+ *        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *        |V=2|P|X|  CC   |M|     PT      |       sequence number         |
+ *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *        |                           timestamp                           |
+ *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *        |           synchronization source (SSRC) identifier            |
+ *        +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+ *        |            contributing source (CSRC) identifiers             |
+ *        |                             ....                              |
+ *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * </pre>
  * 
  * The first twelve octets are present in every RTP packet, while the list of
@@ -49,10 +53,9 @@ import org.apache.mina.common.ByteBuffer;
  * 
  * @author Matteo Merli
  */
-public class RtpPacket implements Packet
-{
+public class RtpPacket implements Packet {
 
-	private static Logger log = Logger.getLogger( RtpPacket.class );
+	private static Logger log = Logger.getLogger(RtpPacket.class);
 
 	/**
 	 * This field identifies the version of RTP. The version defined by this
@@ -105,7 +108,7 @@ public class RtpPacket implements Packet
 	 * a session, but this field SHOULD NOT be used for multiplexing separate
 	 * media streams (see Section 5.2).
 	 */
-	private byte payloadType;
+	private UnsignedByte payloadType;
 
 	/**
 	 * The sequence number increments by one for each RTP data packet sent, and
@@ -116,7 +119,7 @@ public class RtpPacket implements Packet
 	 * method in Section 9.1, because the packets may flow through a translator
 	 * that does.
 	 */
-	private short sequence;
+	private UnsignedShort sequence;
 
 	/**
 	 * The timestamp reflects the sampling instant of the first octet in the RTP
@@ -124,14 +127,14 @@ public class RtpPacket implements Packet
 	 * increments monotonically and linearly in time to allow synchronization
 	 * and jitter calculations (see Section 6.4.1).
 	 */
-	private int timestamp;
+	private UnsignedInt timestamp;
 
 	/**
 	 * The SSRC field identifies the synchronization source. This identifier
 	 * SHOULD be chosen randomly, with the intent that no two synchronization
 	 * sources within the same RTP session will have the same SSRC identifier.
 	 */
-	private int ssrc;
+	private UnsignedInt ssrc;
 
 	/**
 	 * The CSRC list identifies the contributing sources for the payload
@@ -139,9 +142,10 @@ public class RtpPacket implements Packet
 	 * field. If there are more than 15 contributing sources, only 15 can be
 	 * identified.
 	 */
-	private int[] csrc = {};
+	private UnsignedInt[] csrc = {};
 
 	private short profileExtension;
+
 	private byte[] headerExtension = {};
 
 	/**
@@ -153,53 +157,51 @@ public class RtpPacket implements Packet
 	 * Construct a new RtpPacket reading the fields from a ByteBuffer
 	 * 
 	 * @param buffer
-	 *        the buffer containing the packet
+	 *            the buffer containing the packet
 	 */
-	public RtpPacket( ByteBuffer buffer )
-	{
+	public RtpPacket(ByteBuffer buffer) {
 		// Read the packet header
 		byte c = buffer.get();
 		// |V=2|P=1|X=1| CC=4 |
-		this.version = (byte) ( ( c & 0xC0 ) >> 6 );
-		this.padding = ( ( c & 0x20 ) >> 5 ) == 1;
-		this.extension = ( ( c & 0x10 ) >> 4 ) == 1;
-		this.csrcCount = (byte) ( c & 0x0F );
+		this.version = (byte) ((c & 0xC0) >> 6);
+		this.padding = ((c & 0x20) >> 5) == 1;
+		this.extension = ((c & 0x10) >> 4) == 1;
+		this.csrcCount = (byte) (c & 0x0F);
 
 		c = buffer.get();
 		// |M=1| PT=7 |
-		this.marker = ( ( c & 0x80 ) >> 7 ) == 1;
-		this.payloadType = (byte) ( c & 0x7F );
+		this.marker = ((c & 0x80) >> 7) == 1;
+		this.payloadType = new UnsignedByte(c & 0x7F);
 
-		this.sequence = buffer.getShort();
-		this.timestamp = buffer.getInt();
-		this.ssrc = buffer.getInt();
+		this.sequence = new UnsignedShort(buffer.getShort());
+		this.timestamp = new UnsignedInt(buffer.getInt());
+		this.ssrc = new UnsignedInt(buffer.getInt());
 
 		// CSRC list
-		csrc = new int[csrcCount];
-		for ( int i = 0; i < csrcCount; i++ ) {
-			csrc[i] = buffer.getInt();
+		csrc = new UnsignedInt[csrcCount];
+		for (int i = 0; i < csrcCount; i++) {
+			csrc[i] = new UnsignedInt(buffer.getInt());
 		}
 
 		// Read the extension header if present
-		if ( extension ) {
+		if (extension) {
 			this.profileExtension = buffer.getShort();
 			int length = buffer.getShort();
 			this.headerExtension = new byte[length];
-			buffer.get( this.headerExtension );
+			buffer.get(this.headerExtension);
 		}
 
 		// Read the payload
 		int payloadSize = buffer.remaining();
 		this.payload = new byte[payloadSize];
-		buffer.get( payload );
+		buffer.get(payload);
 
-		if ( version != 2 ) {
-			log.debug( "Packet Version is not 2." );
+		if (version != 2) {
+			log.debug("Packet Version is not 2.");
 		}
 	}
 
-	protected RtpPacket()
-	{
+	protected RtpPacket() {
 		// Creates an empty packet
 	}
 
@@ -208,41 +210,40 @@ public class RtpPacket implements Packet
 	 * 
 	 * @return a new ByteBuffer
 	 */
-	public ByteBuffer toByteBuffer()
-	{
+	public ByteBuffer toByteBuffer() {
 		int packetSize = 12 + csrc.length * 4 + payload.length;
-		if ( extension )
+		if (extension)
 			packetSize += headerExtension.length;
-		
-		ByteBuffer buffer = ByteBuffer.allocate( packetSize );
-		buffer.limit( packetSize );
+
+		ByteBuffer buffer = ByteBuffer.allocate(packetSize);
+		buffer.limit(packetSize);
 
 		byte c = 0x00;
 		int bPadding = padding ? 1 : 0;
 		int bExtension = extension ? 1 : 0;
-		c = (byte) ( ( version << 6 ) | ( bPadding << 5 ) | ( bExtension << 4 ) | csrcCount );
-		buffer.put( c );
+		c = (byte) ((version << 6) | (bPadding << 5) | (bExtension << 4) | csrcCount);
+		buffer.put(c);
 
 		int bMarker = marker ? 1 : 0;
-		c = (byte) ( ( bMarker << 7 ) | payloadType );
-		buffer.put( c );
+		c = (byte) ((bMarker << 7) | payloadType.intValue());
+		buffer.put(c);
 
-		buffer.putShort( sequence );
-		buffer.putInt( timestamp );
-		buffer.putInt( ssrc );
+		buffer.put(sequence.getBytes());
+		buffer.put(timestamp.getBytes());
+		buffer.put(ssrc.getBytes());
 
-		for ( byte i = 0; i < Math.min( csrcCount, csrc.length ); i++ ) {
-			buffer.putInt( csrc[i] );
+		for (byte i = 0; i < Math.min(csrcCount, csrc.length); i++) {
+			buffer.put(csrc[i].getBytes());
 		}
 
 		// Write the extension header if present
-		if ( extension ) {
-			buffer.putShort( profileExtension );
-			buffer.putShort( (short) headerExtension.length );
-			buffer.put( headerExtension );
+		if (extension) {
+			buffer.putShort(profileExtension);
+			buffer.putShort((short) headerExtension.length);
+			buffer.put(headerExtension);
 		}
 
-		buffer.put( payload );
+		buffer.put(payload);
 		buffer.rewind();
 		return buffer;
 	}
@@ -250,187 +251,165 @@ public class RtpPacket implements Packet
 	/**
 	 * @return Returns the csrc.
 	 */
-	public int[] getCsrc()
-	{
+	public UnsignedInt[] getCsrc() {
 		return csrc;
 	}
 
 	/**
 	 * @param csrc
-	 *        The csrc to set.
+	 *            The csrc to set.
 	 */
-	public void setCsrc( int[] csrc )
-	{
+	public void setCsrc(UnsignedInt[] csrc) {
 		this.csrc = csrc;
 	}
 
 	/**
 	 * @return Returns the csrcCount.
 	 */
-	public byte getCsrcCount()
-	{
+	public byte getCsrcCount() {
 		return csrcCount;
 	}
 
 	/**
 	 * @param csrcCount
-	 *        The csrcCount to set.
+	 *            The csrcCount to set.
 	 */
-	public void setCsrcCount( byte csrcCount )
-	{
+	public void setCsrcCount(byte csrcCount) {
 		this.csrcCount = csrcCount;
 	}
 
 	/**
 	 * @return Returns the extension.
 	 */
-	public boolean isExtension()
-	{
+	public boolean isExtension() {
 		return extension;
 	}
 
 	/**
 	 * @param extension
-	 *        The extension to set.
+	 *            The extension to set.
 	 */
-	public void setExtension( boolean extension )
-	{
+	public void setExtension(boolean extension) {
 		this.extension = extension;
 	}
 
 	/**
 	 * @return Returns the marker.
 	 */
-	public boolean isMarker()
-	{
+	public boolean isMarker() {
 		return marker;
 	}
 
 	/**
 	 * @param marker
-	 *        The marker to set.
+	 *            The marker to set.
 	 */
-	public void setMarker( boolean marker )
-	{
+	public void setMarker(boolean marker) {
 		this.marker = marker;
 	}
 
 	/**
 	 * @return Returns the padding.
 	 */
-	public boolean isPadding()
-	{
+	public boolean isPadding() {
 		return padding;
 	}
 
 	/**
 	 * @param padding
-	 *        The padding to set.
+	 *            The padding to set.
 	 */
-	public void setPadding( boolean padding )
-	{
+	public void setPadding(boolean padding) {
 		this.padding = padding;
 	}
 
 	/**
 	 * @return Returns the payload.
 	 */
-	public byte[] getPayload()
-	{
+	public byte[] getPayload() {
 		return payload;
 	}
 
 	/**
 	 * @param payload
-	 *        The payload to set.
+	 *            The payload to set.
 	 */
-	public void setPayload( byte[] payload )
-	{
+	public void setPayload(byte[] payload) {
 		this.payload = payload;
 	}
 
 	/**
 	 * @return Returns the payloadType.
 	 */
-	public int getPayloadType()
-	{
-		return ( (int) payloadType & 0xFF );
+	public UnsignedByte getPayloadType() {
+		return payloadType;
 	}
 
 	/**
 	 * @param payloadType
-	 *        The payloadType to set.
+	 *            The payloadType to set.
 	 */
-	public void setPayloadType( int payloadType )
-	{
-		this.payloadType = (byte) ( payloadType & 0xFF );
+	public void setPayloadType(UnsignedByte payloadType) {
+		this.payloadType = payloadType;
 	}
 
 	/**
 	 * @return Returns the sequence.
 	 */
-	public short getSequence()
-	{
+	public UnsignedShort getSequence() {
 		return sequence;
 	}
 
 	/**
 	 * @param sequence
-	 *        The sequence to set.
+	 *            The sequence to set.
 	 */
-	public void setSequence( short sequence )
-	{
+	public void setSequence(UnsignedShort sequence) {
 		this.sequence = sequence;
 	}
 
 	/**
 	 * @return Returns the ssrc.
 	 */
-	public long getSsrc()
-	{
-		return ( (long) ssrc & 0xFFFFFFFFL );
+	public UnsignedInt getSsrc() {
+		return ssrc;
 	}
 
 	/**
 	 * @param ssrc
-	 *        The ssrc to set.
+	 *            The ssrc to set.
 	 */
-	public void setSsrc( long ssrc )
-	{
-		this.ssrc = (int) ( ssrc & 0xFFFFFFFFL );
+	public void setSsrc(UnsignedInt ssrc) {
+		this.ssrc = ssrc;
 	}
 
 	/**
 	 * @return Returns the timestamp.
 	 */
-	public int getTimestamp()
-	{
+	public UnsignedInt getTimestamp() {
 		return timestamp;
 	}
 
 	/**
 	 * @param timestamp
-	 *        The timestamp to set.
+	 *            The timestamp to set.
 	 */
-	public void setTimestamp( int timestamp )
-	{
+	public void setTimestamp(UnsignedInt timestamp) {
 		this.timestamp = timestamp;
 	}
 
 	/**
 	 * @return Returns the version.
 	 */
-	public byte getVersion()
-	{
+	public byte getVersion() {
 		return version;
 	}
 
 	/**
 	 * @param version
-	 *        The version to set.
+	 *            The version to set.
 	 */
-	public void setVersion( byte version )
-	{
+	public void setVersion(byte version) {
 		this.version = version;
 	}
 

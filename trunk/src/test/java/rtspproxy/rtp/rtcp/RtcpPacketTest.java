@@ -25,6 +25,8 @@ import junit.framework.TestCase;
 
 import org.apache.mina.common.ByteBuffer;
 
+import rtspproxy.lib.number.UnsignedInt;
+
 /**
  * @author mat
  */
@@ -48,7 +50,7 @@ public class RtcpPacketTest extends TestCase
 		packet.count = 4;
 		packet.packetType = RtcpPacket.Type.SDES.getValue();
 		packet.length = 4;
-		packet.setSsrc( 0xADADADADADL );
+		packet.setSsrc( new UnsignedInt( 0xADADADADADL ) );
 		byte[] random_data = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
 		packet.packetBuffer = random_data;
 
