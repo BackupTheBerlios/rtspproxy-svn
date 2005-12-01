@@ -18,7 +18,7 @@
 
 package rtspproxy.rtsp;
 
-import rtspproxy.proxy.DataTunnel;
+// import rtspproxy.proxy.DataTunnel;
 
 /**
  */
@@ -26,7 +26,7 @@ public class Track
 {
 
 	private String control;
-	private DataTunnel dataTunnel;
+	// private DataTunnel dataTunnel;
 
 	/**
 	 * @return Returns the control.
@@ -44,7 +44,7 @@ public class Track
 	{
 		this.control = control;
 	}
-
+/*
 	public void setDataTunnel( DataTunnel dataTunnel )
 	{
 		this.dataTunnel = dataTunnel;
@@ -54,5 +54,5 @@ public class Track
 	{
 		return dataTunnel;
 	}
-
+*/
 }
