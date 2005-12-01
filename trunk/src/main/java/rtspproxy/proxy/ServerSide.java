@@ -25,6 +25,7 @@ import org.apache.mina.filter.codec.ProtocolEncoder;
 
 import rtspproxy.Config;
 import rtspproxy.filter.impl.RequestUrlRewritingImpl;
+import rtspproxy.lib.Exceptions;
 import rtspproxy.rtsp.RtspDecoder;
 import rtspproxy.rtsp.RtspEncoder;
 import rtspproxy.rtsp.RtspMessage;
@@ -41,7 +42,8 @@ public class ServerSide extends IoHandlerAdapter
 
 	private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
 	{
-		// Decoders can be shared 
+
+		// Decoders can be shared
 		private ProtocolEncoder rtspEncoder = new RtspEncoder();
 		private ProtocolDecoder rtspDecoder = new RtspDecoder();
 
@@ -62,16 +64,17 @@ public class ServerSide extends IoHandlerAdapter
 	public void sessionCreated( IoSession session ) throws Exception
 	{
 		IoFilterChain filterChain = session.getFilterChain();
-		
+
 		// The codec filter is always present
 		filterChain.addLast( "codec", codecFilter );
 
-		String rewritingFilter = Config.get("filter.requestUrlRewriting.implementationClass", null);
-		
-		if(rewritingFilter != null)
-			filterChain.addLast("requestUrlRewriting", new RequestUrlRewritingImpl(rewritingFilter));
+		String rewritingFilter = Config.get(
+				"filter.requestUrlRewriting.implementationClass", null );
 
-		// session.getFilterChain().addLast( "codec", codecFilter );
+		if ( rewritingFilter != null )
+			filterChain.addLast( "requestUrlRewriting", new RequestUrlRewritingImpl(
+					rewritingFilter ) );
+
 		log.info( "Created session to server: " + session.getRemoteAddress() );
 
 	}
@@ -88,8 +91,9 @@ public class ServerSide extends IoHandlerAdapter
 	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
 		// close all: same as sessionClosed()
-		log.info( "Exception: " + cause.getMessage(), cause );
-		// cause.printStackTrace();
+		log.info( "Exception: " + cause );
+		Exceptions.logStackTrace( cause );
+		
 		sessionClosed( session );
 	}
 
@@ -168,44 +172,6 @@ public class ServerSide extends IoHandlerAdapter
 	public void onResponseDescribe( ProxyHandler proxyHandler, RtspResponse response )
 	{
 		log.debug( "RESPONSE DESCRIBE" );
-
-		// TODO: Remove. This is a test
-		/*
-		if ( response.getHeader( "Content-Type" ) != null
-				&& response.getHeader( "Content-Type" ).equals( "application/sdp" ) ) {
-
-			String sdpDescription = response.getBuffer().toString();
-			SdpFactory sdpFactory = new SdpFactory();
-			try {
-				SessionDescription sessionDescription = sdpFactory.createSessionDescription( sdpDescription );
-
-				log.debug( "sessionDescription = " + sessionDescription );
-				String range = sessionDescription.getAttribute( "range" );
-				if ( range != null ) {
-					log.debug( "Range: " + range );
-					Npt npt = Npt.fromString( range );
-					log.debug( "Range parsed:" + npt );
-					log.debug( "Start: " + npt.getTimeStart() + "  -  End: "
-							+ npt.getTimeEnd() );
-				}
-
-				for ( MediaDescription m : sessionDescription.getMediaDescriptions( false ) ) {
-					log.debug( "m = " + m.toString() );
-					Media media = m.getMedia();
-					Vector formats = media.getMediaFormats( false );
-					log.debug( "formats = " + formats );
-				}
-
-				for ( TimeDescription td : sessionDescription.getTimeDescriptions( false ) ) {
-					log.debug( " Time: " + td.getTime() );
-				}
-			} catch ( SdpParseException e ) {
-				log.debug( "Error parsing SDP: " + e );
-			} catch ( SdpException e ) {
-				log.debug( "Generic SDP error: " + e );
-			}
-		}
-		*/
 		proxyHandler.passToClient( response );
 	}
 
