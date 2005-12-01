@@ -18,8 +18,9 @@
 package rtspproxy.lib.number;
 
 /**
- * @author Matteo Merli
+ * The UnsignedByte class wraps a value of and unsigned 8 bits number.
  * 
+ * @author Matteo Merli
  */
 public final class UnsignedByte extends UnsignedNumber {
 	static final long serialVersionUID = 1L;
@@ -61,14 +62,13 @@ public final class UnsignedByte extends UnsignedNumber {
 	}
 
 	public static UnsignedByte fromString(String c) {
+		return fromString(c, 10);
+	}
+
+	public static UnsignedByte fromString(String c, int radix) {
 		UnsignedByte number = new UnsignedByte();
-		char[] begin = new char[2];
-		c.getChars(0, 2, begin, 0);
-		long v = 0;
-		if (begin[0] == '0' && (begin[1] == 'x' || begin[1] == 'X'))
-			v = Short.parseShort(c.substring(2), 16);
-		else
-			v = Short.parseShort(c);
+
+		short v = Short.parseShort(c, radix);
 		number.value = (short) (v & 0xFF);
 		return number;
 	}
@@ -83,6 +83,7 @@ public final class UnsignedByte extends UnsignedNumber {
 		return (float) value;
 	}
 
+	@Override
 	public short shortValue() {
 		return (short) (value & 0xFF);
 	}
@@ -97,11 +98,13 @@ public final class UnsignedByte extends UnsignedNumber {
 		return value & 0xFFL;
 	}
 
+	@Override
 	public byte[] getBytes() {
 		byte[] c = { (byte) (value & 0xFF) };
 		return c;
 	}
 
+	@Override
 	public int compareTo(UnsignedNumber other) {
 		short otherValue = other.shortValue();
 		if (value > otherValue)
@@ -111,8 +114,31 @@ public final class UnsignedByte extends UnsignedNumber {
 		return 0;
 	}
 
+	@Override
+	public boolean equals(Object other) {
+		return value == ((Number)other).shortValue();
+	}
+
+	@Override
 	public String toString() {
 		return Short.toString(value);
 	}
 
+	@Override
+	public void shiftRight(int nBits) {
+		if (Math.abs(nBits) > 8)
+			throw new IllegalArgumentException("Cannot right shift " + nBits
+					+ " an UnsignedByte.");
+
+		value >>>= nBits;
+	}
+
+	@Override
+	public void shiftLeft(int nBits) {
+		if (Math.abs(nBits) > 8)
+			throw new IllegalArgumentException("Cannot left shift " + nBits
+					+ " an UnsignedByte.");
+
+		value <<= nBits;
+	}
 }

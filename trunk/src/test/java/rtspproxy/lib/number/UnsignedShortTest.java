@@ -36,7 +36,7 @@ public class UnsignedShortTest extends TestCase {
 		assertEquals((short) 0xFFFF, n.shortValue());
 		assertEquals(0xFFFF, n.intValue());
 		assertEquals(0xFFFFL, n.longValue());
-		assertEquals("0xFFFF", n.toHexString());
+		assertEquals("FFFF", n.toHexString());
 		assertEquals("65535", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF }, n
 				.getBytes()));
@@ -49,7 +49,7 @@ public class UnsignedShortTest extends TestCase {
 		assertEquals((short) 0xFFFF, n.shortValue());
 		assertEquals(0xFFFF, n.intValue());
 		assertEquals(0xFFFFL, n.longValue());
-		assertEquals("0xFFFF", n.toHexString());
+		assertEquals("FFFF", n.toHexString());
 		assertEquals("65535", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF }, n
 				.getBytes()));
@@ -57,12 +57,12 @@ public class UnsignedShortTest extends TestCase {
 	}
 
 	public void test3() {
-		UnsignedShort n = UnsignedShort.fromString("0xFFFF");
+		UnsignedShort n = UnsignedShort.fromString("FFFF", 16);
 
 		assertEquals((short) 0xFFFF, n.shortValue());
 		assertEquals(0xFFFF, n.intValue());
 		assertEquals(0xFFFFL, n.longValue());
-		assertEquals("0xFFFF", n.toHexString());
+		assertEquals("FFFF", n.toHexString());
 		assertEquals("65535", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF }, n
 				.getBytes()));
@@ -74,7 +74,7 @@ public class UnsignedShortTest extends TestCase {
 		assertEquals((short) 0xFFFF, n.shortValue());
 		assertEquals(0xFFFF, n.intValue());
 		assertEquals(0xFFFFL, n.longValue());
-		assertEquals("0xFFFF", n.toHexString());
+		assertEquals("FFFF", n.toHexString());
 		assertEquals("65535", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF }, n
 				.getBytes()));
@@ -87,7 +87,7 @@ public class UnsignedShortTest extends TestCase {
 		assertEquals((short) 0xFFFF, n.shortValue());
 		assertEquals(0xFFFF, n.intValue());
 		assertEquals(0xFFFFL, n.longValue());
-		assertEquals("0xFFFF", n.toHexString());
+		assertEquals("FFFF", n.toHexString());
 		assertEquals("65535", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF }, n
 				.getBytes()));
@@ -116,5 +116,22 @@ public class UnsignedShortTest extends TestCase {
 		assertTrue(n4.compareTo(n2) > 0);
 		assertTrue(n4.compareTo(n3) == 0);
 		assertTrue(n4.compareTo(n4) == 0);
+	}
+
+	public void testShift() {
+		UnsignedShort n = new UnsignedShort(0x01);
+
+		n.shiftLeft(8);
+		assertEquals(0x100, n.intValue());
+		n.shiftLeft(7);
+		assertEquals(0x8000, n.intValue());
+		n.shiftRight(14);
+		assertEquals(0x02, n.intValue());
+
+		n = new UnsignedShort(0xACL);
+		n.shiftLeft(8);
+		assertEquals(0xAC00, n.intValue());
+		n.shiftRight(12);
+		assertEquals(0xA, n.intValue());
 	}
 }

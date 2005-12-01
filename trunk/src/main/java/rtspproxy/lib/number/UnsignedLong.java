@@ -19,10 +19,12 @@ package rtspproxy.lib.number;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Random;
 
 /**
- * @author Matteo Merli
+ * The UnsignedLong class wraps a value of an unsigned 64 bits number.
  * 
+ * @author Matteo Merli
  */
 public final class UnsignedLong extends UnsignedNumber {
 
@@ -60,6 +62,16 @@ public final class UnsignedLong extends UnsignedNumber {
 		value[7] = (byte) (c & 0xFF);
 	}
 
+	/**
+	 * Construct a new random UnsignedLong.
+	 * 
+	 * @param random
+	 *            a Random handler
+	 */
+	public UnsignedLong(Random random) {
+		random.nextBytes(value);
+	}
+
 	private UnsignedLong() {
 		Arrays.fill(value, (byte) 0);
 	}
@@ -74,23 +86,19 @@ public final class UnsignedLong extends UnsignedNumber {
 			throw new IllegalArgumentException(
 					"An UnsignedLong number is composed of 8 bytes.");
 
-		for (int i = 7; i >= 0; i--) 
+		for (int i = 7; i >= 0; i--)
 			number.value[i] = c[offset + i];
 		return number;
 	}
 
 	public static UnsignedLong fromString(String c) {
+		return fromString(c, 10);
+	}
+
+	public static UnsignedLong fromString(String c, int radix) {
 		UnsignedLong number = new UnsignedLong();
-		char[] begin = new char[2];
-		c.getChars(0, 2, begin, 0);
-		int r = 10;
 
-		if (begin[0] == '0' && (begin[1] == 'x' || begin[1] == 'X')) {
-			r = 16;
-			c = c.substring(2);
-		}
-
-		BigInteger n = new BigInteger(c, r);
+		BigInteger n = new BigInteger(c, radix);
 		byte[] bytes = n.toByteArray();
 
 		int len = Math.min(8, bytes.length);
@@ -120,7 +128,8 @@ public final class UnsignedLong extends UnsignedNumber {
 
 	@Override
 	public int intValue() {
-		return (value[4] << 24 | value[5] << 16 | value[6] << 8 | value[7]);
+		return (((int) value[4] << 24) & 0xFF000000 | ((int) value[5] << 16)
+				& 0xFF0000 | ((int) value[6] << 8) & 0xFF00 | ((int) value[7] & 0xFF));
 	}
 
 	@Override
@@ -163,5 +172,52 @@ public final class UnsignedLong extends UnsignedNumber {
 			else if ((char) value[i] < (char) normalValue[i])
 				return -1;
 		return 0;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof UnsignedLong) {
+			// this is a special case
+			byte[] bytes = ((UnsignedLong) other).getBytes();
+			for (int i = 7; i >= 0; i--)
+				if (value[i] != bytes[i])
+					return false;
+			return true;
+		} else if (other instanceof Number)
+			return longValue() == ((Number) other).longValue();
+		else
+			return false;
+	}
+
+	@Override
+	public void shiftRight(int nBits) {
+		if (nBits > 64 || nBits < 0)
+			throw new IllegalArgumentException("Cannot right shift " + nBits
+					+ " an UnsignedLong.");
+		if (nBits % 8 != 0)
+			throw new IllegalArgumentException("nBits must be a multiple of 8.");
+
+		int nBytes = nBits / 8;
+		for (int i = 7; i >= nBytes; i--)
+			value[i] = value[i - nBytes];
+		for (int i = nBytes - 1; i >= 0; i--)
+			value[i] = 0;
+	}
+
+	@Override
+	public void shiftLeft(int nBits) {
+		if (nBits > 64 || nBits < 0)
+			throw new IllegalArgumentException("Cannot left shift " + nBits
+					+ " an UnsignedLong.");
+		if (nBits % 8 != 0)
+			throw new IllegalArgumentException("nBits must be a multiple of 8.");
+
+		int nBytes = nBits / 8;
+		for (int i = 0; i <= 7 - nBytes; i++) {
+			value[i] = value[i + nBytes];
+		}
+		for (int i = 8 - nBytes; i < 8; i++) {
+			value[i] = 0;
+		}
 	}
 }

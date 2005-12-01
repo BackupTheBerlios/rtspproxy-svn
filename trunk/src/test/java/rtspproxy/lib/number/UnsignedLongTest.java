@@ -34,7 +34,7 @@ public class UnsignedLongTest extends TestCase {
 		UnsignedLong n = new UnsignedLong(0xFFFFFFFFFFFFFFFFL);
 
 		assertEquals(0xFFFFFFFFFFFFFFFFL, n.longValue());
-		assertEquals("0xFFFFFFFFFFFFFFFF", n.toHexString());
+		assertEquals("FFFFFFFFFFFFFFFF", n.toHexString());
 		assertEquals("18446744073709551615", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
@@ -46,7 +46,8 @@ public class UnsignedLongTest extends TestCase {
 
 		assertEquals(0xFFFFFFFF, n.intValue());
 		assertEquals(0xFFFFFFFFL, n.longValue());
-		assertEquals("0x00000000FFFFFFFF", n.toHexString());
+		assertEquals("FFFFFFFF", n.toHexString());
+		assertEquals("00000000FFFFFFFF", n.toHexString(true));
 		assertEquals("4294967295", n.toString());
 		assertTrue(Arrays.equals(new byte[] { 0, 0, 0, 0, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF }, n.getBytes()));
@@ -54,10 +55,10 @@ public class UnsignedLongTest extends TestCase {
 	}
 
 	public void test3() {
-		UnsignedLong n = UnsignedLong.fromString("0xFFFFFFFFFFFFFFFF");
+		UnsignedLong n = UnsignedLong.fromString("FFFFFFFFFFFFFFFF", 16);
 
 		assertEquals(0xFFFFFFFFFFFFFFFFL, n.longValue());
-		assertEquals("0xFFFFFFFFFFFFFFFF", n.toHexString());
+		assertEquals("FFFFFFFFFFFFFFFF", n.toHexString());
 		assertEquals("18446744073709551615", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
@@ -68,7 +69,7 @@ public class UnsignedLongTest extends TestCase {
 		UnsignedLong n = UnsignedLong.fromString("18446744073709551615");
 
 		assertEquals(0xFFFFFFFFFFFFFFFFL, n.longValue());
-		assertEquals("0xFFFFFFFFFFFFFFFF", n.toHexString());
+		assertEquals("FFFFFFFFFFFFFFFF", n.toHexString());
 		assertEquals("18446744073709551615", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
@@ -81,7 +82,7 @@ public class UnsignedLongTest extends TestCase {
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF });
 
 		assertEquals(0xFFFFFFFFFFFFFFFFL, n.longValue());
-		assertEquals("0xFFFFFFFFFFFFFFFF", n.toHexString());
+		assertEquals("FFFFFFFFFFFFFFFF", n.toHexString());
 		assertEquals("18446744073709551615", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
@@ -122,5 +123,26 @@ public class UnsignedLongTest extends TestCase {
 		assertTrue(n5.compareTo(n3) > 0);
 		assertTrue(n5.compareTo(n4) == 0);
 		assertTrue(n5.compareTo(n5) == 0);
+	}
+
+	public void testShift() {
+		UnsignedLong n = new UnsignedLong(0x01);
+
+		n.shiftLeft(8);
+		assertEquals(0x100, n.intValue());
+		n.shiftLeft(16);
+		assertEquals(0x1000000, n.intValue());
+		n.shiftRight(24);
+		assertEquals(0x01, n.intValue());
+
+		n = new UnsignedLong(0xACL);
+		n.shiftLeft(8);
+		assertEquals(0xAC00, n.intValue());
+		n.shiftLeft(24);
+		assertEquals(0xAC00000000L, n.longValue());
+		n.shiftLeft(24);
+		assertEquals(0xAC00000000000000L, n.longValue());
+		n.shiftRight(32);
+		assertEquals(0xAC000000L, n.longValue());
 	}
 }

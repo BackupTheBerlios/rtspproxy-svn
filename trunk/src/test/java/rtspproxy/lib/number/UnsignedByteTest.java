@@ -36,7 +36,7 @@ public class UnsignedByteTest extends TestCase {
 		assertEquals((short) 0xFF, n.shortValue());
 		assertEquals(0xFF, n.intValue());
 		assertEquals(0xFFL, n.longValue());
-		assertEquals("0xFF", n.toHexString());
+		assertEquals("FF", n.toHexString());
 		assertEquals("255", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF }, n.getBytes()));
 
@@ -48,18 +48,18 @@ public class UnsignedByteTest extends TestCase {
 		assertEquals((short) 0xFF, n.shortValue());
 		assertEquals(0xFF, n.intValue());
 		assertEquals(0xFFL, n.longValue());
-		assertEquals("0xFF", n.toHexString());
+		assertEquals("FF", n.toHexString());
 		assertEquals("255", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF }, n.getBytes()));
 	}
 
 	public void test3() {
-		UnsignedByte n = UnsignedByte.fromString("0xFF");
+		UnsignedByte n = UnsignedByte.fromString("FF", 16);
 
 		assertEquals((short) 0xFF, n.shortValue());
 		assertEquals(0xFF, n.intValue());
 		assertEquals(0xFFL, n.longValue());
-		assertEquals("0xFF", n.toHexString());
+		assertEquals("FF", n.toHexString());
 		assertEquals("255", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF }, n.getBytes()));
 	}
@@ -70,7 +70,7 @@ public class UnsignedByteTest extends TestCase {
 		assertEquals((short) 0xFF, n.shortValue());
 		assertEquals(0xFF, n.intValue());
 		assertEquals(0xFFL, n.longValue());
-		assertEquals("0xFF", n.toHexString());
+		assertEquals("FF", n.toHexString());
 		assertEquals("255", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF }, n.getBytes()));
 	}
@@ -81,7 +81,7 @@ public class UnsignedByteTest extends TestCase {
 		assertEquals((short) 0xFF, n.shortValue());
 		assertEquals(0xFF, n.intValue());
 		assertEquals(0xFFL, n.longValue());
-		assertEquals("0xFF", n.toHexString());
+		assertEquals("FF", n.toHexString());
 		assertEquals("255", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF }, n.getBytes()));
 	}
@@ -108,5 +108,18 @@ public class UnsignedByteTest extends TestCase {
 		assertTrue(n4.compareTo(n2) > 0);
 		assertTrue(n4.compareTo(n3) == 0);
 		assertTrue(n4.compareTo(n4) == 0);
+	}
+
+	public void testShift() {
+		UnsignedByte n = new UnsignedByte(0x01);
+
+		n.shiftLeft(7);
+		assertEquals(0x80, n.intValue());
+		n.shiftRight(3);
+		assertEquals(0x10, n.intValue());
+
+		n = new UnsignedByte(0xFF);
+		n.shiftRight(4);
+		assertEquals(0x0F, n.intValue());
 	}
 }

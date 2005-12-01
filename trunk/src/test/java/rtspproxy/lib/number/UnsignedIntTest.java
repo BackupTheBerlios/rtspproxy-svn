@@ -34,7 +34,7 @@ public class UnsignedIntTest extends TestCase {
 		UnsignedInt n = new UnsignedInt(0xFFFFFFFF);
 
 		assertEquals(0xFFFFFFFFL, n.longValue());
-		assertEquals("0xFFFFFFFF", n.toHexString());
+		assertEquals("FFFFFFFF", n.toHexString());
 		assertEquals("4294967295", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF }, n.getBytes()));
@@ -45,7 +45,7 @@ public class UnsignedIntTest extends TestCase {
 		UnsignedInt n = new UnsignedInt(0xFFFFFFFFL);
 
 		assertEquals(0xFFFFFFFFL, n.longValue());
-		assertEquals("0xFFFFFFFF", n.toHexString());
+		assertEquals("FFFFFFFF", n.toHexString());
 		assertEquals("4294967295", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF }, n.getBytes()));
@@ -53,10 +53,10 @@ public class UnsignedIntTest extends TestCase {
 	}
 
 	public void test3() {
-		UnsignedInt n = UnsignedInt.fromString("0xFFFFFFFF");
+		UnsignedInt n = UnsignedInt.fromString("FFFFFFFF", 16);
 
 		assertEquals(0xFFFFFFFFL, n.longValue());
-		assertEquals("0xFFFFFFFF", n.toHexString());
+		assertEquals("FFFFFFFF", n.toHexString());
 		assertEquals("4294967295", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF }, n.getBytes()));
@@ -66,7 +66,7 @@ public class UnsignedIntTest extends TestCase {
 		UnsignedInt n = UnsignedInt.fromString("4294967295");
 
 		assertEquals(0xFFFFFFFFL, n.longValue());
-		assertEquals("0xFFFFFFFF", n.toHexString());
+		assertEquals("FFFFFFFF", n.toHexString());
 		assertEquals("4294967295", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF }, n.getBytes()));
@@ -77,7 +77,7 @@ public class UnsignedIntTest extends TestCase {
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF });
 
 		assertEquals(0xFFFFFFFFL, n.longValue());
-		assertEquals("0xFFFFFFFF", n.toHexString());
+		assertEquals("FFFFFFFF", n.toHexString());
 		assertEquals("4294967295", n.toString());
 		assertTrue(Arrays.equals(new byte[] { (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF }, n.getBytes()));
@@ -93,5 +93,26 @@ public class UnsignedIntTest extends TestCase {
 		assertTrue(n1.compareTo(n3) < 0);
 		assertTrue(n2.compareTo(n2) == 0);
 		assertTrue(n1.compareTo(new UnsignedInt(0)) == 0);
+	}
+	
+	public void testShift() {
+		UnsignedInt n = new UnsignedInt(0x01);
+
+		n.shiftLeft(8);
+		assertEquals(0x100, n.intValue());
+		n.shiftLeft(16);
+		assertEquals(0x1000000, n.intValue());
+		n.shiftRight(24);
+		assertEquals(0x01, n.intValue());
+
+		n = new UnsignedInt(0xACL);
+		n.shiftLeft(8);
+		assertEquals(0xAC00, n.intValue());
+		n.shiftLeft(16);
+		assertEquals(0xAC000000L, n.longValue());
+		n.shiftRight(8);
+		assertEquals(0xAC0000L, n.longValue());
+		n.shiftRight(20);
+		assertEquals(0xAL, n.longValue());
 	}
 }

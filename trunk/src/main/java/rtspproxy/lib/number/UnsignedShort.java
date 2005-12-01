@@ -18,8 +18,9 @@
 package rtspproxy.lib.number;
 
 /**
- * @author Matteo Merli
+ * The UnsignedByte class wraps a value of an unsigned 16 bits number.
  * 
+ * @author Matteo Merli
  */
 public final class UnsignedShort extends UnsignedNumber {
 	static final long serialVersionUID = 1L;
@@ -61,14 +62,12 @@ public final class UnsignedShort extends UnsignedNumber {
 	}
 
 	public static UnsignedShort fromString(String c) {
+		return fromString(c, 10);
+	}
+
+	public static UnsignedShort fromString(String c, int radix) {
 		UnsignedShort number = new UnsignedShort();
-		char[] begin = new char[2];
-		c.getChars(0, 2, begin, 0);
-		long v = 0;
-		if (begin[0] == '0' && (begin[1] == 'x' || begin[1] == 'X'))
-			v = Integer.parseInt(c.substring(2), 16);
-		else
-			v = Integer.parseInt(c);
+		long v = Integer.parseInt(c, radix);
 		number.value = (int) (v & 0xFFFF);
 		return number;
 	}
@@ -83,6 +82,7 @@ public final class UnsignedShort extends UnsignedNumber {
 		return (float) value;
 	}
 
+	@Override
 	public short shortValue() {
 		return (short) (value & 0xFFFF);
 	}
@@ -97,6 +97,7 @@ public final class UnsignedShort extends UnsignedNumber {
 		return value & 0xFFFFL;
 	}
 
+	@Override
 	public byte[] getBytes() {
 		byte[] c = new byte[2];
 		c[0] = (byte) ((value >> 8) & 0xFF);
@@ -104,6 +105,7 @@ public final class UnsignedShort extends UnsignedNumber {
 		return c;
 	}
 
+	@Override
 	public int compareTo(UnsignedNumber other) {
 		int otherValue = other.intValue();
 		if (value > otherValue)
@@ -113,8 +115,34 @@ public final class UnsignedShort extends UnsignedNumber {
 		return 0;
 	}
 
+	@Override
+	public boolean equals(Object other) {
+		if (!(other instanceof Number))
+			return false;
+		return value == ((Number) other).intValue();
+	}
+
+	@Override
 	public String toString() {
 		return Integer.toString(value);
+	}
+
+	@Override
+	public void shiftRight(int nBits) {
+		if (Math.abs(nBits) > 16)
+			throw new IllegalArgumentException("Cannot right shift " + nBits
+					+ " an UnsignedShort.");
+
+		value >>>= nBits;
+	}
+
+	@Override
+	public void shiftLeft(int nBits) {
+		if (Math.abs(nBits) > 16)
+			throw new IllegalArgumentException("Cannot left shift " + nBits
+					+ " an UnsignedShort.");
+
+		value <<= nBits;
 	}
 
 }

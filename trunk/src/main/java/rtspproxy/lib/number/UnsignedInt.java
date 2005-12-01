@@ -18,8 +18,9 @@
 package rtspproxy.lib.number;
 
 /**
- * @author Matteo Merli
+ * The UnsignedInt class wraps a value of an unsigned 32 bits number.
  * 
+ * @author Matteo Merli
  */
 public final class UnsignedInt extends UnsignedNumber {
 	static final long serialVersionUID = 1L;
@@ -61,15 +62,13 @@ public final class UnsignedInt extends UnsignedNumber {
 	}
 
 	public static UnsignedInt fromString(String c) {
+		return fromString(c, 10);
+	}
+
+	public static UnsignedInt fromString(String c, int radix) {
 		UnsignedInt number = new UnsignedInt();
-		char[] begin = new char[2];
-		c.getChars(0, 2, begin, 0);
-		long v = 0;
-		if (begin[0] == '0' && (begin[1] == 'x' || begin[1] == 'X'))
-			v = Long.parseLong(c.substring(2), 16);
-		else
-			v = Long.parseLong(c);
-		number.value = (int) v;
+		long v = Long.parseLong(c, radix);
+		number.value = v & 0xFFFFFFFFL;
 		return number;
 	}
 
@@ -85,8 +84,7 @@ public final class UnsignedInt extends UnsignedNumber {
 
 	@Override
 	public int intValue() {
-		// the int will have the sign bit cleared
-		return (int) (value & 0x7FFFFFFFL);
+		return (int) (value & 0xFFFFFFFFL);
 	}
 
 	@Override
@@ -94,6 +92,7 @@ public final class UnsignedInt extends UnsignedNumber {
 		return value & 0xFFFFFFFFL;
 	}
 
+	@Override
 	public byte[] getBytes() {
 		byte[] c = new byte[4];
 		c[0] = (byte) ((value >> 24) & 0xFF);
@@ -103,17 +102,44 @@ public final class UnsignedInt extends UnsignedNumber {
 		return c;
 	}
 
+	@Override
 	public int compareTo(UnsignedNumber other) {
 		long otherValue = other.longValue();
-		if ((long) value > otherValue)
+		if (value > otherValue)
 			return +1;
-		else if ((long) value < otherValue)
+		else if (value < otherValue)
 			return -1;
 		return 0;
 	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if (!(other instanceof Number))
+			return false;
+		return value == ((Number) other).longValue();
+	}
 
+	@Override
 	public String toString() {
 		return Long.toString((long) value & 0xFFFFFFFFL);
+	}
+	
+	@Override
+	public void shiftRight(int nBits) {
+		if (Math.abs(nBits) > 32)
+			throw new IllegalArgumentException("Cannot right shift " + nBits
+					+ " an UnsignedInt.");
+
+		value >>>= nBits;
+	}
+	
+	@Override
+	public void shiftLeft(int nBits) {
+		if (Math.abs(nBits) > 32)
+			throw new IllegalArgumentException("Cannot left shift " + nBits
+					+ " an UnsignedInt.");
+
+		value <<= nBits;
 	}
 
 }
