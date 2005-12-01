@@ -19,13 +19,12 @@
 package rtspproxy.proxy;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.Random;
+import java.nio.channels.UnresolvedAddressException;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ConnectFuture;
@@ -87,6 +86,9 @@ public class ProxyHandler
 				try {
 					connectServerSide( request.getUrl() );
 
+				} catch ( UnresolvedAddressException e ) {
+					sendResponse( clientSession,
+							RtspResponse.errorResponse( RtspCode.DestinationUnreachable ) );
 				} catch ( IOException e ) {
 					log.error( e );
 					// closeAll();
@@ -119,14 +121,16 @@ public class ProxyHandler
 				// Session is Ok
 				message.setHeader( "Session", proxySession.getClientSessionIdString() );
 			} else {
-				if(message.getType() == RtspMessage.Type.TypeResponse) {
-					// create a proxy session on the fly if message is a response. Certain mobile handset clients
-					// tend to start a RSTP session without its own session id and wait for the session object from the
+				if ( message.getType() == RtspMessage.Type.TypeResponse ) {
+					// create a proxy session on the fly if message is a
+					// response. Certain mobile handset clients
+					// tend to start a RSTP session without its own session id
+					// and wait for the session object from the
 					// remote server
 					proxySession = new ProxySession();
-					
-					proxySession.setServerSessionId(message.getHeader("Session"));
-					message.setHeader("Session", proxySession.getClientSessionIdString());
+
+					proxySession.setServerSessionId( message.getHeader( "Session" ) );
+					message.setHeader( "Session", proxySession.getClientSessionIdString() );
 				} else {
 					// Error. The client specified a session ID but it's
 					// not valid
