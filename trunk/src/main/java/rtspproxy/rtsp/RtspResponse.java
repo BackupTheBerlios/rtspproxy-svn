@@ -18,10 +18,6 @@
 
 package rtspproxy.rtsp;
 
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
-
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
 
@@ -71,45 +67,44 @@ public class RtspResponse extends RtspMessage
 	 * Serialize the RTSP response to a string.
 	 * 
 	 * <pre>
-	 *  &quot;RTSP/1.0&quot; SP [code] SP [reason] CRLF
-	 *  [headers] CRLF
-	 *  CRLF
-	 *  [buf] 
+	 *    &quot;RTSP/1.0&quot; SP [code] SP [reason] CRLF
+	 *    [headers] CRLF
+	 *    CRLF
+	 *    [buf] 
 	 * </pre>
 	 */
 	public String toString()
 	{
-		String str = "RTSP/1.0 " + code.value() + " " + code.description() + CRLF;
-		str += getHeadersString();
+		StringBuilder sb = new StringBuilder();
+		sb.append( "RTSP/1.0 " ).append( code.value() ).append( " " );
+		sb.append( code.description() ).append( CRLF );
+		sb.append( getHeadersString() );
 
 		// Insert a blank line
-		str += CRLF;
+		sb.append( CRLF );
 
 		if ( getBufferSize() > 0 ) {
-			str += getBuffer();
+			sb.append( getBuffer() );
 
 			log.debug( "Buffer Size: " + getBufferSize() );
 		}
 
-		return str;
+		return sb.toString();
 	}
-	
+
 	/**
 	 * serialize the RTSP response message into a byte buffer.
 	 */
-	public ByteBuffer toByteBuffer() throws Exception {
+	public ByteBuffer toByteBuffer() throws Exception
+	{
 		try {
 			String msg = this.toString();
-			ByteBuffer buffer = ByteBuffer.allocate(msg.length() * 2); // wild gues ??
-			Charset cs = Charset.defaultCharset(); // Charset.forName("UTF-8");
-
-			buffer.setAutoExpand(true);
-			buffer.putString(msg, cs.newEncoder());
+			ByteBuffer buffer = ByteBuffer.wrap( msg.getBytes( "UTF-8" ) );
 
 			return buffer;
-		} catch(Exception e) {
-			log.info("failed to serialize message to byte buffer", e);
-			
+		} catch ( Exception e ) {
+			log.error( "failed to serialize message to byte buffer", e );
+
 			throw e;
 		}
 	}
