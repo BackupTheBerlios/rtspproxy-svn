@@ -70,7 +70,7 @@ public class AuthenticationFilter extends IoFilterAdapter
 		}
 
 		if ( !found ) {
-			log.fatal( "Class (" + provider
+			log.fatal( "Class (" + providerClass
 					+ ") does not implement the AuthenticationProvider interface." );
 			Reactor.stop();
 			return;
