@@ -68,7 +68,7 @@ public class ProxyHandler
 			ProxySession proxySession = ProxySession.getByClientSessionID( message.getHeader( "Session" ) );
 			if ( proxySession != null ) {
 				// Session is Ok
-				message.setHeader( "Session", proxySession.getServerSessionIdString() );
+				message.setHeader( "Session", proxySession.getServerSessionId() );
 			} else {
 				// Error. The client specified a session ID but it's
 				// not valid
@@ -119,7 +119,7 @@ public class ProxyHandler
 			ProxySession proxySession = ProxySession.getByServerSessionID( message.getHeader( "Session" ) );
 			if ( proxySession != null ) {
 				// Session is Ok
-				message.setHeader( "Session", proxySession.getClientSessionIdString() );
+				message.setHeader( "Session", proxySession.getClientSessionId() );
 			} else {
 				if ( message.getType() == RtspMessage.Type.TypeResponse ) {
 					// create a proxy session on the fly if message is a
@@ -130,7 +130,7 @@ public class ProxyHandler
 					proxySession = new ProxySession();
 
 					proxySession.setServerSessionId( message.getHeader( "Session" ) );
-					message.setHeader( "Session", proxySession.getClientSessionIdString() );
+					message.setHeader( "Session", proxySession.getClientSessionId() );
 				} else {
 					// Error. The client specified a session ID but it's
 					// not valid
@@ -172,7 +172,7 @@ public class ProxyHandler
 			ProxySession proxySession = ProxySession.getByClientSessionID( request.getHeader( "Session" ) );
 			if ( proxySession != null ) {
 				// Session ID is ok
-				request.setHeader( "Session", proxySession.getServerSessionIdString() );
+				request.setHeader( "Session", proxySession.getServerSessionId() );
 			} else {
 				// Error. The client specified a session ID but it's
 				// not valid
@@ -302,7 +302,7 @@ public class ProxyHandler
 			log.debug( "Transport Rewritten: " + transport );
 		}
 
-		response.setHeader( "Session", proxySession.getClientSessionIdString() );
+		response.setHeader( "Session", proxySession.getClientSessionId() );
 		response.setHeader( "Transport", transport.toString() );
 
 		log.debug( "SENDING RESPONSE TO CLIENT:\n" + response );
