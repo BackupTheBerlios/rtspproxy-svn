@@ -125,6 +125,13 @@ public final class UnsignedInt extends UnsignedNumber {
 	}
 	
 	@Override
+	public int hashCode() {
+		Long l = new Long(value);
+		
+		return l.hashCode();
+	}
+	
+	@Override
 	public void shiftRight(int nBits) {
 		if (Math.abs(nBits) > 32)
 			throw new IllegalArgumentException("Cannot right shift " + nBits

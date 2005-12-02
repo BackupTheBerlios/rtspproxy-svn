@@ -20,6 +20,7 @@ package rtspproxy.proxy;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,7 +55,8 @@ public class Track
 	private IoSession rtcpClientSession = null;
 
 	/** Maps a server SSRC id to a Track */
-	private static HashMap<UnsignedInt, Track> serverSsrcMap = new HashMap<UnsignedInt, Track>();
+	private static Map<UnsignedInt, Track> serverSsrcMap = Collections.synchronizedMap(new HashMap<UnsignedInt, Track>());
+	
 	/** Maps a client SSRC id to a Track */
 	private static List<UnsignedInt> proxySsrcList = new LinkedList<UnsignedInt>();
 
