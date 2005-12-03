@@ -126,9 +126,7 @@ public final class UnsignedInt extends UnsignedNumber {
 	
 	@Override
 	public int hashCode() {
-		Long l = new Long(value);
-		
-		return l.hashCode();
+		return (int)(value ^ (value >>> 32));
 	}
 	
 	@Override
