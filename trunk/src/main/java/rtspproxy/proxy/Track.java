@@ -22,10 +22,10 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.common.IoSession;
@@ -55,14 +55,22 @@ public class Track
 	private IoSession rtcpClientSession = null;
 
 	/** Maps a server SSRC id to a Track */
-	private static Map<UnsignedInt, Track> serverSsrcMap = Collections.synchronizedMap(new HashMap<UnsignedInt, Track>());
-	
-	/** Maps a client SSRC id to a Track */
-	private static List<UnsignedInt> proxySsrcList = new LinkedList<UnsignedInt>();
+	private static Map<UnsignedInt, Track> serverSsrcMap = Collections.synchronizedMap( new HashMap<UnsignedInt, Track>() );
 
-	private static Map<InetSocketAddress, Track> clientAddressMap = new HashMap<InetSocketAddress, Track>();
-	private static Map<InetSocketAddress, Track> serverAddressMap = new HashMap<InetSocketAddress, Track>();
+	/** Maps a client address to a Track */
+	private static Map<InetSocketAddress, Track> clientAddressMap = Collections.synchronizedMap( new HashMap<InetSocketAddress, Track>() );
 
+	/** Maps a server address to a Track */
+	private static Map<InetSocketAddress, Track> serverAddressMap = Collections.synchronizedMap( new HashMap<InetSocketAddress, Track>() );
+
+	/** Keeps track of the SSRC IDs used by the proxy, to avoid collisions. */
+	private static Set<UnsignedInt> proxySsrcList = Collections.synchronizedSet( new HashSet<UnsignedInt>() );
+
+	// IP address and RTP/RTCP ports for client and server.
+	// TODO: When using reflection, there will be more than one connected client
+	// at a
+	// time to the same Track. So the track should keep a list of connected
+	// clients and forward packets to each of them.
 	private InetAddress clientAddress;
 	private int clientRtpPort;
 	private int clientRtcpPort;
@@ -105,38 +113,67 @@ public class Track
 		return serverAddressMap.get( serverAddress );
 	}
 
+	/**
+	 * Get the track by looking at server SSRC id.
+	 * 
+	 * @return a Track instance if a matching SSRC is found or null
+	 */
 	public static Track getByServerSSRC( UnsignedInt serverSsrc )
 	{
 		return serverSsrcMap.get( serverSsrc );
 	}
 
-	public static Track getByServerSSRC( String serverSsrc )
-	{
-		return serverSsrcMap.get( UnsignedInt.fromString( serverSsrc ) );
-	}
+	// /// Member methods
 
+	/**
+	 * @return the
+	 */
 	public UnsignedInt getProxySSRC()
 	{
 		return proxySSRC;
 	}
 
+	/**
+	 * Sets the proxy SSRC id.
+	 * 
+	 * @param proxySSRC
+	 */
 	public void setProxySSRC( String proxySSRC )
 	{
-		this.proxySSRC = UnsignedInt.fromString( proxySSRC, 16 );
-		proxySsrcList.add( this.proxySSRC );
+		try {
+			this.proxySSRC = UnsignedInt.fromString( proxySSRC, 16 );
+
+			proxySsrcList.add( this.proxySSRC );
+		} catch ( NumberFormatException nfe ) {
+			log.debug( "Cannot convert " + proxySSRC + " to integer." );
+			throw nfe;
+		}
 	}
 
+	/**
+	 * @return the server SSRC id
+	 */
 	public UnsignedInt getServerSSRC()
 	{
 		return serverSSRC;
 	}
 
+	/**
+	 * Sets the server SSRC id.
+	 * 
+	 * @param serverSSRC
+	 */
 	public void setServerSSRC( String serverSSRC )
 	{
 		this.serverSSRC = UnsignedInt.fromString( serverSSRC, 16 );
 		serverSsrcMap.put( this.serverSSRC, this );
 	}
 
+	/**
+	 * Sets the server SSRC id.
+	 * 
+	 * @param serverSSRC
+	 */
 	public void setServerSSRC( UnsignedInt serverSSRC )
 	{
 		this.serverSSRC = serverSSRC;
@@ -173,6 +210,13 @@ public class Track
 		this.rtpServerSession = rtpServerSession;
 	}
 
+	/**
+	 * Forwards a RTP packet to server. The packet will be set to the address
+	 * indicated by the server at RTP (even) port.
+	 * 
+	 * @param packet
+	 *        a RTP packet
+	 */
 	public void forwardRtpToServer( RtpPacket packet )
 	{
 		// modify the SSRC for the server
@@ -185,6 +229,13 @@ public class Track
 		rtpServerSession.write( packet.toByteBuffer() );
 	}
 
+	/**
+	 * Forwards a RTCP packet to server. The packet will be set to the address
+	 * indicated by the server at RTCP (odd) port.
+	 * 
+	 * @param packet
+	 *        a RTCP packet
+	 */
 	public void forwardRtcpToServer( RtcpPacket packet )
 	{
 		// modify the SSRC for the server
@@ -197,6 +248,16 @@ public class Track
 		rtcpServerSession.write( packet.toByteBuffer() );
 	}
 
+	/**
+	 * Forwards a RTP packet to client. The packet will be set to the address
+	 * indicated by the client at RTP (even) port.
+	 * <p>
+	 * TODO: This will be changed to support multiple clients connected to the
+	 * same (live) track.
+	 * 
+	 * @param packet
+	 *        a RTP packet
+	 */
 	public void forwardRtpToClient( RtpPacket packet )
 	{
 		// modify the SSRC for the client
@@ -214,6 +275,16 @@ public class Track
 		rtpClientSession.write( packet.toByteBuffer() );
 	}
 
+	/**
+	 * Forwards a RTCP packet to client. The packet will be set to the address
+	 * indicated by the client at RTCP (odd) port.
+	 * <p>
+	 * TODO: This will be changed to support multiple clients connected to the
+	 * same (live) track.
+	 * 
+	 * @param packet
+	 *        a RTCP packet
+	 */
 	public void forwardRtcpToClient( RtcpPacket packet )
 	{
 		// modify the SSRC for the client
@@ -229,7 +300,7 @@ public class Track
 		}
 	}
 
-	// / SSRC ID generation
+	/** Used in SSRC id generation */
 	private static Random random = new Random();
 
 	/**
@@ -253,8 +324,17 @@ public class Track
 	}
 
 	/**
-	 * @param clientHost
-	 *        The clientHost to set.
+	 * Set the address of the server associated with this track.
+	 * <p>
+	 * TODO: This will be changed to support multiple clients connected to the
+	 * same (live) track.
+	 * 
+	 * @param serverHost
+	 *        The serverHost to set.
+	 * @param rtpPort
+	 *        the port number used for RTP packets
+	 * @param rtcpPort
+	 *        the port number used for RTCP packets
 	 */
 	public void setClientAddress( InetAddress clientAddress, int rtpPort, int rtcpPort )
 	{
@@ -267,8 +347,14 @@ public class Track
 	}
 
 	/**
+	 * Set the address of the server associated with this track.
+	 * 
 	 * @param serverHost
 	 *        The serverHost to set.
+	 * @param rtpPort
+	 *        the port number used for RTP packets
+	 * @param rtcpPort
+	 *        the port number used for RTCP packets
 	 */
 	public void setServerAddress( InetAddress serverAddress, int rtpPort, int rtcpPort )
 	{
