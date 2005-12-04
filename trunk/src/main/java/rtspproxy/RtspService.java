@@ -23,24 +23,12 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import org.apache.log4j.Logger;
-import org.apache.mina.common.IoAcceptor;
-import org.apache.mina.common.IoFilter;
-import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.TransportType;
-import org.apache.mina.filter.codec.ProtocolCodecFactory;
-import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.codec.ProtocolDecoder;
-import org.apache.mina.filter.codec.ProtocolEncoder;
 import org.apache.mina.registry.Service;
 
-import rtspproxy.auth.AuthenticationFilter;
-import rtspproxy.auth.IpAddressFilter;
-import rtspproxy.filter.impl.RequestUrlRewritingImpl;
-import rtspproxy.lib.Exceptions;
+import rtspproxy.filter.RtspClientFilters;
 import rtspproxy.proxy.ClientSide;
 import rtspproxy.rtsp.Handler;
-import rtspproxy.rtsp.RtspDecoder;
-import rtspproxy.rtsp.RtspEncoder;
 
 /**
  * @author Matteo Merli
@@ -49,26 +37,6 @@ public class RtspService implements ProxyService
 {
 
 	private static Logger log = Logger.getLogger( RtspService.class );
-
-	private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
-	{
-
-		// Decoders can be shared 
-		private ProtocolEncoder rtspEncoder = new RtspEncoder();
-		private ProtocolDecoder rtspDecoder = new RtspDecoder();
-
-		public ProtocolEncoder getEncoder()
-		{
-			return rtspEncoder;
-		}
-
-		public ProtocolDecoder getDecoder()
-		{
-			return rtspDecoder;
-		}
-	};
-
-	private static IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
 
 	public void start() throws IOException
 	{
@@ -86,7 +54,7 @@ public class RtspService implements ProxyService
 					service = new Service( "RtspService", TransportType.SOCKET,
 							new InetSocketAddress( netInterface, port ) );
 
-				Reactor.getRegistry().bind( service, new ClientSide() );
+				Reactor.getRegistry().bind( service, new ClientSide(), new RtspClientFilters() );
 
 				log.info( "RtspService Started - Listening on: "
 						+ InetAddress.getByName( netInterface ) + ":" + port );
@@ -95,32 +63,6 @@ public class RtspService implements ProxyService
 				log.fatal( e.getMessage() + " (port = " + port + ")" );
 				throw e;
 			}
-		}
-
-		IoAcceptor acceptor = Reactor.getRegistry().getAcceptor( TransportType.SOCKET );
-		IoFilterChain filterChain = acceptor.getFilterChain();
-		try {
-			boolean enableIpAddressFilter = Config.getBoolean(
-					"proxy.auth.ipAddressFilter.enable", false );
-			if ( enableIpAddressFilter )
-				filterChain.addLast( "ipfilter", new IpAddressFilter() );
-
-			// The codec filter is always present
-			filterChain.addLast( "codec", codecFilter );
-
-			boolean enableAuthenticationFilter = Config.getBoolean(
-					"proxy.auth.authentication.enable", false );
-			if ( enableAuthenticationFilter )
-				filterChain.addLast( "authentication", new AuthenticationFilter() );
-
-			for ( Object obj : filterChain.getAll() ) {
-				log.debug( "Filter: " + filterChain.getName( (IoFilter) obj ) );
-			}
-
-		} catch ( Exception e ) {
-			log.fatal( "Cannot register session filter: " + e );
-			Exceptions.logStackTrace( e );
-			Reactor.stop();
 		}
 	}
 

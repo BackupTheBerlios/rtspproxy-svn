@@ -33,6 +33,7 @@ import org.apache.mina.transport.socket.nio.SocketConnector;
 
 import rtspproxy.Config;
 import rtspproxy.RtpClientService;
+import rtspproxy.filter.RtspServerFilters;
 import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
@@ -86,13 +87,12 @@ public class ProxyHandler
 				try {
 					connectServerSide( request.getUrl() );
 
-				} catch ( UnresolvedAddressException e ) {
-					sendResponse( clientSession,
-							RtspResponse.errorResponse( RtspCode.DestinationUnreachable ) );
 				} catch ( IOException e ) {
 					log.error( e );
 					// closeAll();
-					return;
+				} finally {
+					if ( serverSession == null ) 
+						return;
 				}
 			}
 
@@ -331,16 +331,22 @@ public class ProxyHandler
 		// Start communication.
 		log.debug( "Trying to connect to '" + host + "' " + port );
 		try {
+
+			/*
+			 * TODO: Current implementation wait (future.join()) until the
+			 * connection with server is completed. This could block the thread
+			 * for a long time. Check how to do it in asyncronous way.
+			 */
 			ConnectFuture future = connector.connect(
-					new InetSocketAddress( host, port ), new ServerSide() );
+					new InetSocketAddress( host, port ), new ServerSide(), new RtspServerFilters() );
 			future.join();
 			serverSession = future.getSession();
 
-		} catch ( IOException e ) {
+		} catch ( UnresolvedAddressException e ) {
 			log.warn( "Destination unreachable: " + host + ":" + port );
 			sendResponse( clientSession,
 					RtspResponse.errorResponse( RtspCode.DestinationUnreachable ) );
-			throw e;
+			return;
 		}
 
 		log.debug( "Connected!" );
@@ -354,7 +360,7 @@ public class ProxyHandler
 	/**
 	 * Closes both sides of communication.
 	 */
-	public void closeAll()
+	public synchronized void closeAll()
 	{
 		if ( clientSession != null && clientSession.isConnected() )
 			clientSession.close();

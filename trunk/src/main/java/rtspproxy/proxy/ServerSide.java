@@ -14,20 +14,13 @@
 package rtspproxy.proxy;
 
 import org.apache.log4j.Logger;
-import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.filter.codec.ProtocolCodecFactory;
-import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.codec.ProtocolDecoder;
-import org.apache.mina.filter.codec.ProtocolEncoder;
 
 import rtspproxy.Config;
 import rtspproxy.filter.impl.RequestUrlRewritingImpl;
 import rtspproxy.lib.Exceptions;
-import rtspproxy.rtsp.RtspDecoder;
-import rtspproxy.rtsp.RtspEncoder;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
@@ -40,34 +33,12 @@ public class ServerSide extends IoHandlerAdapter
 
 	private static Logger log = Logger.getLogger( ServerSide.class );
 
-	private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
-	{
-
-		// Decoders can be shared
-		private ProtocolEncoder rtspEncoder = new RtspEncoder();
-		private ProtocolDecoder rtspDecoder = new RtspDecoder();
-
-		public ProtocolEncoder getEncoder()
-		{
-			return rtspEncoder;
-		}
-
-		public ProtocolDecoder getDecoder()
-		{
-			return rtspDecoder;
-		}
-	};
-
-	private static IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
-
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
 		IoFilterChain filterChain = session.getFilterChain();
 
-		// The codec filter is always present
-		filterChain.addLast( "codec", codecFilter );
-
+		// TODO: move this to RtspFilter
 		String rewritingFilter = Config.get(
 				"filter.requestUrlRewriting.implementationClass", null );
 
