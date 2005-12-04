@@ -188,6 +188,16 @@ public final class UnsignedLong extends UnsignedNumber {
 		else
 			return false;
 	}
+	
+	@Override
+	public int hashCode() {
+		int hashCode = 0;
+
+		for (int i=0; i<value.length; i++)
+		    hashCode = (int)(31*hashCode + (value[i] & 0xFFFFFFFFL));
+		
+		return hashCode;
+	}
 
 	@Override
 	public void shiftRight(int nBits) {

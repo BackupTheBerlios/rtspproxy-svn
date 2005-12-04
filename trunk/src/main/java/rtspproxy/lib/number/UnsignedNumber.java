@@ -50,6 +50,8 @@ public abstract class UnsignedNumber extends Number {
 	public abstract int compareTo(UnsignedNumber other);
 
 	public abstract boolean equals(Object other);
+	
+	public abstract int hashCode();
 
 	public String toHexString() {
 		return toHexString(false);

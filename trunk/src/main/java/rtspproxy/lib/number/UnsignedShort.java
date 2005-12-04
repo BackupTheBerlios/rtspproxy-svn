@@ -121,6 +121,11 @@ public final class UnsignedShort extends UnsignedNumber {
 			return false;
 		return value == ((Number) other).intValue();
 	}
+	
+	@Override
+	public int hashCode() {
+		return (int)value;
+	}
 
 	@Override
 	public String toString() {
