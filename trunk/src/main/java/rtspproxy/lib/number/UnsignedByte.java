@@ -118,6 +118,11 @@ public final class UnsignedByte extends UnsignedNumber {
 	public boolean equals(Object other) {
 		return value == ((Number)other).shortValue();
 	}
+	
+	@Override
+	public int hashCode() { 
+		return (int)value;
+	}
 
 	@Override
 	public String toString() {
