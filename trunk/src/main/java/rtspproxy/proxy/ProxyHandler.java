@@ -91,7 +91,7 @@ public class ProxyHandler
 					log.error( e );
 					// closeAll();
 				} finally {
-					if ( serverSession == null ) 
+					if ( serverSession == null )
 						return;
 				}
 			}
@@ -231,12 +231,13 @@ public class ProxyHandler
 	 */
 	public void passSetupResponseToClient( RtspResponse response )
 	{
-		// If there isn't yet an rtspSession, create a new one
+		// If there isn't yet a proxySession, create a new one
 		ProxySession proxySession = ProxySession.getByServerSessionID( response.getHeader( "Session" ) );
 		if ( proxySession == null ) {
 			proxySession = (ProxySession) clientSession.getAttribute( "proxySession" );
 			if ( proxySession == null ) {
 				proxySession = new ProxySession();
+				clientSession.setAttribute( "proxySession", proxySession );
 			}
 		}
 
@@ -338,7 +339,8 @@ public class ProxyHandler
 			 * for a long time. Check how to do it in asyncronous way.
 			 */
 			ConnectFuture future = connector.connect(
-					new InetSocketAddress( host, port ), new ServerSide(), new RtspServerFilters() );
+					new InetSocketAddress( host, port ), new ServerSide(),
+					new RtspServerFilters() );
 			future.join();
 			serverSession = future.getSession();
 
@@ -366,6 +368,13 @@ public class ProxyHandler
 			clientSession.close();
 		if ( serverSession != null && serverSession.isConnected() )
 			serverSession.close();
+
+		// Remove ProxySession and Track instances
+		if ( clientSession != null ) {
+			ProxySession proxySession = (ProxySession) clientSession.getAttribute( "proxySession" );
+			if ( proxySession != null )
+				proxySession.close();
+		}
 	}
 
 	/**

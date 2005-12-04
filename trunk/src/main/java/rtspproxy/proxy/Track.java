@@ -21,11 +21,11 @@ package rtspproxy.proxy;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.common.IoSession;
@@ -37,6 +37,13 @@ import rtspproxy.rtp.RtpPacket;
 import rtspproxy.rtp.rtcp.RtcpPacket;
 
 /**
+ * A Track is a part of a RTSP session. A typical RTSP session for a video
+ * stream trasmission is composed of 2 tracks: a track for video data and
+ * another track for audio data.
+ * <p>
+ * These two stream are independent and usually are activated by the same
+ * <code>PLAY</code> and <code>TEARDOWN</code> requests.
+ * 
  * @author Matteo Merli
  */
 public class Track
@@ -44,33 +51,45 @@ public class Track
 
 	private static Logger log = Logger.getLogger( Track.class );
 
+	/** Maps a server SSRC id to a Track */
+	private static Map<UnsignedInt, Track> serverSsrcMap = new ConcurrentHashMap<UnsignedInt, Track>();
+
+	/** Maps a client address to a Track */
+	private static Map<InetSocketAddress, Track> clientAddressMap = new ConcurrentHashMap<InetSocketAddress, Track>();
+
+	/** Maps a server address to a Track */
+	private static Map<InetSocketAddress, Track> serverAddressMap = new ConcurrentHashMap<InetSocketAddress, Track>();
+
+	/** Keeps track of the SSRC IDs used by the proxy, to avoid collisions. */
+	private static Set<UnsignedInt> proxySsrcList = Collections.synchronizedSet( new HashSet<UnsignedInt>() );
+
+	/**
+	 * Control Url of the track. This is the url handle given by the server to
+	 * control different tracks in a RTSP session.
+	 */
 	private String url;
 
+	/** SSRC id given by the server */
 	private UnsignedInt serverSSRC = new UnsignedInt( 0 );
+	/** SSRC id selected by the proxy */
 	private UnsignedInt proxySSRC = new UnsignedInt( 0 );;
 
+	/**
+	 * Cached references to IoSession objects used to send packets to server and
+	 * client.
+	 */
 	private IoSession rtpServerSession = null;
 	private IoSession rtcpServerSession = null;
 	private IoSession rtpClientSession = null;
 	private IoSession rtcpClientSession = null;
 
-	/** Maps a server SSRC id to a Track */
-	private static Map<UnsignedInt, Track> serverSsrcMap = Collections.synchronizedMap( new HashMap<UnsignedInt, Track>() );
-
-	/** Maps a client address to a Track */
-	private static Map<InetSocketAddress, Track> clientAddressMap = Collections.synchronizedMap( new HashMap<InetSocketAddress, Track>() );
-
-	/** Maps a server address to a Track */
-	private static Map<InetSocketAddress, Track> serverAddressMap = Collections.synchronizedMap( new HashMap<InetSocketAddress, Track>() );
-
-	/** Keeps track of the SSRC IDs used by the proxy, to avoid collisions. */
-	private static Set<UnsignedInt> proxySsrcList = Collections.synchronizedSet( new HashSet<UnsignedInt>() );
-
-	// IP address and RTP/RTCP ports for client and server.
-	// TODO: When using reflection, there will be more than one connected client
-	// at a
-	// time to the same Track. So the track should keep a list of connected
-	// clients and forward packets to each of them.
+	/**
+	 * IP address and RTP/RTCP ports for client and server.
+	 * <p>
+	 * TODO: When using reflection, there will be more than one connected client
+	 * at a time to the same Track. So the track should keep a list of connected
+	 * clients and forward packets to each of them.
+	 */
 	private InetAddress clientAddress;
 	private int clientRtpPort;
 	private int clientRtcpPort;
@@ -126,7 +145,7 @@ public class Track
 	// /// Member methods
 
 	/**
-	 * @return the
+	 * @return the SSRC id used byt the proxy
 	 */
 	public UnsignedInt getProxySSRC()
 	{
@@ -267,9 +286,6 @@ public class Track
 			rtpClientSession = RtpClientService.newRtpSession( new InetSocketAddress(
 					clientAddress, clientRtpPort ) );
 
-			// Client packets needs this attribute to find
-			// the track
-			rtpClientSession.setAttribute( "track", this );
 		}
 
 		rtpClientSession.write( packet.toByteBuffer() );
@@ -294,11 +310,77 @@ public class Track
 			rtcpClientSession = RtpClientService.newRtcpSession( new InetSocketAddress(
 					clientAddress, clientRtcpPort ) );
 
-			// Client packets needs this attribute to find
-			// the track
-			rtcpClientSession.setAttribute( "track", this );
 		}
+
+		rtcpClientSession.write( packet.toByteBuffer() );
 	}
+
+	/**
+	 * Set the address of the server associated with this track.
+	 * <p>
+	 * TODO: This will be changed to support multiple clients connected to the
+	 * same (live) track.
+	 * 
+	 * @param serverHost
+	 *        The serverHost to set.
+	 * @param rtpPort
+	 *        the port number used for RTP packets
+	 * @param rtcpPort
+	 *        the port number used for RTCP packets
+	 */
+	public synchronized void setClientAddress( InetAddress clientAddress, int rtpPort,
+			int rtcpPort )
+	{
+		this.clientAddress = clientAddress;
+		this.clientRtpPort = rtpPort;
+		this.clientRtcpPort = rtcpPort;
+
+		clientAddressMap.put( new InetSocketAddress( clientAddress, rtpPort ), this );
+		clientAddressMap.put( new InetSocketAddress( clientAddress, rtcpPort ), this );
+	}
+
+	/**
+	 * Set the address of the server associated with this track.
+	 * 
+	 * @param serverHost
+	 *        The serverHost to set.
+	 * @param rtpPort
+	 *        the port number used for RTP packets
+	 * @param rtcpPort
+	 *        the port number used for RTCP packets
+	 */
+	public synchronized void setServerAddress( InetAddress serverAddress, int rtpPort,
+			int rtcpPort )
+	{
+		this.serverAddress = serverAddress;
+		this.serverRtpPort = rtpPort;
+		this.serverRtcpPort = rtcpPort;
+
+		serverAddressMap.put( new InetSocketAddress( serverAddress, rtpPort ), this );
+		serverAddressMap.put( new InetSocketAddress( serverAddress, rtcpPort ), this );
+	}
+
+	public synchronized void close()
+	{
+		if ( serverSSRC != null )
+			serverSsrcMap.remove( serverSSRC );
+		serverAddressMap.remove( new InetSocketAddress( serverAddress, serverRtpPort ) );
+		serverAddressMap.remove( new InetSocketAddress( serverAddress, serverRtcpPort ) );
+
+		clientAddressMap.remove( new InetSocketAddress( clientAddress, clientRtpPort ) );
+		clientAddressMap.remove( new InetSocketAddress( clientAddress, clientRtcpPort ) );
+
+		if ( proxySSRC != null )
+			proxySsrcList.remove( proxySSRC );
+		log.debug( "Closed track " + url );
+	}
+
+	public String toString()
+	{
+		return "Track(url=\"" + url + "\"";
+	}
+
+	// ////////////////
 
 	/** Used in SSRC id generation */
 	private static Random random = new Random();
@@ -321,49 +403,6 @@ public class Track
 			}
 			// try with another id
 		}
-	}
-
-	/**
-	 * Set the address of the server associated with this track.
-	 * <p>
-	 * TODO: This will be changed to support multiple clients connected to the
-	 * same (live) track.
-	 * 
-	 * @param serverHost
-	 *        The serverHost to set.
-	 * @param rtpPort
-	 *        the port number used for RTP packets
-	 * @param rtcpPort
-	 *        the port number used for RTCP packets
-	 */
-	public void setClientAddress( InetAddress clientAddress, int rtpPort, int rtcpPort )
-	{
-		this.clientAddress = clientAddress;
-		this.clientRtpPort = rtpPort;
-		this.clientRtcpPort = rtcpPort;
-
-		clientAddressMap.put( new InetSocketAddress( clientAddress, rtpPort ), this );
-		clientAddressMap.put( new InetSocketAddress( clientAddress, rtcpPort ), this );
-	}
-
-	/**
-	 * Set the address of the server associated with this track.
-	 * 
-	 * @param serverHost
-	 *        The serverHost to set.
-	 * @param rtpPort
-	 *        the port number used for RTP packets
-	 * @param rtcpPort
-	 *        the port number used for RTCP packets
-	 */
-	public void setServerAddress( InetAddress serverAddress, int rtpPort, int rtcpPort )
-	{
-		this.serverAddress = serverAddress;
-		this.serverRtpPort = rtpPort;
-		this.serverRtcpPort = rtcpPort;
-
-		serverAddressMap.put( new InetSocketAddress( serverAddress, rtpPort ), this );
-		serverAddressMap.put( new InetSocketAddress( serverAddress, rtcpPort ), this );
 	}
 
 }
