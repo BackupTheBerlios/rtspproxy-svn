@@ -11,8 +11,13 @@
 
 package rtspproxy.rtsp;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.CharBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +28,8 @@ import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 
+import rtspproxy.lib.Exceptions;
+
 /**
  * 
  */
@@ -30,7 +37,8 @@ public class RtspDecoder implements ProtocolDecoder
 {
 
 	/**
-	 * State enumerator that indicates the reached state in the RTSP message decoding process.
+	 * State enumerator that indicates the reached state in the RTSP message
+	 * decoding process.
 	 */
 	public enum ReadState {
 		/** Unrecoverable error occurred */
@@ -53,46 +61,28 @@ public class RtspDecoder implements ProtocolDecoder
 
 	private static Logger log = Logger.getLogger( RtspDecoder.class );
 
-	private static final Pattern rtspRequestPattern = Pattern.compile( "([A-Z]+) ([^ ]+) RTSP/1.0" );
+	private static final Pattern rtspRequestPattern = Pattern.compile( "([A-Z_]+) ([^ ]+) RTSP/1.0" );
 	private static final Pattern rtspResponsePattern = Pattern.compile( "RTSP/1.0 ([0-9]+) .+" );
 	private static final Pattern rtspHeaderPattern = Pattern.compile( "([a-zA-Z\\-]+[0-9]?):\\s?(.*)" );
 
 	/**
-	 * Get a line from a string buffer and delete the line in the buffer.
-	 * 
-	 * @param buffer
-	 * @return
-	 */
-	private static String getLine( StringBuffer buffer )
-	{
-		int idx = buffer.indexOf( "\r\n" );
-		if ( idx == -1 ) {
-			return null;
-		} else {
-			// Return the line string (without CRLF)
-			String s = buffer.substring( 0, idx );
-			buffer.delete( 0, idx + 2 );
-			return s;
-		}
-	}
-
-	/**
-	 * Do the parsing on the incoming stream. If the stream does not contain the entire RTSP message wait for
-	 * other data to arrive, before dispatching the message.
+	 * Do the parsing on the incoming stream. If the stream does not contain the
+	 * entire RTSP message wait for other data to arrive, before dispatching the
+	 * message.
 	 * 
 	 * @see org.apache.mina.protocol.ProtocolDecoder#decode(org.apache.mina.protocol.IoSession,
-	 *      org.apache.mina.common.ByteBuffer, org.apache.mina.protocol.ProtocolDecoderOutput)
+	 *      org.apache.mina.common.ByteBuffer,
+	 *      org.apache.mina.protocol.ProtocolDecoderOutput)
 	 */
 	public void decode( IoSession session, ByteBuffer buffer, ProtocolDecoderOutput out )
 			throws ProtocolDecoderException
 	{
-		StringBuffer decodeBuf = new StringBuffer();
-
-		log.debug( "decode()" );
-
-		do {
-			decodeBuf.append( (char) buffer.get() );
-		} while ( buffer.hasRemaining() );
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader( new InputStreamReader( buffer.asInputStream(),
+					"US-ASCII" ) );
+		} catch ( UnsupportedEncodingException e1 ) {
+		}
 
 		// Retrieve status from session
 		ReadState state = (ReadState) session.getAttribute( "state" );
@@ -100,110 +90,126 @@ public class RtspDecoder implements ProtocolDecoder
 			state = ReadState.Command;
 		RtspMessage rtspMessage = (RtspMessage) session.getAttribute( "rtspMessage" );
 
-		while ( true ) {
+		try {
 
-			if ( state != ReadState.Command && state != ReadState.Header )
-				// the "while" loop is only used to read commands and headers
-				break;
+			while ( true ) {
 
-			String line = getLine( decodeBuf );
-			if ( line == null )
-				// there's no more data in the buffer
-				break;
+				if ( state != ReadState.Command && state != ReadState.Header )
+					// the "while" loop is only used to read commands and
+					// headers
+					break;
 
-			if ( line.length() == 0 ) {
-				// This is the empty line that marks the end
-				// of the headers section
-				state = ReadState.Body;
-				break;
-			}
+				String line = reader.readLine();
+				if ( line == null )
+					// there's no more data in the buffer
+					break;
 
-			switch ( state ) {
+				if ( line.length() == 0 ) {
+					// This is the empty line that marks the end
+					// of the headers section
+					state = ReadState.Body;
+					break;
+				}
 
-				case Command:
-					// log.debug( "Command line: " + line );
-					if ( line.startsWith( "RTSP" ) ) {
-						// this is a RTSP response
-						Matcher m = rtspResponsePattern.matcher( line );
-						if ( !m.matches() )
-							throw new ProtocolDecoderException(
-									"Malformed response line: " + line );
+				switch ( state ) {
 
-						RtspCode code = RtspCode.fromString( m.group( 1 ) );
-						rtspMessage = new RtspResponse();
-						( (RtspResponse) ( rtspMessage ) ).setCode( code );
-						RtspRequest.Verb verb = (RtspRequest.Verb) session.getAttribute( "lastRequestVerb" );
-						( (RtspResponse) ( rtspMessage ) ).setRequestVerb( verb );
+					case Command:
+						// log.debug( "Command line: " + line );
+						if ( line.startsWith( "RTSP" ) ) {
+							// this is a RTSP response
+							Matcher m = rtspResponsePattern.matcher( line );
+							if ( !m.matches() )
+								throw new ProtocolDecoderException(
+										"Malformed response line: " + line );
 
-					} else {
-						// this is a RTSP request
-						Matcher m = rtspRequestPattern.matcher( line );
-						if ( !m.matches() )
-							throw new ProtocolDecoderException(
-									"Malformed request line: " + line );
+							RtspCode code = RtspCode.fromString( m.group( 1 ) );
+							rtspMessage = new RtspResponse();
+							( (RtspResponse) ( rtspMessage ) ).setCode( code );
+							RtspRequest.Verb verb = (RtspRequest.Verb) session.getAttribute( "lastRequestVerb" );
+							( (RtspResponse) ( rtspMessage ) ).setRequestVerb( verb );
 
-						String verb = m.group( 1 );
-						String strUrl = m.group( 2 );
-						URL url = null;
-						if ( !strUrl.equalsIgnoreCase( "*" ) ) {
-							try {
-								url = new URL( strUrl );
-							} catch ( MalformedURLException e ) {
-								log.info( e );
-								url = null;
-								session.setAttribute( "state", ReadState.Failed );
-								throw new ProtocolDecoderException( "Invalid URL" );
+						} else {
+							// this is a RTSP request
+							Matcher m = rtspRequestPattern.matcher( line );
+							if ( !m.matches() )
+								throw new ProtocolDecoderException(
+										"Malformed request line: " + line );
+
+							String verb = m.group( 1 );
+							String strUrl = m.group( 2 );
+							URL url = null;
+							if ( !strUrl.equalsIgnoreCase( "*" ) ) {
+								try {
+									url = new URL( strUrl );
+								} catch ( MalformedURLException e ) {
+									log.info( e );
+									url = null;
+									session.setAttribute( "state", ReadState.Failed );
+									throw new ProtocolDecoderException( "Invalid URL" );
+								}
 							}
+							rtspMessage = new RtspRequest();
+							( (RtspRequest) rtspMessage ).setVerb( verb );
+
+							if ( ( (RtspRequest) rtspMessage ).getVerb() == RtspRequest.Verb.None ) {
+								session.setAttribute( "state", ReadState.Failed );
+								throw new ProtocolDecoderException( "Invalid method: "
+										+ verb );
+							}
+
+							( (RtspRequest) rtspMessage ).setUrl( url );
 						}
-						rtspMessage = new RtspRequest();
-						( (RtspRequest) rtspMessage ).setVerb( verb );
+						state = ReadState.Header;
+						break;
 
-						if ( ( (RtspRequest) rtspMessage ).getVerb() == RtspRequest.Verb.None ) {
-							session.setAttribute( "state", ReadState.Failed );
-							throw new ProtocolDecoderException( "Invalid method: " + verb );
-						}
+					case Header:
+						// this is an header
+						Matcher m = rtspHeaderPattern.matcher( line );
 
-						( (RtspRequest) rtspMessage ).setUrl( url );
-					}
-					state = ReadState.Header;
-					break;
+						if ( !m.matches() )
+							throw new ProtocolDecoderException( "RTSP header not valid" );
 
-				case Header:
-					// this is an header
-					Matcher m = rtspHeaderPattern.matcher( line );
+						rtspMessage.setHeader( m.group( 1 ), m.group( 2 ) );
+						break;
 
-					if ( !m.matches() )
-						throw new ProtocolDecoderException( "RTSP header not valid" );
-
-					rtspMessage.setHeader( m.group( 1 ), m.group( 2 ) );
-					break;
-
-			}
-		}
-
-		if ( state == ReadState.Body ) {
-			// Read the message body
-			int bufferLen = Integer.parseInt( rtspMessage.getHeader( "Content-Length",
-					"0" ) );
-			if ( bufferLen == 0 ) {
-				// there's no buffer to be read
-				state = ReadState.Dispatch;
-
-			} else {
-				// we have a content buffer to read
-				int bytesToRead = bufferLen - rtspMessage.getBufferSize();
-
-				if ( bytesToRead < decodeBuf.length() ) {
-					log.warn( "We are reading more bytes than Content-Length." );
 				}
+			}
 
-				// read the content buffer
-				rtspMessage.appendToBuffer( decodeBuf );
-				if ( rtspMessage.getBufferSize() >= bufferLen ) {
-					// The RTSP message parsing is completed
+			if ( state == ReadState.Body ) {
+				// Read the message body
+				int bufferLen = Integer.parseInt( rtspMessage.getHeader(
+						"Content-Length", "0" ) );
+				if ( bufferLen == 0 ) {
+					// there's no buffer to be read
 					state = ReadState.Dispatch;
+
+				} else {
+					// we have a content buffer to read
+					int bytesToRead = bufferLen - rtspMessage.getBufferSize();
+
+					// if ( bytesToRead < reader. decodeBuf.length() ) {
+					// log.warn( "We are reading more bytes than
+					// Content-Length." );
+					// }
+
+					// read the content buffer
+					CharBuffer bufferContent = CharBuffer.allocate( bytesToRead );
+					reader.read( bufferContent );
+					bufferContent.flip();
+					rtspMessage.appendToBuffer( bufferContent );
+					if ( rtspMessage.getBufferSize() >= bufferLen ) {
+						// The RTSP message parsing is completed
+						state = ReadState.Dispatch;
+					}
 				}
 			}
+		} catch ( IOException e ) {
+			/*
+			 * error on input stream should not happen since the input stream is
+			 * coming from a bytebuffer.
+			 */
+			Exceptions.logStackTrace( e );
+			return;
 		}
 
 		if ( state == ReadState.Dispatch ) {

@@ -18,6 +18,7 @@
 
 package rtspproxy.rtsp;
 
+import java.nio.CharBuffer;
 import java.util.Properties;
 
 import rtspproxy.Config;
@@ -178,6 +179,14 @@ public abstract class RtspMessage
 	public void appendToBuffer( StringBuffer other )
 	{
 		this.buffer.append( other );
+	}
+	
+	/**
+	 * @param other buffer with content to be appended
+	 */
+	public void appendToBuffer( CharBuffer other )
+	{
+		this.buffer.append(other);
 	}
 
 	/**
