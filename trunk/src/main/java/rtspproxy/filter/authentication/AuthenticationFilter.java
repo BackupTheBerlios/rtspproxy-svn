@@ -16,7 +16,7 @@
  * 
  */
 
-package rtspproxy.auth;
+package rtspproxy.filter.authentication;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
@@ -26,7 +26,9 @@ import org.apache.mina.common.WriteFuture;
 
 import rtspproxy.Config;
 import rtspproxy.Reactor;
-import rtspproxy.lib.Base64;
+import rtspproxy.filter.authentication.scheme.AuthenticationScheme;
+import rtspproxy.filter.authentication.scheme.BasicAuthentication;
+import rtspproxy.filter.authentication.scheme.Credentials;
 import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
@@ -34,15 +36,39 @@ import rtspproxy.rtsp.RtspResponse;
 
 /**
  * @author Matteo Merli
- *
  */
 public class AuthenticationFilter extends IoFilterAdapter
 {
 
 	private static Logger log = Logger.getLogger( AuthenticationFilter.class );
 
+	/** Different authentication schemes implementation */
+	private static AuthenticationScheme[] schemes = { new BasicAuthentication() };
+
+	/** Contains a comma-separated list of the scheme names. */
+	private static String schemesString;
+
+	static {
+		// Pre-fill the scheme names
+		schemesString = new String();
+		for ( int i = 0; i < schemes.length; i++ ) {
+			schemesString += schemes[i].getName();
+			if ( i < schemes.length - 1 )
+				schemesString += ", ";
+		}
+	}
+
+	/**
+	 * Backend provider.
+	 */
 	private AuthenticationProvider provider;
 
+	private String realm;
+
+	/**
+	 * Construct a new AuthenticationFilter. Looks at the configuration to load
+	 * the choseen backend implementation.
+	 */
 	public AuthenticationFilter()
 	{
 		// Check which backend implementation to use
@@ -79,11 +105,14 @@ public class AuthenticationFilter extends IoFilterAdapter
 		try {
 			provider = (AuthenticationProvider) providerClass.newInstance();
 			provider.init();
+
 		} catch ( Exception e ) {
 			log.fatal( "Error starting AuthenticationProvider: " + e );
 			Reactor.stop();
 			return;
 		}
+
+		realm = "RtspProxy " + Config.get( "proxy.rtsp.interface", "" );
 
 		log.info( "Using AuthenticationFilter (" + className + ")" );
 	}
@@ -99,22 +128,46 @@ public class AuthenticationFilter extends IoFilterAdapter
 
 		if ( session.getAttribute( "auth" ) != null ) {
 			// Client already autheticated
-			log.info( "Already authenticaed: " + session.getAttribute( "auth" ) );
+			log.debug( "Already authenticaed: " + session.getAttribute( "auth" ) );
 			nextFilter.messageReceived( session, message );
 		}
 
 		String authString = ( (RtspMessage) message ).getHeader( "Proxy-Authorization" );
 		if ( authString == null ) {
 			log.debug( "RTSP message: \n" + message );
-			RtspResponse response = RtspResponse.errorResponse( RtspCode.Unauthorized );
-			// TODO: move the signature to something static!
-			String proxySignature = "RtspProxy "
-					+ Config.get( "proxy.rtsp.interface", "" );
-			response.setHeader( "Proxy-Authenticate", "Basic realm=\"" + proxySignature
+			RtspResponse response = RtspResponse.errorResponse( RtspCode.ProxyAuthenticationRequired );
+			response.setHeader( "Proxy-Authenticate", schemesString + " realm=\"" + realm
 					+ "\"" );
 
-			// TODO: I should be able to send a RtspMessage here using the 
-			//       already provided encoder.
+			// TODO: I should be able to send a RtspMessage here using the
+			// already provided encoder.
+			WriteFuture written = session.write( response );
+			// Why have I to wait here????
+			written.join();
+			// session.close();
+			return;
+		}
+
+		AuthenticationScheme scheme = getAuthenticationScheme( authString );
+		if ( scheme == null ) {
+			RtspResponse response = RtspResponse.errorResponse( RtspCode.BadRequest );
+
+			// TODO: I should be able to send a RtspMessage here using the
+			// already provided encoder.
+			WriteFuture written = session.write( response );
+			// Why have I to wait here????
+			written.join();
+			// session.close();
+			return;
+		}
+
+		// Check the authentication credentials
+		Credentials credentials = scheme.getCredentials( authString );
+		if ( credentials == null || provider.isAuthenticated( credentials ) == false ) {
+			RtspResponse response = RtspResponse.errorResponse( RtspCode.Unauthorized );
+
+			// TODO: I should be able to send a RtspMessage here using the
+			// already provided encoder.
 			WriteFuture written = session.write( ByteBuffer.wrap( response.toString().getBytes() ) );
 			// Why have I to wait here????
 			written.join();
@@ -122,26 +175,39 @@ public class AuthenticationFilter extends IoFilterAdapter
 			return;
 		}
 
-		authString = authString.split( " " )[1];
-		basicAuthentication( authString );
+		/*
+		 * Mark the session with an "authenticated" attribute. This will prevent
+		 * the check for the credentials for every message received.
+		 */
+		session.setAttribute( "auth", credentials.getUserName() );
 
 		// Forward message
 		nextFilter.messageReceived( session, message );
 	}
 
-	private boolean basicAuthentication( String authString )
+	/**
+	 * Gets the authentication scheme stated by the client.
+	 * 
+	 * @param authString
+	 * @return
+	 */
+	private static AuthenticationScheme getAuthenticationScheme( String authString )
 	{
-		byte[] decBytes = Base64.decode( authString );
-		StringBuilder sb = new StringBuilder();
-		for ( byte b : decBytes ) {
-			sb.append( (char) b );
+		String schemeName;
+		try {
+			schemeName = authString.split( " " )[0];
+		} catch ( IndexOutOfBoundsException e ) {
+			// Malformed auth string
+			return null;
 		}
-		String auth = sb.toString();
-		log.debug( "auth: " + auth );
-		String username = auth.split( ":", 2 )[0];
-		String password = auth.split( ":", 2 )[1];
-		log.debug( "username=" + username + " - password=" + password );
 
-		return provider.isAuthenticated( username, password );
+		for ( int i = 0; i < schemes.length; i++ ) {
+			if ( schemeName.equalsIgnoreCase( schemes[i].getName() ) )
+				return schemes[i];
+		}
+
+		// Scheme not valid
+		return null;
 	}
+
 }

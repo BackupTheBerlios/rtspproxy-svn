@@ -16,20 +16,56 @@
  * 
  */
 
-package rtspproxy.auth;
-
-import java.net.InetAddress;
+package rtspproxy.filter.authentication.scheme;
 
 /**
+ * Holds the credentials (username and password) sent by the client.
+ * 
  * @author Matteo Merli
  */
-public interface IpAddressProvider
+public class Credentials
 {
 
-	public void init() throws Exception;
+	private String userName;
+	private String password;
 
-	public void shutdown() throws Exception;
-	
-	public boolean isBlocked( InetAddress address );
-	
+	public Credentials( String userName, String password )
+	{
+		this.userName = userName;
+		this.password = password;
+	}
+
+	/**
+	 * @return Returns the password.
+	 */
+	public String getPassword()
+	{
+		return password;
+	}
+
+	/**
+	 * @param password
+	 *        The password to set.
+	 */
+	public void setPassword( String password )
+	{
+		this.password = password;
+	}
+
+	/**
+	 * @return Returns the userName.
+	 */
+	public String getUserName()
+	{
+		return userName;
+	}
+
+	/**
+	 * @param userName
+	 *        The userName to set.
+	 */
+	public void setUserName( String userName )
+	{
+		this.userName = userName;
+	}
 }

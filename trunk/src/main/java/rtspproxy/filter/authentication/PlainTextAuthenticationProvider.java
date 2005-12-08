@@ -16,7 +16,7 @@
  * 
  */
 
-package rtspproxy.auth;
+package rtspproxy.filter.authentication;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 
 import rtspproxy.Config;
 import rtspproxy.Reactor;
+import rtspproxy.filter.authentication.scheme.Credentials;
 
 /**
  * @author Matteo Merli
@@ -68,19 +69,19 @@ public class PlainTextAuthenticationProvider implements AuthenticationProvider
 		// Do nothing
 	}
 
-	public boolean isAuthenticated( String username, String password )
+	public boolean isAuthenticated( Credentials credentials )
 	{
-		String storedPassword = usersDb.getProperty( username );
+		String storedPassword = usersDb.getProperty( credentials.getUserName() );
 		if ( storedPassword == null )
 			// User is not present
 			return false;
 
-		if ( password.compareTo( storedPassword ) == 0 )
+		if ( storedPassword.compareTo( credentials.getPassword() ) == 0 )
 			// Password is ok
 			return true;
-
-		// Password is wrong
-		return false;
+		else
+			// Password is wrong
+			return false;
 	}
 
 }
