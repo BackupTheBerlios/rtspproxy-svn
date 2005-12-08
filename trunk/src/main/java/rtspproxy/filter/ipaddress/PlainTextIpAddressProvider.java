@@ -65,7 +65,7 @@ public class PlainTextIpAddressProvider implements IpAddressProvider
 		// Load rules from file
 		String fileName = Config.getHome()
 				+ File.separator
-				+ Config.get( "auth.ipfilter.text.file", "conf" + File.separator
+				+ Config.get( "proxy.filter.ipaddress.text.file", "conf" + File.separator
 						+ "ipfilter.txt" );
 
 		loadRules( new FileReader( new File( fileName ) ) );

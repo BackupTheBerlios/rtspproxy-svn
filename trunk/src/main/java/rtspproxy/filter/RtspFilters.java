@@ -76,7 +76,7 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 	protected void addIpAddressFilter( IoFilterChain chain )
 	{
 		boolean enableIpAddressFilter = Config.getBoolean(
-				"proxy.auth.ipAddressFilter.enable", false );
+				"proxy.filter.ipaddress.enable", false );
 
 		if ( enableIpAddressFilter ) {
 			if ( ipAddressFilter == null )
@@ -100,7 +100,7 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 	protected void addAuthenticationFilter( IoFilterChain chain )
 	{
 		boolean enableAuthenticationFilter = Config.getBoolean(
-				"proxy.auth.authentication.enable", false );
+				"proxy.filter.authentication.enable", false );
 
 		if ( enableAuthenticationFilter ) {
 			if ( authenticationFilter == null )

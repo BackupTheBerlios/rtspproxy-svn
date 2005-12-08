@@ -42,8 +42,8 @@ public class IpAddressFilter extends IoFilterAdapter
 	{
 		// Check which backend implementation to use
 		// Default is plain-text implementation
-		String className = Config.get( "auth.ipAddressFilter.implementationClass",
-				"rtspproxy.auth.PlainTextIpAddressProvider" );
+		String className = Config.get( "proxy.filter.ipaddress.implementationClass",
+				"rtspproxy.filter.ipaddress.PlainTextIpAddressProvider" );
 
 		Class providerClass;
 		try {

@@ -45,7 +45,7 @@ public class PlainTextAuthenticationProvider implements AuthenticationProvider
 		// Load users from file
 		String fileName = Config.getHome()
 				+ File.separator
-				+ Config.get( "auth.authentication.text.file", "conf" + File.separator
+				+ Config.get( "proxy.filter.authentication.text.file", "conf" + File.separator
 						+ "users.txt" );
 
 		try {

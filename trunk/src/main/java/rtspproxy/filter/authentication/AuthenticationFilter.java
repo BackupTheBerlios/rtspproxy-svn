@@ -41,6 +41,8 @@ public class AuthenticationFilter extends IoFilterAdapter
 {
 
 	private static Logger log = Logger.getLogger( AuthenticationFilter.class );
+	
+	private static final String ATTR = AuthenticationFilter.class.toString() + "Attr";
 
 	/** Different authentication schemes implementation */
 	private static AuthenticationScheme[] schemes = { new BasicAuthentication() };
@@ -73,8 +75,8 @@ public class AuthenticationFilter extends IoFilterAdapter
 	{
 		// Check which backend implementation to use
 		// Default is plain-text implementation
-		String className = Config.get( "proxy.auth.authentication.implementationClass",
-				"rtspproxy.auth.PlainTextAuthenticationProvider" );
+		String className = Config.get( "proxy.filter.authentication.implementationClass",
+				"rtspproxy.filter.authentication.PlainTextAuthenticationProvider" );
 
 		Class providerClass;
 		try {
@@ -126,9 +128,9 @@ public class AuthenticationFilter extends IoFilterAdapter
 			return;
 		}
 
-		if ( session.getAttribute( "auth" ) != null ) {
+		if ( session.getAttribute( ATTR ) != null ) {
 			// Client already autheticated
-			log.debug( "Already authenticaed: " + session.getAttribute( "auth" ) );
+			log.debug( "Already authenticaed: " + session.getAttribute( ATTR ) );
 			nextFilter.messageReceived( session, message );
 		}
 
@@ -179,7 +181,7 @@ public class AuthenticationFilter extends IoFilterAdapter
 		 * Mark the session with an "authenticated" attribute. This will prevent
 		 * the check for the credentials for every message received.
 		 */
-		session.setAttribute( "auth", credentials.getUserName() );
+		session.setAttribute( ATTR, credentials.getUserName() );
 
 		// Forward message
 		nextFilter.messageReceived( session, message );
