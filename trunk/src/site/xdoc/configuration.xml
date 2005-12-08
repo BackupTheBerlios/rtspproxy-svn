@@ -24,30 +24,6 @@
 				<source>$ export PATH=$PATH:/path/to/rtspproxy/folder</source>
 			</subsection>
 
-			<subsection name="Installing from sources">
-				<p>
-					In order to compile the sources, you will need the
-					<a href="http://maven.apache.org/maven2">Maven 2</a>
-					tool. This is a tool that assist in project
-					management, builds and releases and it is especially
-					tailored to Java projects. Please refer to its
-					website for installing and configuring it.
-				</p>
-				<p>
-					Once you have Maven configured and working you can
-					compile the project simply by doing:
-				</p>
-				<source>$ mvn</source>
-				<p>in the base project folder.</p>
-				<p>
-					This will produce, if there are no problems, 
-					a folder named <code>target/rtspproxy-<i>[version]</i>-default</code>
-					containing the binaries and generated 
-					documentations.
-					Then you can proceed like explained above.
-				</p>
-			</subsection>
-
 			<subsection name="Setup">
 				<p>
 					The proxy parameters are managed trough a
@@ -246,210 +222,20 @@
 
 			</subsection>
 			
-			<subsection name="Authorization and Authentication">
+			<subsection name="Running RtspProxy">
+			
 				<p>
-					The RtspProxy is capable of restricting access only to 
-					authorized clients. This access control scheme is 
-					completeley separated from the server access control 
-					because it's proxy specific.
-				</p>
+					On Unix-like systems the proxy can be launched using the script
+					located in the base directory: 
+				</p>	
+				<source>$ ./rtspproxy</source>
+				
 				<p>
-					If the server ask for authentication to give access to 
-					media content, the two access control layers will work
-					together, providing a two step authentication. The proxy
-					will forward client authorization data to the server in 
-					order to obtain itself access to protected contents.
+					For Windows systems there is a batch script: <code>rtspproxy.bat</code>. 
 				</p>
-				<p>
-					There are two possible access control schemes that can be 
-					enabled at the proxy level, one based on user/password
-					data sent by client and the other that use the client IP 
-					address or host name.
-				</p>
-				
-				<subsection name="Authentication">
-					<p>
-						The RTSP specification foresees the optional presence of 
-						a proxy-level authentication layer. This authentication
-						works in the same way of RTSP and HTTP server authentication.
-						
-					</p>
-				</subsection>
-				
-				<subsection name="IP address / host name filter">
-					<p>
-						This access control scheme does use a set of user defined
-						rules to evaluate if a client has or not the right to use 
-						the proxy services. 
-					</p>
-					<p>
-						The default implementation of this filter reads the rules
-						from a plain text file located in <code>conf/ipfilter.txt</code>.
-						T
-					</p>
-					
-					
-					<table>
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Type</th>
-								<th>Default</th>
-								<th>Description</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>
-									<code>proxy.auth.ipAddressFilter.enable</code>
-								</td>
-								<td>Boolean</td>
-								<td>
-									<code>false</code>
-								</td>
-								<td>
-									This flag let you to enable or disable
-									the IP address filter.
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<code>auth.ipAddressFilter.implementationClass</code>
-								</td>
-								<td>String</td>
-								<td><code>rtspproxy.auth.PlainTextIpAddressProvider</code></td>
-								<td>
-									Name of a class that implements the 
-									<code>rtspproxy.auth.IpAddressProvider</code> interface.
-								</td>
-							</tr>
-						</tbody>
-					</table>
-					
-					<subsection name="Plain text Implementation">
-						<p>	
-							This is the default implementation of the IP address filter. It reads 
-							the rules from a plain text file and try to match IP address and hostname
-							of clients with these rules.
-						</p>
-						<p>
-							The rules file consist of a sequence of directives, for example:
-						</p>
-						<source>Deny *
-Allow 10.0.0.*
-Allow *.mydomain.com</source>
-						<p>
-							The order of the rules is extremely important, because the client
-							address will be compared with all of these rules in the given order.
-							In the example, the above rules file states that are denied all 
-							connection except from clients which addresses are in the subnet 
-							<code>10.0.0.0-255</code> and those that have an hostname that 
-							contains <code>mydomain.com</code>.
-						</p>
-						<p>
-							The inverse situation would be to allow connection from all addresses
-							and deny a few selected ones.
-						</p>
-						<source>Allow *
-Deny 192.123.25.*
-Deny *.bad-domain.com</source>
-						<p>
-							You can put as many rules as you want to acheive a fine grained 
-							access control.
-						</p>
-						<subsection name="Properties">
-							<table>
-								<thead>
-									<tr>
-										<th>Name</th>
-										<th>Type</th>
-										<th>Default</th>
-										<th>Description</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td>
-											<code>proxy.auth.ipAddressFilter.plainText.file</code>
-										</td>
-										<td>String</td>
-										<td>
-											<code>conf/ipfilter.txt</code>
-										</td>
-										<td>
-											Location of the rules file.
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</subsection>
-					</subsection>
-					
-					<subsection name="Using an alternative implementation">
-						<p>
-							Sometimes a fixed set of rules is not enough to set 
-							up a good access control policy, or perhaps the 
-							authorization must be integrated with an existing
-							system.
-						</p>
-						<p>
-							In all of these situations, you can provide a custom
-							implementation of the backend. All it needs to be done
-							is to provide a class that implements the
-							<code>rtspproxy.auth.IpAddressProvider</code> interface.
-						</p>
-						<source>public interface IpAddressProvider
-{
-	public void init() throws Exception;
-	public void shutdown() throws Exception;
-	public boolean isBlocked( InetAddress address );
-}</source>
-						<p>
-							This interface is only composed of three methods:
-						</p>
-						<table>
-							<thead>
-								<tr>
-									<th>Method</th>
-									<th>Description</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td>init()</td>
-									<td>Called at startup. Should be used to </td>
-								</tr>
-								<tr>
-									<td>shutdown()</td>
-									<td>Called before the proxy shutdown. Should be used close
-										opened connections...
-									</td>
-								</tr>
-								<tr>
-									<td>isBlocked( InetAddress address )</td>
-									<td>This method must return <code>true</code> if the
-										connection from the given <code>address</code> should
-										be closed or <code>false</code> otherwise.
-									</td>
-								</tr>
-							</tbody>
-						</table>
-
-						<p>
-							To use your custom implementation instead of the default one, the class
-							should be made available in the Java ClassPath (eg: by putting the 
-							containing Jar in the <code>lib</code> directory). Then you should 
-							tell the IpAddressFilter to use you implementation by adding 
-							the following line in the <code>rtspproxy.properties</code> file.
-						</p>
-						<source>auth.ipAddressFilter.implementationClass = path.to.MyCustomClass</source>
-						
-					</subsection>
-					
-				</subsection>
-				
+			
 			</subsection>
-
+				
 		</section>
 	</body>
 </document>

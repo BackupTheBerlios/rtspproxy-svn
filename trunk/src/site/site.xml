@@ -23,21 +23,30 @@
 			<item
 				name="Overview"
 				href="overview.html" />
-			<!-- <item
-				name="Install"
-				href="install.html" /> -->
 			<item
 				name="Configuration"
-				href="configuration.html" />
+				href="configuration.html">
+				
+				<item
+					name="Compile from sources"
+					href="sources.html" />
+				<item
+					name="Filters"
+					href="filters.html">
+					<item
+						name="Authentication"
+						href="authentication.html" />
+					<item
+						name="IP address filter"
+						href="ipAddressFilter.html" />
+				</item>
+			</item>
 		</menu>
 
 		<menu name="Project">
 			<item
 				name="Download"
 				href="download.html" />
-			<item
-				name="SVN"
-				href="source-repository.html" />
 			<item
 				name="Mailing Lists"
 				href="mail-lists.html" />
@@ -57,6 +66,9 @@
 
 		<menu name="Development">
 			<item
+				name="SVN"
+				href="source-repository.html" />
+			<item
 				name="Todo"
 				href="todo.html" />
 			<item
@@ -65,29 +77,13 @@
 			<item
 				name="File Activity"
 				href="file-activity.html" />
+				<!-- 
 			<item
 				name="Javadocs"
-				href="apidocs/index.html" 
-				target="_blank"/>
+				href="apidocs/index.html"
+				target="_blank" />
+				-->
 		</menu>
-		<!-- 
-			<menu name="Download">
-			<item
-			name="Source Code"
-			href="download/source_code.html" />
-			<item
-			name="Binaries"
-			href="download/binaries.html"
-			collapse="true">
-			<item
-			name="Unix"
-			href="download/unix.html" />
-			<item
-			name="Windows"
-			href="download/windows.html" />
-			</item>
-			</menu>
-		-->
 
 	</body>
 </project>

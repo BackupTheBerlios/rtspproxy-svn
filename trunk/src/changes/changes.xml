@@ -6,7 +6,7 @@
 	</properties>
 	<body>
 
-		<release version="3.0-ALPHA2-SNAPSHOT" date="in SVN">
+		<release version="3.0-ALPHA2" date="2005-12-08">
 			<action dev="merlimat" type="add">
 				Added preliminary implementation of the IP address and
 				host name filter.
@@ -14,15 +14,18 @@
 			<action dev="merlimat" type="fix">
 				Fixed Windows startup script.
 			</action>
+			<action dev="merlimat" type="update">
+				Using only a UDP port pair for all RTP/RTCP packet
+				handling and sending for all the connected clients.
+			</action>
+			<action dev="merlimat" type="fix">
+				Properly clear session data when a session is closed.
+			</action>
 			<action dev="merlimat" type="fix">
 				Fixed several NullPointerException.
 			</action>
 			<action dev="merlimat" type="update">
 				Faster parsing of RTSP messages.
-			</action>
-			<action dev="merlimat" type="update">
-				Using only a UDP port pair for all RTP/RTCP packet
-				handling and sending for all the connected clients.
 			</action>
 			<action dev="merlimat" type="add">
 				Handling proper shutdown of the service.

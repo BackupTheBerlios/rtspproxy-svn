@@ -39,8 +39,13 @@
 
 
 		<section name="News">
+			<subsection name="08 Dec 2005 - Released RtspProxy 3.0-ALPHA2">
+				<p>
+				</p>
+			</subsection>
+		
 			<subsection
-				name="24 Oct 2005 - Released RTSP Proxy 3.0-ALPHA1">
+				name="24 Oct 2005 - Released RtspProxy 3.0-ALPHA1">
 				<p>
 					The first release of the brand new Java based
 					RtspProxy branch has been released.
