@@ -27,8 +27,10 @@ import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 
 import rtspproxy.Config;
+import rtspproxy.Reactor;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
+import rtspproxy.filter.rewrite.RequestUrlRewritingImpl;
 import rtspproxy.rtsp.RtspDecoder;
 import rtspproxy.rtsp.RtspEncoder;
 
@@ -104,6 +106,22 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 			if ( authenticationFilter == null )
 				authenticationFilter = new AuthenticationFilter();
 			chain.addLast( "authentication", authenticationFilter );
+		}
+	}
+
+	protected void addRewriteFilter( IoFilterChain chain )
+	{
+		// TODO: move this to RtspFilters
+		String rewritingFilter = Config.get(
+				"filter.requestUrlRewriting.implementationClass", null );
+
+		try {
+			if ( rewritingFilter != null )
+				chain.addLast( "requestUrlRewriting", new RequestUrlRewritingImpl(
+						rewritingFilter ) );
+		} catch ( Exception e ) {
+			// already logged
+			Reactor.stop();
 		}
 	}
 }
