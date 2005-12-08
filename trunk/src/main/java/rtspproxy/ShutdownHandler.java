@@ -15,6 +15,7 @@
  * $URL$
  * 
  */
+
 package rtspproxy;
 
 import org.apache.log4j.Logger;
@@ -22,39 +23,25 @@ import org.apache.log4j.Logger;
 import rtspproxy.lib.Exceptions;
 
 /**
+ * The thread holded by this class is started in the shutdown phase.
  * 
+ * @author Matteo Merli
  */
-public class Main
+public class ShutdownHandler extends Thread
 {
 
-	static Logger log = Logger.getLogger( "rtspproxy" );
+	private static Logger log = Logger.getLogger( ShutdownHandler.class );
 
-	public static void main( String[] args )
+	public void run()
 	{
-		// TODO: remove this temp stuffs
-		/*
-		 * for ( Object key : System.getProperties().keySet() ) { String value =
-		 * System.getProperty( (String)key ); System.out.println( key + " : " +
-		 * value ); }
-		 */
-
-		// Register the "rtsp://" protocol scheme
-		System.setProperty( "java.protocol.handler.pkgs", "rtspproxy" );
-
-		new Config();
-
-		// Register the signal handler
-		Runtime.getRuntime().addShutdownHook( new ShutdownHandler() );
-
+		log.info( "Shutting down" );
 		try {
-			log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
-			Reactor.setStandalone( true );
-			Reactor.start();
+			log.info( "Stopping " + Config.getName() + " " + Config.getVersion() );
+			Reactor.stop();
 
 		} catch ( Exception e ) {
 			log.fatal( "Exception in the reactor: " + e );
 			Exceptions.logStackTrace( e );
-			System.exit( -1 );
 		}
 	}
 

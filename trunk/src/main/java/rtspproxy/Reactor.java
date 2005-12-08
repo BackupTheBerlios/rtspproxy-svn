@@ -69,11 +69,13 @@ public class Reactor
 			if ( rtpServerService != null )
 				rtpServerService.stop();
 		} catch ( Exception e ) {
-			log.debug( "Error shutting down: " + e  );
+			log.debug( "Error shutting down: " + e );
 		}
+		
+		log.info( "Shutdown completed" );
 
 		if ( isStandalone )
-			System.exit( 0 );
+			Runtime.getRuntime().halt( 0 );
 	}
 
 	protected static synchronized ServiceRegistry getRegistry()
