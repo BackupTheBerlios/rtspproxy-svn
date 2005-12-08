@@ -36,6 +36,8 @@ public class ProxySession
 
 	private static Logger log = Logger.getLogger( ProxySession.class );
 
+	protected static final String ATTR = ProxySession.class.toString() + "Attr";
+
 	/** Map IDs for RTSP session with servers to ProxySession objects. */
 	private static Map<String, ProxySession> serverSessionIds = new ConcurrentHashMap<String, ProxySession>();
 
@@ -95,6 +97,8 @@ public class ProxySession
 	public ProxySession()
 	{
 		setClientSessionId( newSessionID() );
+		log.debug( "\n----------\nCreated new proxy session: " + clientSessionId
+				+ " \n----------" );
 	}
 
 	/**
@@ -112,7 +116,8 @@ public class ProxySession
 		if ( serverSsrc != null )
 			track.setServerSSRC( serverSsrc );
 		trackList.put( url, track );
-		log.debug( "Added track. TrackList: " + trackList );
+		log.debug( "ProxySession: " + clientSessionId + " Added track. TrackList: "
+				+ trackList );
 		return track;
 	}
 
@@ -164,11 +169,6 @@ public class ProxySession
 		if ( isClosed )
 			return;
 
-		if ( clientSessionId != null )
-			clientSessionIds.remove( clientSessionId );
-		if ( serverSessionId != null )
-			serverSessionIds.remove( serverSessionId );
-
 		log.debug( "TrackList: " + trackList );
 
 		// close all associated tracks
@@ -177,7 +177,23 @@ public class ProxySession
 		}
 
 		isClosed = true;
-		log.debug( "Closed proxySession" );
+		log.debug( "Closed proxySession: " + clientSessionId );
+
+		String s = "";
+		for ( String a : clientSessionIds.keySet() ) {
+			s += a + " ";
+		}
+		log.debug( "Clients: " + s );
+		s = "";
+		for ( String a : serverSessionIds.keySet() ) {
+			s += a + " ";
+		}
+		log.debug( "Servers: " + s );
+
+		if ( clientSessionId != null )
+			clientSessionIds.remove( clientSessionId );
+		if ( serverSessionId != null )
+			serverSessionIds.remove( serverSessionId );
 	}
 
 	// ///////////////////

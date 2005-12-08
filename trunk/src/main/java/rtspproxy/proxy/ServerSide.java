@@ -54,7 +54,7 @@ public class ServerSide extends IoHandlerAdapter
 	public void sessionClosed( IoSession session )
 	{
 		log.info( "Server connection closed" );
-		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( "proxyHandler" ) );
+		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( ProxyHandler.ATTR ) );
 		proxyHandler.closeAll();
 	}
 
@@ -206,7 +206,7 @@ public class ServerSide extends IoHandlerAdapter
 		RtspMessage rtspMessage = (RtspMessage) message;
 		log.debug( "Received message:\n" + message );
 
-		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( "proxyHandler" ) );
+		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( ProxyHandler.ATTR ) );
 		if ( proxyHandler == null ) {
 			log.fatal( "proxyHandler is null" );
 			throw new NullPointerException( "proxyHandler in session is null" );

@@ -57,13 +57,13 @@ public class ClientSide extends IoHandlerAdapter
 		// Creates a new ProxyHandler and saves it
 		// as a Session attribute
 		ProxyHandler proxyHandler = new ProxyHandler( session );
-		session.setAttribute( "proxyHandler", proxyHandler );
+		session.setAttribute( ProxyHandler.ATTR, proxyHandler );
 	}
 
 	@Override
 	public void sessionClosed( IoSession session )
 	{
-		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( "proxyHandler" ) );
+		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( ProxyHandler.ATTR ) );
 		if ( proxyHandler != null ) {
 			proxyHandler.closeAll();
 			log.info( "Client connection closed" );
@@ -75,6 +75,7 @@ public class ClientSide extends IoHandlerAdapter
 	{
 		if ( cause instanceof ProtocolDecoderException ) {
 			log.warn( "Malformed RTSP message." );
+			Exceptions.logStackTrace( cause );
 			session.write( RtspResponse.errorResponse( RtspCode.BadRequest ) );
 			return;
 		}
@@ -232,7 +233,7 @@ public class ClientSide extends IoHandlerAdapter
 		RtspMessage rtspMessage = (RtspMessage) message;
 		log.debug( "Received message:\n" + message );
 
-		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( "proxyHandler" ) );
+		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( ProxyHandler.ATTR ) );
 
 		switch ( rtspMessage.getType() ) {
 			case TypeRequest:

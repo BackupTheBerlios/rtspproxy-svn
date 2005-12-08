@@ -47,10 +47,13 @@ import rtspproxy.rtsp.RtspTransportList;
 public class ProxyHandler
 {
 
+	private static Logger log = Logger.getLogger( ProxyHandler.class );
+
+	/** Used to save a reference to this handler in the IoSession */
+	protected static final String ATTR = ProxyHandler.class.toString() + "Attr";
+
 	private IoSession clientSession = null;
 	private IoSession serverSession = null;
-
-	private static Logger log = Logger.getLogger( ProxyHandler.class );
 
 	/**
 	 * Creates a new ProxyHandler from a client side protocol session.
@@ -131,6 +134,7 @@ public class ProxyHandler
 
 					proxySession.setServerSessionId( message.getHeader( "Session" ) );
 					message.setHeader( "Session", proxySession.getClientSessionId() );
+					log.debug( "Created a new proxy session on-the-fly." );
 				} else {
 					// Error. The client specified a session ID but it's
 					// not valid
@@ -157,19 +161,21 @@ public class ProxyHandler
 	}
 
 	/**
-	 * A SETUP request should treated more carefully tha other RTSP request. The
-	 * proxy will perform some hijacking on the communication between client and
-	 * server, such as modifying RTP/RTCP port.
+	 * A SETUP request should treated more carefully tha other RTSP requests.
+	 * The proxy will perform some hijacking on the communication between client
+	 * and server, such as modifying RTP/RTCP port.
 	 * 
 	 * @param request
 	 *        SETUP request message
 	 */
 	public void passSetupRequestToServer( RtspRequest request )
 	{
+		ProxySession proxySession = null;
+
 		if ( request.getHeader( "Session" ) != null ) {
 			// The client already specified a session ID.
 			// Let's validate it
-			ProxySession proxySession = ProxySession.getByClientSessionID( request.getHeader( "Session" ) );
+			proxySession = ProxySession.getByClientSessionID( request.getHeader( "Session" ) );
 			if ( proxySession != null ) {
 				// Session ID is ok
 				request.setHeader( "Session", proxySession.getServerSessionId() );
@@ -213,8 +219,10 @@ public class ProxyHandler
 			}
 		}
 
-		ProxySession proxySession = new ProxySession();
-		clientSession.setAttribute( "proxySession", proxySession );
+		if ( proxySession == null ) {
+			proxySession = new ProxySession();
+			clientSession.setAttribute( ProxySession.ATTR, proxySession );
+		}
 
 		request.setHeader( "Transport", rtspTransportList.toString() );
 
@@ -234,10 +242,10 @@ public class ProxyHandler
 		// If there isn't yet a proxySession, create a new one
 		ProxySession proxySession = ProxySession.getByServerSessionID( response.getHeader( "Session" ) );
 		if ( proxySession == null ) {
-			proxySession = (ProxySession) clientSession.getAttribute( "proxySession" );
+			proxySession = (ProxySession) clientSession.getAttribute( ProxySession.ATTR );
 			if ( proxySession == null ) {
 				proxySession = new ProxySession();
-				clientSession.setAttribute( "proxySession", proxySession );
+				clientSession.setAttribute( ProxySession.ATTR, proxySession );
 			}
 		}
 
@@ -354,7 +362,7 @@ public class ProxyHandler
 		log.debug( "Connected!" );
 
 		// Save current ProxyHandler into the ProtocolSession
-		serverSession.setAttribute( "proxyHandler", this );
+		serverSession.setAttribute( ProxyHandler.ATTR, this );
 
 		log.debug( "Server session: " + serverSession.getAttributeKeys() );
 	}
@@ -371,7 +379,7 @@ public class ProxyHandler
 
 		// Remove ProxySession and Track instances
 		if ( clientSession != null ) {
-			ProxySession proxySession = (ProxySession) clientSession.getAttribute( "proxySession" );
+			ProxySession proxySession = (ProxySession) clientSession.getAttribute( ProxySession.ATTR );
 			if ( proxySession != null )
 				proxySession.close();
 		}
