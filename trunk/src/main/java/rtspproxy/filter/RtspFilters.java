@@ -27,8 +27,8 @@ import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 
 import rtspproxy.Config;
-import rtspproxy.auth.AuthenticationFilter;
-import rtspproxy.auth.IpAddressFilter;
+import rtspproxy.filter.authentication.AuthenticationFilter;
+import rtspproxy.filter.ipaddress.IpAddressFilter;
 import rtspproxy.rtsp.RtspDecoder;
 import rtspproxy.rtsp.RtspEncoder;
 
