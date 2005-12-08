@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rtspproxy.filter.impl;
+package rtspproxy.filter.rewrite;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -13,7 +13,6 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.common.IoFilter.NextFilter;
 
 import rtspproxy.RtpServerService;
-import rtspproxy.filter.RequestUrlRewritingFilter;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;

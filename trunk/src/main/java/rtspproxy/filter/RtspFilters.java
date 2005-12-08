@@ -60,6 +60,7 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 
 	private static IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
 
+	// These filters are instanciated only one time, when requested
 	private static IpAddressFilter ipAddressFilter = null;
 	private static AuthenticationFilter authenticationFilter = null;
 
@@ -98,7 +99,7 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 	{
 		boolean enableAuthenticationFilter = Config.getBoolean(
 				"proxy.auth.authentication.enable", false );
-		
+
 		if ( enableAuthenticationFilter ) {
 			if ( authenticationFilter == null )
 				authenticationFilter = new AuthenticationFilter();
