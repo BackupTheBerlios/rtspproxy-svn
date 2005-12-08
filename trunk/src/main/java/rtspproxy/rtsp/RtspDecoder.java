@@ -29,6 +29,7 @@ import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 
 import rtspproxy.lib.Exceptions;
+import sun.tools.tree.FinallyStatement;
 
 /**
  * 
@@ -210,6 +211,12 @@ public class RtspDecoder implements ProtocolDecoder
 			 */
 			Exceptions.logStackTrace( e );
 			return;
+
+		} finally {
+			try {
+				reader.close();
+			} catch ( Exception e ) {
+			}
 		}
 
 		if ( state == ReadState.Dispatch ) {
