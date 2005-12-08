@@ -29,7 +29,6 @@ import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 
 import rtspproxy.lib.Exceptions;
-import sun.tools.tree.FinallyStatement;
 
 /**
  * 

@@ -18,10 +18,13 @@
 
 package rtspproxy.rtsp;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
+
+import rtspproxy.lib.number.UnsignedLong;
 
 /**
  * RTSP is primarly a connection-less protocol, that means that RTSP request can
@@ -31,15 +34,15 @@ import org.apache.log4j.Logger;
 public class RtspSession
 {
 
+	private static Logger log = Logger.getLogger( RtspSession.class );
+
+	private static Map<String, RtspSession> sessions = new ConcurrentHashMap<String, RtspSession>();
+
 	// Members
 	/** Session ID */
-	private long id;
+	private String sessionId;
 	/** Session associated tracks */
-	private HashMap<String, Track> tracks = new HashMap<String, Track>();
-
-	// Static access
-	private static Logger log = Logger.getLogger( RtspSession.class );
-	private static HashMap<Long, RtspSession> sessions = new HashMap<Long, RtspSession>();
+	private Map<String, Track> tracks = new ConcurrentHashMap<String, Track>();
 
 	/**
 	 * Creates a new empty RtspSession and stores it.
@@ -48,17 +51,16 @@ public class RtspSession
 	 *        Session identifier
 	 * @return The newly created session
 	 */
-	static public RtspSession create( String id )
+	static public RtspSession create( String sessionId )
 	{
-		long key = Long.valueOf( id );
 
-		if ( sessions.get( key ) != null ) {
+		if ( sessions.get( sessionId ) != null ) {
 			log.error( "Session key conflit!!" );
 			return null;
 		}
-		RtspSession session = new RtspSession( key );
-		sessions.put( key, session );
-		log.debug( "New session created - id=" + key );
+		RtspSession session = new RtspSession( sessionId );
+		sessions.put( sessionId, session );
+		log.debug( "New session created - id=" + sessionId );
 		return session;
 	}
 
@@ -67,7 +69,7 @@ public class RtspSession
 	 */
 	static public RtspSession create()
 	{
-		return create( Long.toString( newSessionID() ) );
+		return create( newSessionID() );
 	}
 
 	/**
@@ -100,28 +102,31 @@ public class RtspSession
 
 	/**
 	 * Close the session and removes it.
-	 * @param id the session ID
+	 * 
+	 * @param id
+	 *        the session ID
 	 */
 	static public void close( long id )
 	{
 		sessions.remove( id );
 	}
 
-	private RtspSession( long id )
+	protected RtspSession( String sessionId )
 	{
-		this.id = id;
+		this.sessionId = sessionId;
 	}
 
 	/**
 	 * @return the session ID
 	 */
-	public long getId()
+	public String getId()
 	{
-		return id;
+		return sessionId;
 	}
 
-	/** 
-	 * @param control the key to access the track
+	/**
+	 * @param control
+	 *        the key to access the track
 	 * @return the track
 	 */
 	public Track getTrack( String control )
@@ -139,7 +144,9 @@ public class RtspSession
 
 	/**
 	 * Adds a new track to the session
-	 * @param track a Track object
+	 * 
+	 * @param track
+	 *        a Track object
 	 */
 	public void addTrack( Track track )
 	{
@@ -156,14 +163,17 @@ public class RtspSession
 	 * 
 	 * @return the session ID
 	 */
-	private static long newSessionID()
+	private static String newSessionID()
 	{
-		long id;
-		while ( true ) {
-			id = random.nextLong();
-			if ( sessions.get( id ) == null ) {
-				// Ok, the id is unique
-				return id;
+		String id;
+		synchronized ( random ) {
+			while ( true ) {
+
+				id = new UnsignedLong( random ).toString();
+				if ( sessions.get( id ) == null ) {
+					// Ok, the id is unique
+					return id;
+				}
 			}
 			// try with another id
 		}
