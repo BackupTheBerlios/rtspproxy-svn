@@ -41,6 +41,9 @@
 		<section name="News">
 			<subsection name="08 Dec 2005 - Released RtspProxy 3.0-ALPHA2">
 				<p>
+					Second alpha release with many bugfix and improvements.
+					See <a href="changes-report.html#3.0-ALPHA2">Changes</a> for an 
+					overview.
 				</p>
 			</subsection>
 		
