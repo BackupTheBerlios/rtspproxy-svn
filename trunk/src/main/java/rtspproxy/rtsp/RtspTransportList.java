@@ -36,8 +36,11 @@ public class RtspTransportList
 	{
 		transportList = new ArrayList<RtspTransport>();
 
-		for ( String transport : transportHeader.split( "," ) ) {
-			transportList.add( new RtspTransport( transport ) );
+		RtspTransport transport;
+		for ( String transportString : transportHeader.split( "," ) ) {
+			transport = new RtspTransport( transportString );
+			if ( transport.isSupportedByProxy() )
+				transportList.add( transport );
 		}
 	}
 

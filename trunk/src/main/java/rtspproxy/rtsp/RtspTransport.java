@@ -18,65 +18,75 @@
 
 package rtspproxy.rtsp;
 
-import org.apache.log4j.Logger;
 
 /**
  * Parse the RTSP Transport header field. Reference Grammar:
  * 
  * <pre>
- *         Transport           =    &quot;Transport&quot; &quot;:&quot;
- *                                  1\#transport-spec
- *         transport-spec      =    transport-protocol/profile[/lower-transport]
- *                                  *parameter
- *         transport-protocol  =    &quot;RTP&quot;
- *         profile             =    &quot;AVP&quot;
- *         lower-transport     =    &quot;TCP&quot; | &quot;UDP&quot;
- *         parameter           =    ( &quot;unicast&quot; | &quot;multicast&quot; )
- *                             |    &quot;;&quot; &quot;destination&quot; [ &quot;=&quot; address ]
- *                             |    &quot;;&quot; &quot;interleaved&quot; &quot;=&quot; channel [ &quot;-&quot; channel ]
- *                             |    &quot;;&quot; &quot;append&quot;
- *                             |    &quot;;&quot; &quot;ttl&quot; &quot;=&quot; ttl
- *                             |    &quot;;&quot; &quot;layers&quot; &quot;=&quot; 1*DIGIT
- *                             |    &quot;;&quot; &quot;port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
- *                             |    &quot;;&quot; &quot;client_port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
- *                             |    &quot;;&quot; &quot;server_port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
- *                             |    &quot;;&quot; &quot;ssrc&quot; &quot;=&quot; ssrc
- *                             |    &quot;;&quot; &quot;mode&quot; = &lt;&quot;&gt; 1\#mode &lt;&quot;&gt;
- *         ttl                 =    1*3(DIGIT)
- *         port                =    1*5(DIGIT)
- *         ssrc                =    8*8(HEX)
- *         channel             =    1*3(DIGIT)
- *         address             =    host
- *         mode                =    &lt;&quot;&gt; *Method &lt;&quot;&gt; | Method
- *      
- *      
- *         Example:
- *           Transport: RTP/AVP;multicast;ttl=127;mode=&quot;PLAY&quot;,
- *                      RTP/AVP;unicast;client_port=3456-3457;mode=&quot;PLAY&quot;
+ *                     Transport           =    &quot;Transport&quot; &quot;:&quot;
+ *                                              1\#transport-spec
+ *                     transport-spec      =    transport-protocol/profile[/lower-transport]
+ *                                              *parameter
+ *                     transport-protocol  =    &quot;RTP&quot;
+ *                     profile             =    &quot;AVP&quot;
+ *                     lower-transport     =    &quot;TCP&quot; | &quot;UDP&quot;
+ *                     parameter           =    ( &quot;unicast&quot; | &quot;multicast&quot; )
+ *                                         |    &quot;;&quot; &quot;destination&quot; [ &quot;=&quot; address ]
+ *                                         |    &quot;;&quot; &quot;interleaved&quot; &quot;=&quot; channel [ &quot;-&quot; channel ]
+ *                                         |    &quot;;&quot; &quot;append&quot;
+ *                                         |    &quot;;&quot; &quot;ttl&quot; &quot;=&quot; ttl
+ *                                         |    &quot;;&quot; &quot;layers&quot; &quot;=&quot; 1*DIGIT
+ *                                         |    &quot;;&quot; &quot;port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
+ *                                         |    &quot;;&quot; &quot;client_port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
+ *                                         |    &quot;;&quot; &quot;server_port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
+ *                                         |    &quot;;&quot; &quot;ssrc&quot; &quot;=&quot; ssrc
+ *                                         |    &quot;;&quot; &quot;mode&quot; = &lt;&quot;&gt; 1\#mode &lt;&quot;&gt;
+ *                     ttl                 =    1*3(DIGIT)
+ *                     port                =    1*5(DIGIT)
+ *                     ssrc                =    8*8(HEX)
+ *                     channel             =    1*3(DIGIT)
+ *                     address             =    host
+ *                     mode                =    &lt;&quot;&gt; *Method &lt;&quot;&gt; | Method
+ *                  
+ *                  
+ *                     Example:
+ *                       Transport: RTP/AVP;multicast;ttl=127;mode=&quot;PLAY&quot;,
+ *                                  RTP/AVP;unicast;client_port=3456-3457;mode=&quot;PLAY&quot;
  * </pre>
  */
 public class RtspTransport
 {
 
-	private static Logger log = Logger.getLogger( RtspTransport.class );
-
+	/** Transport Protocol */
 	public enum TransportProtocol {
-		None, RTP, RDT, RAW
+		None,
+		/** Real Time Protocol */
+		RTP,
+		/** RDT: RealNetworks transport protocol */
+		RDT, RAW
 	}
+
+	/** Profile of the streamed data */
 	public enum Profile {
-		None, AVP
+		None,
+		/** Audio-Video Profile */
+		AVP
 	}
+
+	/** Underlying transport protocol */
 	public enum LowerTransport {
 		None, TCP, UDP
 	}
+
+	/** Delivery method */
 	public enum DeliveryType {
 		None, unicast, multicast
 	}
 
-	TransportProtocol transportProtocol;
-	Profile profile;
-	LowerTransport lowerTransport;
-	DeliveryType deliveryType;
+	TransportProtocol transportProtocol = null;
+	Profile profile = null;
+	LowerTransport lowerTransport = null;
+	DeliveryType deliveryType = null;
 
 	String destination;
 	String interleaved;
@@ -116,9 +126,6 @@ public class RtspTransport
 		source = null;
 
 		parseTransport( transport );
-		if ( transport.compareToIgnoreCase( this.toString() ) != 0 ) {
-			log.warn( "Transport header incorrectly parsed." );
-		}
 	}
 
 	private void parseTransport( String transport )
@@ -175,6 +182,17 @@ public class RtspTransport
 															if ( tok.startsWith( "source" ) )
 																setSource( _getStrValue( tok ) );
 		}
+
+		if ( transportProtocol == TransportProtocol.RTP
+				&& lowerTransport == LowerTransport.None )
+			// If it's not specified, let's assume UDP
+			setLowerTransport( LowerTransport.UDP );
+
+		if ( transportProtocol == TransportProtocol.RTP
+				&& deliveryType == DeliveryType.None )
+			// If it's not specified, let's assume unicast
+			setDeliveryType( DeliveryType.unicast );
+
 	}
 
 	public String toString()
@@ -213,6 +231,25 @@ public class RtspTransport
 		if ( mode != null )
 			sb.append( ";mode=" ).append( mode );
 		return sb.toString();
+	}
+
+	/**
+	 * Test if the specified transport can be used by the proxy.
+	 * 
+	 * @return
+	 */
+	public boolean isSupportedByProxy()
+	{
+		/*
+		 * At now, the only transport supported by the server is
+		 * "RTP/AVP/UDP;unicast"
+		 */
+		if ( transportProtocol == TransportProtocol.RTP && profile == Profile.AVP
+				&& lowerTransport == LowerTransport.UDP
+				&& deliveryType == DeliveryType.unicast )
+			return true;
+		else
+			return false;
 	}
 
 	/**
