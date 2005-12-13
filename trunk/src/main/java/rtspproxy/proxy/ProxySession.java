@@ -54,7 +54,10 @@ public class ProxySession
 	 */
 	public static ProxySession getByClientSessionID( String clientSessionId )
 	{
-		return clientSessionIds.get( clientSessionId );
+		if ( clientSessionId == null )
+			return null;
+		else
+			return clientSessionIds.get( clientSessionId );
 	}
 
 	/**
@@ -67,7 +70,10 @@ public class ProxySession
 	 */
 	public static ProxySession getByServerSessionID( String serverSessionId )
 	{
-		return serverSessionIds.get( serverSessionId );
+		if ( serverSessionId == null )
+			return null;
+		else
+			return serverSessionIds.get( serverSessionId );
 	}
 
 	/**
@@ -158,7 +164,8 @@ public class ProxySession
 	public synchronized void setServerSessionId( String serverSessionId )
 	{
 		this.serverSessionId = serverSessionId;
-		serverSessionIds.put( serverSessionId, this );
+		if ( serverSessionId != null )
+			serverSessionIds.put( serverSessionId, this );
 	}
 
 	/**

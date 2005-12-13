@@ -51,6 +51,8 @@ public class Track
 
 	private static Logger log = Logger.getLogger( Track.class );
 
+	protected static final String ATTR = Track.class.toString() + "Attr";
+
 	/** Maps a server SSRC id to a Track */
 	private static Map<UnsignedInt, Track> serverSsrcMap = new ConcurrentHashMap<UnsignedInt, Track>();
 

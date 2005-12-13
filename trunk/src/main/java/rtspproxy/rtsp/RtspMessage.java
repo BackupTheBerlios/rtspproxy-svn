@@ -24,12 +24,15 @@ import java.util.Properties;
 import rtspproxy.Config;
 
 /**
- * Base abstract class for RTSP messages. 
+ * Base abstract class for RTSP messages.
  * 
  * @author mat
  */
 public abstract class RtspMessage
 {
+
+	public static final String lastRequestVerbATTR = RtspMessage.class.toString()
+			+ "lastRequestVerb";
 
 	/**
 	 * RTSP Message Type
@@ -94,7 +97,6 @@ public abstract class RtspMessage
 	}
 
 	/**
-	 * 
 	 * @param key
 	 *        Header name
 	 * @param defaultValue
@@ -126,9 +128,9 @@ public abstract class RtspMessage
 	 * Formats all the headers into a string ready to be sent in a RTSP message.
 	 * 
 	 * <pre>
-	 * Header1: Value1
-	 * Header2: value 2
-	 * ... 
+	 *  Header1: Value1
+	 *  Header2: value 2
+	 *  ... 
 	 * </pre>
 	 * 
 	 * @return a string containing the serialzed headers
@@ -144,7 +146,6 @@ public abstract class RtspMessage
 	}
 
 	/**
-	 * 
 	 * @return the number of headers owned by the message
 	 */
 	public int getHeadersCount()
@@ -165,8 +166,8 @@ public abstract class RtspMessage
 	}
 
 	/**
-	 * 
-	 * @param buffer StringBuffer containing the contents
+	 * @param buffer
+	 *        StringBuffer containing the contents
 	 */
 	public void setBuffer( StringBuffer buffer )
 	{
@@ -174,19 +175,21 @@ public abstract class RtspMessage
 	}
 
 	/**
-	 * @param other buffer with content to be appended
+	 * @param other
+	 *        buffer with content to be appended
 	 */
 	public void appendToBuffer( StringBuffer other )
 	{
 		this.buffer.append( other );
 	}
-	
+
 	/**
-	 * @param other buffer with content to be appended
+	 * @param other
+	 *        buffer with content to be appended
 	 */
 	public void appendToBuffer( CharBuffer other )
 	{
-		this.buffer.append(other);
+		this.buffer.append( other );
 	}
 
 	/**

@@ -18,6 +18,7 @@ import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
 import rtspproxy.lib.Exceptions;
+import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
@@ -50,7 +51,7 @@ public class ServerSide extends IoHandlerAdapter
 		// close all: same as sessionClosed()
 		log.info( "Exception: " + cause );
 		Exceptions.logStackTrace( cause );
-		
+
 		sessionClosed( session );
 	}
 
@@ -177,7 +178,11 @@ public class ServerSide extends IoHandlerAdapter
 	public void onResponseSetup( ProxyHandler proxyHandler, RtspResponse response )
 	{
 		log.debug( "RESPONSE SETUP" );
-		proxyHandler.passSetupResponseToClient( response );
+		if ( response.getCode() != RtspCode.OK )
+			// Report the error to the client
+			proxyHandler.passToClient( response );
+		else
+			proxyHandler.passSetupResponseToClient( response );
 	}
 
 	public void onResponseTeardown( ProxyHandler proxyHandler, RtspResponse response )

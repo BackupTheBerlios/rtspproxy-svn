@@ -36,6 +36,9 @@ import rtspproxy.lib.Exceptions;
 public class RtspDecoder implements ProtocolDecoder
 {
 
+	private static final String readStateATTR = RtspDecoder.class.toString() + "readState";
+	private static final String rtspMessageATTR = RtspDecoder.class.toString() + "rtspMessage";
+
 	/**
 	 * State enumerator that indicates the reached state in the RTSP message
 	 * decoding process.
@@ -85,10 +88,10 @@ public class RtspDecoder implements ProtocolDecoder
 		}
 
 		// Retrieve status from session
-		ReadState state = (ReadState) session.getAttribute( "state" );
+		ReadState state = (ReadState) session.getAttribute( readStateATTR );
 		if ( state == null )
 			state = ReadState.Command;
-		RtspMessage rtspMessage = (RtspMessage) session.getAttribute( "rtspMessage" );
+		RtspMessage rtspMessage = (RtspMessage) session.getAttribute( rtspMessageATTR );
 
 		try {
 
@@ -125,7 +128,7 @@ public class RtspDecoder implements ProtocolDecoder
 							RtspCode code = RtspCode.fromString( m.group( 1 ) );
 							rtspMessage = new RtspResponse();
 							( (RtspResponse) ( rtspMessage ) ).setCode( code );
-							RtspRequest.Verb verb = (RtspRequest.Verb) session.getAttribute( "lastRequestVerb" );
+							RtspRequest.Verb verb = (RtspRequest.Verb) session.getAttribute( RtspMessage.lastRequestVerbATTR );
 							( (RtspResponse) ( rtspMessage ) ).setRequestVerb( verb );
 
 						} else {
@@ -144,7 +147,7 @@ public class RtspDecoder implements ProtocolDecoder
 								} catch ( MalformedURLException e ) {
 									log.info( e );
 									url = null;
-									session.setAttribute( "state", ReadState.Failed );
+									session.setAttribute( readStateATTR, ReadState.Failed );
 									throw new ProtocolDecoderException( "Invalid URL" );
 								}
 							}
@@ -152,7 +155,7 @@ public class RtspDecoder implements ProtocolDecoder
 							( (RtspRequest) rtspMessage ).setVerb( verb );
 
 							if ( ( (RtspRequest) rtspMessage ).getVerb() == RtspRequest.Verb.None ) {
-								session.setAttribute( "state", ReadState.Failed );
+								session.setAttribute( readStateATTR, ReadState.Failed );
 								throw new ProtocolDecoderException( "Invalid method: "
 										+ verb );
 							}
@@ -221,8 +224,8 @@ public class RtspDecoder implements ProtocolDecoder
 		if ( state == ReadState.Dispatch ) {
 			// The message is already formed
 			// send it
-			session.removeAttribute( "state" );
-			session.removeAttribute( "rtspMessage" );
+			session.removeAttribute( readStateATTR );
+			session.removeAttribute( rtspMessageATTR );
 			out.write( rtspMessage );
 			return;
 		}
@@ -230,8 +233,8 @@ public class RtspDecoder implements ProtocolDecoder
 		// log.debug( "INCOMPLETE MESSAGE \n" + rtspMessage );
 
 		// Save attributes in session
-		session.setAttribute( "state", state );
-		session.setAttribute( "rtspMessage", rtspMessage );
+		session.setAttribute( readStateATTR, state );
+		session.setAttribute( rtspMessageATTR, rtspMessage );
 	}
 
 	/*

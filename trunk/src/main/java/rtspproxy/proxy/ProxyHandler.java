@@ -51,6 +51,8 @@ public class ProxyHandler
 
 	/** Used to save a reference to this handler in the IoSession */
 	protected static final String ATTR = ProxyHandler.class.toString() + "Attr";
+	protected static final String setupUrlATTR = "setupUrlATTR";
+	protected static final String clientPortsATTR = "clientPortsATTR";
 
 	private IoSession clientSession = null;
 	private IoSession serverSession = null;
@@ -101,7 +103,7 @@ public class ProxyHandler
 
 		switch ( message.getType() ) {
 			case TypeRequest:
-				serverSession.setAttribute( "lastRequestVerb",
+				serverSession.setAttribute( RtspMessage.lastRequestVerbATTR,
 						( (RtspRequest) message ).getVerb() );
 				sendRequest( serverSession, (RtspRequest) message );
 				break;
@@ -146,7 +148,7 @@ public class ProxyHandler
 		}
 		switch ( message.getType() ) {
 			case TypeRequest:
-				clientSession.setAttribute( "lastRequestVerb",
+				clientSession.setAttribute( RtspMessage.lastRequestVerbATTR,
 						( (RtspRequest) message ).getVerb() );
 				sendRequest( clientSession, (RtspRequest) message );
 				break;
@@ -188,13 +190,25 @@ public class ProxyHandler
 				return;
 			}
 		}
-		serverSession.setAttribute( "lastRequestVerb", request.getVerb() );
+		serverSession.setAttribute( RtspMessage.lastRequestVerbATTR, request.getVerb() );
 
 		log.debug( "Client Transport:" + request.getHeader( "Transport" ) );
 
 		RtspTransportList rtspTransportList = new RtspTransportList(
 				request.getHeader( "Transport" ) );
 		log.debug( "Parsed:" + rtspTransportList.toString() );
+
+		if ( rtspTransportList.count() == 0 ) {
+			/**
+			 * If no one of the client specified transports is acceptable by the
+			 * proxy, direct reply with an unsupported transport error. Then the
+			 * client will have the chance to reformule the request with another
+			 * transports set.
+			 */
+			sendResponse( clientSession,
+					RtspResponse.errorResponse( RtspCode.UnsupportedTransport ) );
+			return;
+		}
 
 		int proxyRtpPort = Config.getInt( "proxy.server.rtp.port", -1 );
 		int proxyRtcpPort = Config.getInt( "proxy.server.rtcp.port", -1 );
@@ -203,8 +217,8 @@ public class ProxyHandler
 		// because I will need to know which port the client will
 		// use for RTP/RTCP connections.
 		int[] clientPorts = rtspTransportList.get( 0 ).getClientPort();
-		clientSession.setAttribute( "clientPorts", clientPorts );
-		clientSession.setAttribute( "setupURL", request.getUrl().toString() );
+		clientSession.setAttribute( clientPortsATTR, clientPorts );
+		clientSession.setAttribute( setupUrlATTR, request.getUrl().toString() );
 
 		for ( RtspTransport transport : rtspTransportList.getList() ) {
 			log.debug( "Transport:" + transport );
@@ -266,7 +280,7 @@ public class ProxyHandler
 
 		// Create a new Track object
 		Track track = proxySession.addTrack(
-				(String) clientSession.getAttribute( "setupURL" ), transport.getSSRC() );
+				(String) clientSession.getAttribute( setupUrlATTR ), transport.getSSRC() );
 
 		// Setting client and server info on the track
 		InetAddress serverAddress = null;
@@ -288,7 +302,7 @@ public class ProxyHandler
 		} catch ( UnknownHostException e ) {
 			log.warn( "Unknown host: " + clientSession.getRemoteAddress() );
 		}
-		int clientPorts[] = (int[]) clientSession.getAttribute( "clientPorts" );
+		int clientPorts[] = (int[]) clientSession.getAttribute( clientPortsATTR );
 		track.setClientAddress( clientAddress, clientPorts[0], clientPorts[1] );
 
 		if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
@@ -305,7 +319,7 @@ public class ProxyHandler
 			}
 
 			// Obtaing client specified ports
-			int ports[] = (int[]) clientSession.getAttribute( "clientPorts" );
+			int ports[] = (int[]) clientSession.getAttribute( clientPortsATTR );
 			transport.setClientPort( ports );
 
 			log.debug( "Transport Rewritten: " + transport );
@@ -356,6 +370,7 @@ public class ProxyHandler
 			log.warn( "Destination unreachable: " + host + ":" + port );
 			sendResponse( clientSession,
 					RtspResponse.errorResponse( RtspCode.DestinationUnreachable ) );
+			clientSession.close();
 			return;
 		}
 
