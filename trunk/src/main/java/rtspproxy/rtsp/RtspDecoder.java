@@ -14,10 +14,10 @@ package rtspproxy.rtsp;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,8 +36,10 @@ import rtspproxy.lib.Exceptions;
 public class RtspDecoder implements ProtocolDecoder
 {
 
-	private static final String readStateATTR = RtspDecoder.class.toString() + "readState";
-	private static final String rtspMessageATTR = RtspDecoder.class.toString() + "rtspMessage";
+	private static final String readStateATTR = RtspDecoder.class.toString()
+			+ "readState";
+	private static final String rtspMessageATTR = RtspDecoder.class.toString()
+			+ "rtspMessage";
 
 	/**
 	 * State enumerator that indicates the reached state in the RTSP message
@@ -68,6 +70,8 @@ public class RtspDecoder implements ProtocolDecoder
 	private static final Pattern rtspResponsePattern = Pattern.compile( "RTSP/1.0 ([0-9]+) .+" );
 	private static final Pattern rtspHeaderPattern = Pattern.compile( "([a-zA-Z\\-]+[0-9]?):\\s?(.*)" );
 
+	private static final Charset asciiCharset = Charset.forName( "US-ASCII" );
+
 	/**
 	 * Do the parsing on the incoming stream. If the stream does not contain the
 	 * entire RTSP message wait for other data to arrive, before dispatching the
@@ -81,11 +85,9 @@ public class RtspDecoder implements ProtocolDecoder
 			throws ProtocolDecoderException
 	{
 		BufferedReader reader = null;
-		try {
-			reader = new BufferedReader( new InputStreamReader( buffer.asInputStream(),
-					"US-ASCII" ) );
-		} catch ( UnsupportedEncodingException e1 ) {
-		}
+
+		reader = new BufferedReader( new InputStreamReader( buffer.asInputStream(),
+				asciiCharset ) );
 
 		// Retrieve status from session
 		ReadState state = (ReadState) session.getAttribute( readStateATTR );
