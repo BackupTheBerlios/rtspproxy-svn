@@ -65,7 +65,7 @@ public class RtspTransportTest extends TestCase
 	public void testIsSupportedByProxy()
 	{
 		assertEquals( false, transport1.isSupportedByProxy() );
-		assertEquals( false, transport2.isSupportedByProxy() );
+		assertEquals( true, transport2.isSupportedByProxy() );
 		assertEquals( false, transport3.isSupportedByProxy() );
 		assertEquals( true, transport4.isSupportedByProxy() );
 		assertEquals( false, transport5.isSupportedByProxy() );
@@ -114,12 +114,12 @@ public class RtspTransportTest extends TestCase
 	 */
 	public void testGetDeliveryType()
 	{
-		assertEquals( DeliveryType.None, transport1.getDeliveryType() );
-		assertEquals( DeliveryType.None, transport2.getDeliveryType() );
+		assertEquals( DeliveryType.unicast, transport1.getDeliveryType() );
+		assertEquals( DeliveryType.unicast, transport2.getDeliveryType() );
 		assertEquals( DeliveryType.None, transport3.getDeliveryType() );
 		assertEquals( DeliveryType.unicast, transport4.getDeliveryType() );
 		assertEquals( DeliveryType.None, transport5.getDeliveryType() );
-		assertEquals( DeliveryType.None, transport6.getDeliveryType() );
+		assertEquals( DeliveryType.unicast, transport6.getDeliveryType() );
 		assertEquals( DeliveryType.unicast, transport7.getDeliveryType() );
 	}
 
