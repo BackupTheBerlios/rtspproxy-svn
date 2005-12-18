@@ -19,8 +19,6 @@
 package rtspproxy;
 
 import org.apache.log4j.Logger;
-import org.apache.mina.registry.ServiceRegistry;
-import org.apache.mina.registry.SimpleServiceRegistry;
 
 /**
  * 
@@ -30,11 +28,13 @@ public class Reactor
 
 	private static Logger log = Logger.getLogger( Reactor.class );
 
-	private static ServiceRegistry registry = new SimpleServiceRegistry();
+	private static ProxyServiceRegistry registry = new ProxyServiceRegistry();
 
 	private static ProxyService rtspService;
 	private static ProxyService rtpClientService;
 	private static ProxyService rtpServerService;
+	private static ProxyService rdtClientService;
+	private static ProxyService rdtServerService;
 
 	private static boolean isStandalone = false;
 
@@ -56,6 +56,12 @@ public class Reactor
 
 		rtpServerService = new RtpServerService();
 		rtpServerService.start();
+		
+		rdtClientService = new RdtClientService();
+		rdtClientService.start();
+		
+		rdtServerService = new RdtServerService();
+		rdtServerService.start();
 	}
 
 	static public void stop()
@@ -68,6 +74,10 @@ public class Reactor
 				rtpClientService.stop();
 			if ( rtpServerService != null )
 				rtpServerService.stop();
+			if ( rdtClientService != null )
+				rdtClientService.stop();
+			if ( rdtServerService != null )
+				rdtServerService.stop();
 		} catch ( Exception e ) {
 			log.debug( "Error shutting down: " + e );
 		}
@@ -78,7 +88,7 @@ public class Reactor
 			Runtime.getRuntime().halt( 0 );
 	}
 
-	protected static synchronized ServiceRegistry getRegistry()
+	protected static ProxyServiceRegistry getRegistry()
 	{
 		return registry;
 	}

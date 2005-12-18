@@ -26,6 +26,8 @@ import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
 import rtspproxy.lib.Exceptions;
+import rtspproxy.proxy.track.RtpTrack;
+import rtspproxy.proxy.track.Track;
 import rtspproxy.rtp.rtcp.RtcpPacket;
 
 /**
@@ -41,10 +43,10 @@ public class ServerRtcpPacketHandler extends IoHandlerAdapter
 	{
 		RtcpPacket packet = new RtcpPacket( (ByteBuffer) buffer );
 		// log.debug( "Receive RTCP packet: " + packet.getType() );
-		Track track = Track.getByServerSSRC( packet.getSsrc() );
+		RtpTrack track = RtpTrack.getByServerSSRC( packet.getSsrc() );
 
 		if ( track == null ) {
-			track = Track.getByServerAddress( (InetSocketAddress) session.getRemoteAddress() );
+			track = (RtpTrack)Track.getByServerAddress( (InetSocketAddress) session.getRemoteAddress() );
 
 			if ( track == null ) {
 				// drop packet

@@ -18,40 +18,39 @@
 
 package rtspproxy.rtsp;
 
-
 /**
  * Parse the RTSP Transport header field. Reference Grammar:
  * 
  * <pre>
- *                     Transport           =    &quot;Transport&quot; &quot;:&quot;
- *                                              1\#transport-spec
- *                     transport-spec      =    transport-protocol/profile[/lower-transport]
- *                                              *parameter
- *                     transport-protocol  =    &quot;RTP&quot;
- *                     profile             =    &quot;AVP&quot;
- *                     lower-transport     =    &quot;TCP&quot; | &quot;UDP&quot;
- *                     parameter           =    ( &quot;unicast&quot; | &quot;multicast&quot; )
- *                                         |    &quot;;&quot; &quot;destination&quot; [ &quot;=&quot; address ]
- *                                         |    &quot;;&quot; &quot;interleaved&quot; &quot;=&quot; channel [ &quot;-&quot; channel ]
- *                                         |    &quot;;&quot; &quot;append&quot;
- *                                         |    &quot;;&quot; &quot;ttl&quot; &quot;=&quot; ttl
- *                                         |    &quot;;&quot; &quot;layers&quot; &quot;=&quot; 1*DIGIT
- *                                         |    &quot;;&quot; &quot;port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
- *                                         |    &quot;;&quot; &quot;client_port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
- *                                         |    &quot;;&quot; &quot;server_port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
- *                                         |    &quot;;&quot; &quot;ssrc&quot; &quot;=&quot; ssrc
- *                                         |    &quot;;&quot; &quot;mode&quot; = &lt;&quot;&gt; 1\#mode &lt;&quot;&gt;
- *                     ttl                 =    1*3(DIGIT)
- *                     port                =    1*5(DIGIT)
- *                     ssrc                =    8*8(HEX)
- *                     channel             =    1*3(DIGIT)
- *                     address             =    host
- *                     mode                =    &lt;&quot;&gt; *Method &lt;&quot;&gt; | Method
- *                  
- *                  
- *                     Example:
- *                       Transport: RTP/AVP;multicast;ttl=127;mode=&quot;PLAY&quot;,
- *                                  RTP/AVP;unicast;client_port=3456-3457;mode=&quot;PLAY&quot;
+ *                       Transport           =    &quot;Transport&quot; &quot;:&quot;
+ *                                                1\#transport-spec
+ *                       transport-spec      =    transport-protocol/profile[/lower-transport]
+ *                                                *parameter
+ *                       transport-protocol  =    &quot;RTP&quot;
+ *                       profile             =    &quot;AVP&quot;
+ *                       lower-transport     =    &quot;TCP&quot; | &quot;UDP&quot;
+ *                       parameter           =    ( &quot;unicast&quot; | &quot;multicast&quot; )
+ *                                           |    &quot;;&quot; &quot;destination&quot; [ &quot;=&quot; address ]
+ *                                           |    &quot;;&quot; &quot;interleaved&quot; &quot;=&quot; channel [ &quot;-&quot; channel ]
+ *                                           |    &quot;;&quot; &quot;append&quot;
+ *                                           |    &quot;;&quot; &quot;ttl&quot; &quot;=&quot; ttl
+ *                                           |    &quot;;&quot; &quot;layers&quot; &quot;=&quot; 1*DIGIT
+ *                                           |    &quot;;&quot; &quot;port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
+ *                                           |    &quot;;&quot; &quot;client_port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
+ *                                           |    &quot;;&quot; &quot;server_port&quot; &quot;=&quot; port [ &quot;-&quot; port ]
+ *                                           |    &quot;;&quot; &quot;ssrc&quot; &quot;=&quot; ssrc
+ *                                           |    &quot;;&quot; &quot;mode&quot; = &lt;&quot;&gt; 1\#mode &lt;&quot;&gt;
+ *                       ttl                 =    1*3(DIGIT)
+ *                       port                =    1*5(DIGIT)
+ *                       ssrc                =    8*8(HEX)
+ *                       channel             =    1*3(DIGIT)
+ *                       address             =    host
+ *                       mode                =    &lt;&quot;&gt; *Method &lt;&quot;&gt; | Method
+ *                    
+ *                    
+ *                       Example:
+ *                         Transport: RTP/AVP;multicast;ttl=127;mode=&quot;PLAY&quot;,
+ *                                    RTP/AVP;unicast;client_port=3456-3457;mode=&quot;PLAY&quot;
  * </pre>
  */
 public class RtspTransport
@@ -63,19 +62,50 @@ public class RtspTransport
 		/** Real Time Protocol */
 		RTP,
 		/** RDT: RealNetworks transport protocol */
-		RDT, RAW
+		RDT, RAW;
+
+		public static TransportProtocol fromString( String transportName )
+		{
+			if ( "RTP".equalsIgnoreCase( transportName ) )
+				return RTP;
+			else
+				if ( "RDT".equalsIgnoreCase( transportName )
+						|| "x-real-rdt".equalsIgnoreCase( transportName ) )
+					return RDT;
+				else
+					return None;
+		}
 	}
 
 	/** Profile of the streamed data */
 	public enum Profile {
 		None,
 		/** Audio-Video Profile */
-		AVP
+		AVP;
+
+		public static Profile fromString( String profile )
+		{
+			if ( "AVP".equalsIgnoreCase( profile ) )
+				return AVP;
+			else
+				return None;
+		}
 	}
 
 	/** Underlying transport protocol */
 	public enum LowerTransport {
-		None, TCP, UDP
+		None, TCP, UDP;
+
+		public static LowerTransport fromString( String transportName )
+		{
+			if ( "TCP".equalsIgnoreCase( transportName ) )
+				return TCP;
+			else
+				if ( "UDP".equalsIgnoreCase( transportName ) )
+					return UDP;
+				else
+					return None;
+		}
 	}
 
 	/** Delivery method */
@@ -133,11 +163,22 @@ public class RtspTransport
 		for ( String tok : transport.split( ";" ) ) {
 
 			// First check for the transport protocol
-			if ( tok.startsWith( "RTP" ) || tok.startsWith( "RDT" ) ) {
+			if ( tok.startsWith( "RTP" ) || tok.startsWith( "RDT" )
+					|| tok.startsWith( "x-real-rdt" ) ) {
 				String[] tpl = tok.split( "/" );
-				transportProtocol = TransportProtocol.valueOf( tpl[0] );
+				transportProtocol = TransportProtocol.fromString( tpl[0] );
 				if ( tpl.length > 1 )
-					profile = Profile.valueOf( tpl[1] );
+					try {
+						profile = Profile.valueOf( tpl[1] );
+					} catch ( Exception e ) {
+						profile = Profile.None;
+					}
+
+				if ( profile == Profile.None ) {
+					// Maybe this is a lower transport definition
+					lowerTransport = LowerTransport.fromString( tpl[1] );
+				}
+
 				if ( tpl.length > 2 )
 					lowerTransport = LowerTransport.valueOf( tpl[2] );
 				continue;
@@ -193,19 +234,36 @@ public class RtspTransport
 			// If it's not specified, let's assume unicast
 			setDeliveryType( DeliveryType.unicast );
 
+		if ( transportProtocol == TransportProtocol.RDT
+				&& deliveryType == DeliveryType.None )
+			// If it's not specified, let's assume unicast
+			setDeliveryType( DeliveryType.unicast );
+
 	}
 
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();
-		sb.append( transportProtocol );
-		if ( profile != Profile.None ) {
-			sb.append( "/" ).append( profile );
+		if ( transportProtocol == TransportProtocol.RDT ) {
+			// RDT is a little bit "special"
+			sb.append( "x-real-rdt" );
+
 			if ( lowerTransport != LowerTransport.None )
-				sb.append( "/" ).append( lowerTransport );
+				sb.append( "/" ).append( lowerTransport.toString().toLowerCase() );
+			
+			if ( deliveryType == DeliveryType.multicast )
+				sb.append( "/mcast" );
+
+		} else {
+			sb.append( transportProtocol );
+			if ( profile != Profile.None ) {
+				sb.append( "/" ).append( profile );
+				if ( lowerTransport != LowerTransport.None )
+					sb.append( "/" ).append( lowerTransport );
+			}
+			if ( deliveryType != DeliveryType.None )
+				sb.append( ";" ).append( deliveryType );
 		}
-		if ( deliveryType != DeliveryType.None )
-			sb.append( ";" ).append( deliveryType );
 		if ( destination != null )
 			sb.append( ";destination=" ).append( destination );
 		if ( interleaved != null )
@@ -216,14 +274,21 @@ public class RtspTransport
 			sb.append( ";layers=" ).append( layers );
 		if ( ttl > 0 )
 			sb.append( ";ttl=" ).append( ttl );
-		if ( port[0] > 0 )
-			sb.append( ";port=" ).append( port[0] ).append( "-" ).append( port[1] );
-		if ( client_port[0] > 0 )
-			sb.append( ";client_port=" ).append( client_port[0] ).append( "-" ).append(
-					client_port[1] );
-		if ( server_port[0] > 0 )
-			sb.append( ";server_port=" ).append( server_port[0] ).append( "-" ).append(
-					server_port[1] );
+		if ( port[0] > 0 ) {
+			sb.append( ";port=" ).append( port[0] );
+			if ( port[1] > 0 )
+				sb.append( "-" ).append( port[1] );
+		}
+		if ( client_port[0] > 0 ) {
+			sb.append( ";client_port=" ).append( client_port[0] );
+			if ( client_port[1] > 0 )
+				sb.append( "-" ).append( client_port[1] );
+		}
+		if ( server_port[0] > 0 ) {
+			sb.append( ";server_port=" ).append( server_port[0] );
+			if ( server_port[1] > 0 )
+				sb.append( "-" ).append( server_port[1] );
+		}
 		if ( ssrc != null )
 			sb.append( ";ssrc=" ).append( ssrc );
 		if ( source != null )
@@ -249,7 +314,12 @@ public class RtspTransport
 				&& deliveryType == DeliveryType.unicast )
 			return true;
 		else
-			return false;
+			if ( transportProtocol == TransportProtocol.RDT
+					&& lowerTransport == LowerTransport.UDP
+					&& deliveryType == DeliveryType.unicast )
+				return true;
+			else
+				return false;
 	}
 
 	/**
@@ -284,6 +354,15 @@ public class RtspTransport
 	public void setClientPort( int[] client_port )
 	{
 		this.client_port = client_port;
+	}
+
+	/**
+	 * @param client_port
+	 *        The client_port to set.
+	 */
+	public void setClientPort( int client_port )
+	{
+		this.client_port = new int[] { client_port, 0 };
 	}
 
 	/**
@@ -437,6 +516,15 @@ public class RtspTransport
 	public void setServerPort( int[] server_port )
 	{
 		this.server_port = server_port;
+	}
+
+	/**
+	 * @param server_port
+	 *        The server_port to set.
+	 */
+	public void setServerPort( int server_port )
+	{
+		this.server_port = new int[] { server_port, 0 };
 	}
 
 	/**

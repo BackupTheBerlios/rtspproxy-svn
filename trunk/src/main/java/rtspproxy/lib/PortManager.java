@@ -39,7 +39,7 @@ public class PortManager
 	private static Set<Integer> reservedPorts = Collections.synchronizedSet( new HashSet<Integer>() );
 
 	// TODO: Using custom exceptions
-	public static synchronized void reservePort( int port ) throws Exception
+	public static void reservePort( int port ) throws Exception
 	{
 		if ( reservedPorts.contains( port ) )
 			throw new Exception( "Port " + port + "is reserved" );
@@ -47,7 +47,7 @@ public class PortManager
 		reservedPorts.add( port );
 	}
 
-	public static synchronized void removePort( int port )
+	public static void removePort( int port )
 	{
 		reservedPorts.remove( port );
 	}
@@ -58,7 +58,7 @@ public class PortManager
 	 * @return true if the port is already reserved, false if the port can be
 	 *         used.
 	 */
-	public static synchronized boolean isPortReserved( int port )
+	public static boolean isPortReserved( int port )
 	{
 		return reservedPorts.contains( port );
 	}
@@ -71,7 +71,7 @@ public class PortManager
 	 *        the base port number to start from
 	 * @return the port number if found
 	 */
-	public static synchronized int getNextNotReservedPort( int start )
+	public static int getNextNotReservedPort( int start )
 			throws NoPortAvailableException
 	{
 		int port = start;
@@ -85,7 +85,7 @@ public class PortManager
 		return port;
 	}
 
-	public static synchronized int[] findAvailablePorts( int nPorts, int startFrom )
+	public static int[] findAvailablePorts( int nPorts, int startFrom )
 		throws NoPortAvailableException
 	{
 		int dataPort, controlPort, startingPort;

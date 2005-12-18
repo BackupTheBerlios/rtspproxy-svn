@@ -32,14 +32,21 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 
 import rtspproxy.Config;
+import rtspproxy.RdtClientService;
+import rtspproxy.RdtServerService;
 import rtspproxy.RtpClientService;
+import rtspproxy.RtpServerService;
 import rtspproxy.filter.RtspServerFilters;
+import rtspproxy.proxy.track.RdtTrack;
+import rtspproxy.proxy.track.RtpTrack;
 import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
 import rtspproxy.rtsp.RtspTransport;
 import rtspproxy.rtsp.RtspTransportList;
+import rtspproxy.rtsp.RtspTransport.LowerTransport;
+import rtspproxy.rtsp.RtspTransport.TransportProtocol;
 
 /**
  * @author mat
@@ -51,8 +58,9 @@ public class ProxyHandler
 
 	/** Used to save a reference to this handler in the IoSession */
 	protected static final String ATTR = ProxyHandler.class.toString() + "Attr";
-	protected static final String setupUrlATTR = "setupUrlATTR";
-	protected static final String clientPortsATTR = "clientPortsATTR";
+	protected static final String setupUrlATTR = ProxyHandler.class.toString() + "setupUrlATTR";
+	protected static final String clientPortsATTR = ProxyHandler.class.toString() + "clientPortsATTR";
+	protected static final String clientRdtPortATTR = ProxyHandler.class.toString() + "clientRdtPortATTR";
 
 	private IoSession clientSession = null;
 	private IoSession serverSession = null;
@@ -146,6 +154,7 @@ public class ProxyHandler
 				}
 			}
 		}
+		
 		switch ( message.getType() ) {
 			case TypeRequest:
 				clientSession.setAttribute( RtspMessage.lastRequestVerbATTR,
@@ -210,25 +219,31 @@ public class ProxyHandler
 			return;
 		}
 
-		int proxyRtpPort = Config.getInt( "proxy.server.rtp.port", -1 );
-		int proxyRtcpPort = Config.getInt( "proxy.server.rtcp.port", -1 );
+		int proxyRtpPort = RtpServerService.getRtpPort();
+		int proxyRtcpPort = RtpServerService.getRtcpPort();
+		int proxyRdtPort = RdtServerService.getPort();
 
 		// I'm saving the client Transport header before modifying it,
 		// because I will need to know which port the client will
 		// use for RTP/RTCP connections.
-		int[] clientPorts = rtspTransportList.get( 0 ).getClientPort();
-		clientSession.setAttribute( clientPortsATTR, clientPorts );
 		clientSession.setAttribute( setupUrlATTR, request.getUrl().toString() );
 
 		for ( RtspTransport transport : rtspTransportList.getList() ) {
 			log.debug( "Transport:" + transport );
 
-			if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
+			if ( transport.getLowerTransport() == LowerTransport.TCP ) {
 				log.debug( "Transport is TCP based." );
 			} else {
+				if ( transport.getTransportProtocol() == TransportProtocol.RTP ) {
 
-				// / int clientPort[] = transport.getClientPort();
-				transport.setClientPort( new int[] { proxyRtpPort, proxyRtcpPort } );
+					clientSession.setAttribute( clientPortsATTR, transport.getClientPort() );
+					transport.setClientPort( new int[] { proxyRtpPort, proxyRtcpPort } );
+
+				} else
+					if ( transport.getTransportProtocol() == TransportProtocol.RDT ) {
+						clientSession.setAttribute( clientRdtPortATTR, new Integer(transport.getClientPort()[0]) );
+						transport.setClientPort( proxyRdtPort );
+					}
 				log.debug( "Transport Rewritten: " + transport );
 			}
 		}
@@ -271,59 +286,112 @@ public class ProxyHandler
 		RtspTransportList rtspTransportList = new RtspTransportList(
 				response.getHeader( "Transport" ) );
 
-		// int proxyRtpPort = Config.getInt( "proxy.client.rtp.port", -1 );
-		// int proxyRtcpPort = Config.getInt( "proxy.client.rtcp.port", -1 );
 		String netInterface = Config.get( "proxy.client.interface", null );
 
 		RtspTransport transport = rtspTransportList.getList().get( 0 );
-		log.debug( "Transport:" + transport );
+		log.debug( "Using Transport:" + transport );
 
-		// Create a new Track object
-		Track track = proxySession.addTrack(
-				(String) clientSession.getAttribute( setupUrlATTR ), transport.getSSRC() );
+		if ( transport.getTransportProtocol() == TransportProtocol.RTP ) {
 
-		// Setting client and server info on the track
-		InetAddress serverAddress = null;
-		if ( transport.getSource() != null ) {
-			try {
-				serverAddress = InetAddress.getByName( transport.getSource() );
-			} catch ( UnknownHostException e ) {
-				log.warn( "Unknown host: " + transport.getSource() );
+			// Create a new Track object
+			RtpTrack track = proxySession.addRtpTrack(
+					(String) clientSession.getAttribute( setupUrlATTR ),
+					transport.getSSRC() );
+
+			// Setting client and server info on the track
+			InetAddress serverAddress = null;
+			if ( transport.getSource() != null ) {
+				try {
+					serverAddress = InetAddress.getByName( transport.getSource() );
+				} catch ( UnknownHostException e ) {
+					log.warn( "Unknown host: " + transport.getSource() );
+				}
+			} else {
+				serverAddress = ( (InetSocketAddress) serverSession.getRemoteAddress() ).getAddress();
 			}
-		} else {
-			serverAddress = ( (InetSocketAddress) serverSession.getRemoteAddress() ).getAddress();
-		}
-		int[] serverPorts = transport.getServerPort();
-		track.setServerAddress( serverAddress, serverPorts[0], serverPorts[1] );
+			int[] serverPorts = transport.getServerPort();
+			track.setServerAddress( serverAddress, serverPorts[0], serverPorts[1] );
 
-		InetAddress clientAddress = null;
-		try {
-			clientAddress = Inet4Address.getByName( ( (InetSocketAddress) clientSession.getRemoteAddress() ).getHostName() );
-		} catch ( UnknownHostException e ) {
-			log.warn( "Unknown host: " + clientSession.getRemoteAddress() );
-		}
-		int clientPorts[] = (int[]) clientSession.getAttribute( clientPortsATTR );
-		track.setClientAddress( clientAddress, clientPorts[0], clientPorts[1] );
-
-		if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
-			log.debug( "Transport is TCP based." );
-		} else {
-			transport.setSSRC( track.getProxySSRC().toHexString() );
-			transport.setServerPort( new int[] { RtpClientService.getRtpPort(),
-					RtpClientService.getRtcpPort() } );
-			// transport.setClientPort( );
+			InetAddress clientAddress = null;
 			try {
-				transport.setSource( InetAddress.getByName( netInterface ).getHostAddress() );
+				clientAddress = Inet4Address.getByName( ( (InetSocketAddress) clientSession.getRemoteAddress() ).getHostName() );
 			} catch ( UnknownHostException e ) {
-				transport.setSource( netInterface );
+				log.warn( "Unknown host: " + clientSession.getRemoteAddress() );
+			}
+			int clientPorts[] = (int[]) clientSession.getAttribute( clientPortsATTR );
+			track.setClientAddress( clientAddress, clientPorts[0], clientPorts[1] );
+
+			if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
+				log.debug( "Transport is TCP based." );
+			} else {
+				transport.setSSRC( track.getProxySSRC().toHexString() );
+				transport.setServerPort( new int[] { RtpClientService.getRtpPort(),
+						RtpClientService.getRtcpPort() } );
+				// transport.setClientPort( );
+				try {
+					transport.setSource( InetAddress.getByName( netInterface ).getHostAddress() );
+				} catch ( UnknownHostException e ) {
+					transport.setSource( netInterface );
+				}
+
+				// Obtaing client specified ports
+				int ports[] = (int[]) clientSession.getAttribute( clientPortsATTR );
+				transport.setClientPort( ports );
+
+				log.debug( "Transport Rewritten: " + transport );
 			}
 
-			// Obtaing client specified ports
-			int ports[] = (int[]) clientSession.getAttribute( clientPortsATTR );
-			transport.setClientPort( ports );
+		} else
+			if ( transport.getTransportProtocol() == TransportProtocol.RDT ) {
 
-			log.debug( "Transport Rewritten: " + transport );
-		}
+				// Create a new Track object
+				RdtTrack track = proxySession.addRdtTrack( (String) clientSession.getAttribute( setupUrlATTR ) );
+
+				// Setting client and server info on the track
+				InetAddress serverAddress = null;
+				if ( transport.getSource() != null ) {
+					try {
+						serverAddress = InetAddress.getByName( transport.getSource() );
+					} catch ( UnknownHostException e ) {
+						log.warn( "Unknown host: " + transport.getSource() );
+					}
+				} else {
+					serverAddress = ( (InetSocketAddress) serverSession.getRemoteAddress() ).getAddress();
+				}
+				int[] serverPorts = transport.getServerPort();
+				track.setServerAddress( serverAddress, serverPorts[0] );
+
+				InetAddress clientAddress = null;
+				try {
+					clientAddress = Inet4Address.getByName( ( (InetSocketAddress) clientSession.getRemoteAddress() ).getHostName() );
+				} catch ( UnknownHostException e ) {
+					log.warn( "Unknown host: " + clientSession.getRemoteAddress() );
+				}
+				int clientRdtPort = ((Integer) clientSession.getAttribute( clientRdtPortATTR ) ).intValue();
+				track.setClientAddress( clientAddress, clientRdtPort );
+
+				if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
+					log.debug( "Transport is TCP based." );
+				} else {
+					transport.setServerPort( RdtClientService.getPort() );
+					try {
+						transport.setSource( InetAddress.getByName( netInterface ).getHostAddress() );
+					} catch ( UnknownHostException e ) {
+						transport.setSource( netInterface );
+					}
+
+					// Obtaing client specified ports
+					int port = ((Integer) clientSession.getAttribute( clientRdtPortATTR ) ).intValue();
+					transport.setClientPort( port );
+
+					log.debug( "Transport Rewritten: " + transport );
+				}
+
+			} else {
+				sendResponse( clientSession,
+						RtspResponse.errorResponse( RtspCode.UnsupportedTransport ) );
+				return;
+			}
 
 		response.setHeader( "Session", proxySession.getClientSessionId() );
 		response.setHeader( "Transport", transport.toString() );

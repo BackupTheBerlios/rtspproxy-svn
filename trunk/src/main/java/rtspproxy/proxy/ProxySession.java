@@ -25,6 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 
 import rtspproxy.lib.number.UnsignedLong;
+import rtspproxy.proxy.track.RdtTrack;
+import rtspproxy.proxy.track.RtpTrack;
+import rtspproxy.proxy.track.Track;
 
 /**
  * Manages RTSP sessions with both client and server.
@@ -116,11 +119,29 @@ public class ProxySession
 	 *        the SSRC id given by the server or null if not provided
 	 * @return a reference to the newly created Track
 	 */
-	public synchronized Track addTrack( String url, String serverSsrc )
+	public synchronized RtpTrack addRtpTrack( String url, String serverSsrc )
 	{
-		Track track = new Track( url );
+		RtpTrack track = new RtpTrack( url );
 		if ( serverSsrc != null )
 			track.setServerSSRC( serverSsrc );
+		trackList.put( url, track );
+		log.debug( "ProxySession: " + clientSessionId + " Added track. TrackList: "
+				+ trackList );
+		return track;
+	}
+	
+	/**
+	 * Adds a new Track associated with this ProxySession.
+	 * 
+	 * @param url
+	 *        The URL used as a control reference for the Track
+	 * @param serverSsrc
+	 *        the SSRC id given by the server or null if not provided
+	 * @return a reference to the newly created Track
+	 */
+	public synchronized RdtTrack addRdtTrack( String url )
+	{
+		RdtTrack track = new RdtTrack( url );
 		trackList.put( url, track );
 		log.debug( "ProxySession: " + clientSessionId + " Added track. TrackList: "
 				+ trackList );

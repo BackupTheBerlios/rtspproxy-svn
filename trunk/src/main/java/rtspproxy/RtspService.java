@@ -38,6 +38,8 @@ public class RtspService implements ProxyService
 
 	private static Logger log = Logger.getLogger( RtspService.class );
 
+	private static final String NAME = "RtspService";
+
 	public void start() throws IOException
 	{
 		// get port and network interface from config file
@@ -49,12 +51,13 @@ public class RtspService implements ProxyService
 
 				Service service;
 				if ( netInterface == null )
-					service = new Service( "RtspService", TransportType.SOCKET, port );
+					service = new Service( NAME, TransportType.SOCKET, port );
 				else
-					service = new Service( "RtspService", TransportType.SOCKET,
+					service = new Service( NAME, TransportType.SOCKET,
 							new InetSocketAddress( netInterface, port ) );
 
-				Reactor.getRegistry().bind( service, new ClientSide(), new RtspClientFilters() );
+				Reactor.getRegistry().bind( service, new ClientSide(),
+						new RtspClientFilters() );
 
 				log.info( "RtspService Started - Listening on: "
 						+ InetAddress.getByName( netInterface ) + ":" + port );
@@ -68,10 +71,7 @@ public class RtspService implements ProxyService
 
 	public void stop() throws Exception
 	{
-		for ( Object service : Reactor.getRegistry().getServices( "RtspService" ) ) {
-			Reactor.getRegistry().unbind( (Service) service );
-		}
-
+		Reactor.getRegistry().unbind(NAME);
 		log.info( "RtspService Stopped" );
 	}
 }

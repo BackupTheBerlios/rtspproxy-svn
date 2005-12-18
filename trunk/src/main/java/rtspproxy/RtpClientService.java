@@ -44,8 +44,11 @@ public class RtpClientService implements ProxyService
 
 	private static Logger log = Logger.getLogger( RtpClientService.class );
 
-	static InetSocketAddress rtpAddress = null;
-	static InetSocketAddress rtcpAddress = null;
+	private static InetSocketAddress rtpAddress = null;
+	private static InetSocketAddress rtcpAddress = null;
+
+	private static final String rtpNAME = "RtpClientService";
+	private static final String rtcpNAME = "RtcpClientService";
 
 	public void start() throws IOException, NoPortAvailableException
 	{
@@ -74,10 +77,8 @@ public class RtpClientService implements ProxyService
 		try {
 			Service rtpService, rtcpService;
 
-			rtpService = new Service( "RtpClientService", TransportType.DATAGRAM,
-					rtpAddress );
-			rtcpService = new Service( "RtcpClientService", TransportType.DATAGRAM,
-					rtcpAddress );
+			rtpService = new Service( rtpNAME, TransportType.DATAGRAM, rtpAddress );
+			rtcpService = new Service( rtcpNAME, TransportType.DATAGRAM, rtcpAddress );
 
 			Reactor.getRegistry().bind( rtpService, new ClientRtpPacketHandler() );
 			Reactor.getRegistry().bind( rtcpService, new ClientRtcpPacketHandler() );
@@ -93,26 +94,21 @@ public class RtpClientService implements ProxyService
 
 	public void stop()
 	{
-		for ( Object service : Reactor.getRegistry().getServices( "RtpClientService" ) ) {
-			Reactor.getRegistry().unbind( (Service) service );
-		}
-		for ( Object service : Reactor.getRegistry().getServices( "RtcpClientService" ) ) {
-			Reactor.getRegistry().unbind( (Service) service );
-		}
-
+		Reactor.getRegistry().unbind( rtpNAME );
+		Reactor.getRegistry().unbind( rtcpNAME );
 		log.info( "RtpClientService Stopped" );
 	}
 
 	public static IoSession newRtpSession( SocketAddress remoteAddress )
 	{
-		return Reactor.getRegistry().getAcceptor( TransportType.DATAGRAM ).newSession(
-				remoteAddress, rtpAddress );
+		return Reactor.getRegistry().getAcceptor( rtpNAME ).newSession( remoteAddress,
+				rtpAddress );
 	}
 
 	public static IoSession newRtcpSession( SocketAddress remoteAddress )
 	{
-		return Reactor.getRegistry().getAcceptor( TransportType.DATAGRAM ).newSession(
-				remoteAddress, rtcpAddress );
+		return Reactor.getRegistry().getAcceptor( rtcpNAME ).newSession( remoteAddress,
+				rtcpAddress );
 	}
 
 	public static InetSocketAddress getRtpAddress()
