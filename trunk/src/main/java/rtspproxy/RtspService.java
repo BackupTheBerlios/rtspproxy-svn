@@ -18,13 +18,9 @@
 
 package rtspproxy;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-
-import org.apache.log4j.Logger;
+import org.apache.mina.common.IoFilterChainBuilder;
+import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
-import org.apache.mina.registry.Service;
 
 import rtspproxy.filter.RtspClientFilters;
 import rtspproxy.proxy.ClientSide;
@@ -33,45 +29,62 @@ import rtspproxy.rtsp.Handler;
 /**
  * @author Matteo Merli
  */
-public class RtspService implements ProxyService
+public class RtspService extends ProxyService
 {
+	private IoHandler rtspHandler = new ClientSide();
 
-	private static Logger log = Logger.getLogger( RtspService.class );
+	private IoFilterChainBuilder filterChainBuilder = new RtspClientFilters();
 
-	private static final String NAME = "RtspService";
+	public static final String NAME = "RtspService";
+	
+	private static RtspService instance;
 
-	public void start() throws IOException
+	public RtspService()
 	{
-		// get port and network interface from config file
-		int[] ports = Config.getIntArray( "proxy.rtsp.port", Handler.DEFAULT_RTSP_PORT );
-		String netInterface = Config.get( "proxy.rtsp.interface", null );
-
-		for ( int port : ports ) {
-			try {
-
-				Service service;
-				if ( netInterface == null )
-					service = new Service( NAME, TransportType.SOCKET, port );
-				else
-					service = new Service( NAME, TransportType.SOCKET,
-							new InetSocketAddress( netInterface, port ) );
-
-				Reactor.getRegistry().bind( service, new ClientSide(),
-						new RtspClientFilters() );
-
-				log.info( "RtspService Started - Listening on: "
-						+ InetAddress.getByName( netInterface ) + ":" + port );
-
-			} catch ( IOException e ) {
-				log.fatal( e.getMessage() + " (port = " + port + ")" );
-				throw e;
-			}
-		}
+		super();
+		instance = this;
 	}
 
-	public void stop() throws Exception
+	@Override
+	public TransportType getTransportType()
 	{
-		Reactor.getRegistry().unbind(NAME);
-		log.info( "RtspService Stopped" );
+		return TransportType.SOCKET;
 	}
+
+	@Override
+	public String getName()
+	{
+		return NAME;
+	}
+
+	@Override
+	public IoHandler getIoHandler()
+	{
+		return rtspHandler;
+	}
+
+	@Override
+	public IoFilterChainBuilder getFilterChainBuilder()
+	{
+		return filterChainBuilder;
+	}
+
+	@Override
+	public String getNetworkInterface()
+	{
+		return Config.get( "proxy.rtsp.interface", null );
+	}
+
+	@Override
+	public int[] getBindPorts()
+	{
+		return Config
+				.getIntArray( "proxy.rtsp.port", Handler.DEFAULT_RTSP_PORT );
+	}
+	
+	public static RtspService getInstance()
+	{
+		return instance;
+	}
+
 }

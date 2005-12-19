@@ -20,16 +20,18 @@ public class RdtTrack extends Track
 	 * client.
 	 */
 	private IoSession rdtClientSession = null;
+
 	private IoSession rdtServerSession = null;
 
 	private int clientRdtPort;
+
 	private int serverRdtPort;
 
 	/**
 	 * Construct a new Track.
 	 * 
 	 * @param url
-	 *        the control name for this track.
+	 *            the control name for this track.
 	 */
 	public RdtTrack( String url )
 	{
@@ -44,7 +46,7 @@ public class RdtTrack extends Track
 	 * same (live) track.
 	 * 
 	 * @param packet
-	 *        a buffer containing a RDT packet
+	 *            a buffer containing a RDT packet
 	 */
 	public void forwardRdtToClient( ByteBuffer packet )
 	{
@@ -52,8 +54,8 @@ public class RdtTrack extends Track
 		// packet.setSsrc( proxySSRC );
 
 		if ( rdtClientSession == null ) {
-			rdtClientSession = RdtClientService.newRdtSession( new InetSocketAddress(
-					clientAddress, clientRdtPort ) );
+			rdtClientSession = RdtClientService.getInstance().newSession(
+					new InetSocketAddress( clientAddress, clientRdtPort ) );
 		}
 
 		log.debug( "Packet: " + packet );
@@ -65,7 +67,7 @@ public class RdtTrack extends Track
 	 * indicated by the server at RDT port.
 	 * 
 	 * @param packet
-	 *        a RDT packet
+	 *            a RDT packet
 	 */
 	public void forwardRdtToServer( ByteBuffer packet )
 	{
@@ -73,15 +75,15 @@ public class RdtTrack extends Track
 			InetSocketAddress remoteAddress = new InetSocketAddress( serverAddress,
 					serverRdtPort );
 			log.debug( "Creating RDT session to: " + remoteAddress );
-			rdtServerSession = RdtServerService.newRdtSession( remoteAddress );
+			rdtServerSession = RdtServerService.getInstance().newSession( remoteAddress );
 		}
 
 		// log.debug( "Packet: " + packet );
 		// packet.reset();
 		// log.debug("Packet: " + packet );
-		//  log.debug( "Written bytes1: " + rdtServerSession.getWrittenBytes() );
+		// log.debug( "Written bytes1: " + rdtServerSession.getWrittenBytes() );
 		rdtServerSession.write( packet );
-//		 log.debug( "Written bytes2: " + rdtServerSession.getWrittenBytes() );
+		// log.debug( "Written bytes2: " + rdtServerSession.getWrittenBytes() );
 	}
 
 	/**
@@ -91,9 +93,9 @@ public class RdtTrack extends Track
 	 * same (live) track.
 	 * 
 	 * @param serverHost
-	 *        The serverHost to set.
+	 *            The serverHost to set.
 	 * @param rdtpPort
-	 *        the port number used for RDT packets
+	 *            the port number used for RDT packets
 	 */
 	public synchronized void setClientAddress( InetAddress clientAddress, int rdtPort )
 	{
@@ -107,9 +109,9 @@ public class RdtTrack extends Track
 	 * Set the address of the server associated with this track.
 	 * 
 	 * @param serverHost
-	 *        The serverHost to set.
+	 *            The serverHost to set.
 	 * @param rdtPort
-	 *        the port number used for RDT packets
+	 *            the port number used for RDT packets
 	 */
 	public synchronized void setServerAddress( InetAddress serverAddress, int rdtPort )
 	{

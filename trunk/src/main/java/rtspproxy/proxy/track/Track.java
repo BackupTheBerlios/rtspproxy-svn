@@ -48,24 +48,24 @@ public abstract class Track
 	 * Control Url of the track. This is the url handle given by the server to
 	 * control different tracks in a RTSP session.
 	 */
-	protected
-	String url;
+	protected String url;
 
 	/**
-	 * IP address and RTP/RTCP ports for client and server.
+	 * IP address of client and server.
 	 * <p>
 	 * TODO: When using reflection, there will be more than one connected client
 	 * at a time to the same Track. So the track should keep a list of connected
 	 * clients and forward packets to each of them.
 	 */
 	protected InetAddress clientAddress;
+
 	protected InetAddress serverAddress;
 
 	/**
 	 * Construct a new Track.
 	 * 
 	 * @param url
-	 *        the control name for this track.
+	 *            the control name for this track.
 	 */
 	public Track( String url )
 	{
@@ -97,7 +97,6 @@ public abstract class Track
 
 	// /// Member methods
 
-
 	public String getUrl()
 	{
 		return url;
@@ -107,7 +106,7 @@ public abstract class Track
 	{
 		this.url = url;
 	}
-	
+
 	public abstract void close();
 
 	public String toString()

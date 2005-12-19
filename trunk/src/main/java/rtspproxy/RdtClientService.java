@@ -18,92 +18,63 @@
 
 package rtspproxy;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-
-import org.apache.log4j.Logger;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
-import org.apache.mina.registry.Service;
 
-import rtspproxy.lib.NoPortAvailableException;
-import rtspproxy.lib.PortManager;
 import rtspproxy.proxy.ClientRdtPacketHandler;
 
 /**
- * This service is responsible of receiving and sending RTP and RTCP packets to
- * clients.
- * 
  * @author Matteo Merli
  */
-public class RdtClientService implements ProxyService
+public class RdtClientService extends ProxyService
 {
 
-	private static Logger log = Logger.getLogger( RtpClientService.class );
+	private IoHandler clientRdtPacketHandler = new ClientRdtPacketHandler();
 
-	private static InetSocketAddress rdtAddress = null;
-	
-	private static final String NAME = "RdtClientService";
+	public static final String NAME = "RdtClientService";
 
-	public void start() throws IOException, NoPortAvailableException
+	private static RdtClientService instance;
+
+	public RdtClientService()
 	{
-		int rdtPort = Config.getInt( "proxy.client.rdt.port", 8018 );
-		String netInterface = Config.get( "proxy.client.interface", null );
-		boolean dinPorts = Config.getBoolean( "proxy.client.dynamicPorts", false );
-
-		// If dinPorts is true, we have to first check the availability
-		// of the ports and choose 2 valid ports.
-		if ( dinPorts ) {
-			int[] ports = PortManager.findAvailablePorts( 1, rdtPort );
-			rdtPort = ports[0];
-		}
-
-		rdtAddress = new InetSocketAddress( InetAddress.getByName( netInterface ),
-				rdtPort );
-
-		try {
-			Service rdtService;
-
-			rdtService = new Service( NAME, TransportType.DATAGRAM,
-					rdtAddress );
-			
-			Reactor.getRegistry().bind( rdtService, new ClientRdtPacketHandler() );
-			log.info( "RdtClientService Started - Listening on: "
-					+ InetAddress.getByName( netInterface ) + " " + rdtPort  );
-
-		} catch ( IOException e ) {
-			log.fatal( "Can't start RdtClientService. " + e );
-			throw e;
-		}
+		super();
+		instance = this;
 	}
 
-	public void stop()
+	@Override
+	public TransportType getTransportType()
 	{
-		Reactor.getRegistry().unbind( NAME );
-		log.info( "RdtClientService Stopped" );
+		return TransportType.DATAGRAM;
 	}
 
-	public static IoSession newRdtSession( SocketAddress remoteAddress )
+	@Override
+	public String getName()
 	{
-		return Reactor.getRegistry().getAcceptor( NAME ).newSession(
-				remoteAddress, rdtAddress );
+		return NAME;
 	}
 
-	public static InetSocketAddress getRdtAddress()
+	@Override
+	public IoHandler getIoHandler()
 	{
-		return rdtAddress;
+		return clientRdtPacketHandler;
 	}
 
-	public static InetAddress getHostAddress()
+	@Override
+	public String getNetworkInterface()
 	{
-		return rdtAddress.getAddress();
+		return Config.get( "proxy.client.interface", null );
 	}
 
-	public static int getPort()
+	@Override
+	public int[] getBindPorts()
 	{
-		return rdtAddress.getPort();
+		int port = Config.getInt( "proxy.client.rdt.port", 8018 );
+		return new int[] { port };
+	}
+
+	public static RdtClientService getInstance()
+	{
+		return instance;
 	}
 
 }

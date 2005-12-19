@@ -12,23 +12,26 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 import org.apache.mina.common.IoSession;
 
+import rtspproxy.RtcpClientService;
+import rtspproxy.RtcpServerService;
 import rtspproxy.RtpClientService;
 import rtspproxy.RtpServerService;
 import rtspproxy.lib.number.UnsignedInt;
 import rtspproxy.rtp.RtpPacket;
 import rtspproxy.rtp.rtcp.RtcpPacket;
 
-public class RtpTrack extends Track {
-	
+public class RtpTrack extends Track
+{
+
 	private static Logger log = Logger.getLogger( RtpTrack.class );
 
 	/** Maps a server SSRC id to a Track */
 	private static Map<UnsignedInt, RtpTrack> serverSsrcMap = new ConcurrentHashMap<UnsignedInt, RtpTrack>();
-	
+
 	/** Keeps track of the SSRC IDs used by the proxy, to avoid collisions. */
-	private static Set<UnsignedInt> proxySsrcList = Collections.synchronizedSet( new HashSet<UnsignedInt>() );
-	
-	
+	private static Set<UnsignedInt> proxySsrcList = Collections
+			.synchronizedSet( new HashSet<UnsignedInt>() );
+
 	/**
 	 * Get the track by looking at server SSRC id.
 	 * 
@@ -38,39 +41,45 @@ public class RtpTrack extends Track {
 	{
 		return serverSsrcMap.get( serverSsrc );
 	}
-	
-	
+
 	/** SSRC id given by the server */
 	private UnsignedInt serverSSRC = new UnsignedInt( 0 );
+
 	/** SSRC id selected by the proxy */
 	private UnsignedInt proxySSRC = new UnsignedInt( 0 );
-	
+
 	/**
 	 * Cached references to IoSession objects used to send packets to server and
 	 * client.
 	 */
 	private IoSession rtpServerSession = null;
+
 	private IoSession rtcpServerSession = null;
+
 	private IoSession rtpClientSession = null;
+
 	private IoSession rtcpClientSession = null;
-	
+
 	private int clientRtpPort;
+
 	private int clientRtcpPort;
+
 	private int serverRtpPort;
+
 	private int serverRtcpPort;
-	
+
 	/**
 	 * Construct a new Track.
 	 * 
 	 * @param url
-	 *        the control name for this track.
+	 *            the control name for this track.
 	 */
 	public RtpTrack( String url )
 	{
 		super( url );
 		setProxySSRC( newSSRC() );
 	}
-	
+
 	/**
 	 * @return the SSRC id used byt the proxy
 	 */
@@ -126,7 +135,6 @@ public class RtpTrack extends Track {
 		serverSsrcMap.put( this.serverSSRC, this );
 	}
 
-	
 	public void setRtcpClientSession( IoSession rtcpClientSession )
 	{
 		this.rtcpClientSession = rtcpClientSession;
@@ -146,13 +154,13 @@ public class RtpTrack extends Track {
 	{
 		this.rtpServerSession = rtpServerSession;
 	}
-	
+
 	/**
 	 * Forwards a RTP packet to server. The packet will be set to the address
 	 * indicated by the server at RTP (even) port.
 	 * 
 	 * @param packet
-	 *        a RTP packet
+	 *            a RTP packet
 	 */
 	public void forwardRtpToServer( RtpPacket packet )
 	{
@@ -160,8 +168,8 @@ public class RtpTrack extends Track {
 		packet.setSsrc( proxySSRC );
 
 		if ( rtpServerSession == null )
-			rtpServerSession = RtpServerService.newRtpSession( new InetSocketAddress(
-					serverAddress, serverRtpPort ) );
+			rtpServerSession = RtpServerService.getInstance().newSession(
+					new InetSocketAddress( serverAddress, serverRtpPort ) );
 
 		rtpServerSession.write( packet.toByteBuffer() );
 	}
@@ -171,7 +179,7 @@ public class RtpTrack extends Track {
 	 * indicated by the server at RTCP (odd) port.
 	 * 
 	 * @param packet
-	 *        a RTCP packet
+	 *            a RTCP packet
 	 */
 	public void forwardRtcpToServer( RtcpPacket packet )
 	{
@@ -179,8 +187,8 @@ public class RtpTrack extends Track {
 		packet.setSsrc( proxySSRC );
 
 		if ( rtcpServerSession == null )
-			rtcpServerSession = RtpServerService.newRtcpSession( new InetSocketAddress(
-					serverAddress, serverRtcpPort ) );
+			rtcpServerSession = RtcpServerService.getInstance().newSession(
+					new InetSocketAddress( clientAddress, clientRtcpPort ) );
 
 		rtcpServerSession.write( packet.toByteBuffer() );
 	}
@@ -193,7 +201,7 @@ public class RtpTrack extends Track {
 	 * same (live) track.
 	 * 
 	 * @param packet
-	 *        a RTP packet
+	 *            a RTP packet
 	 */
 	public void forwardRtpToClient( RtpPacket packet )
 	{
@@ -201,9 +209,8 @@ public class RtpTrack extends Track {
 		packet.setSsrc( proxySSRC );
 
 		if ( rtpClientSession == null ) {
-			rtpClientSession = RtpClientService.newRtpSession( new InetSocketAddress(
-					clientAddress, clientRtpPort ) );
-
+			rtpClientSession = RtpClientService.getInstance().newSession(
+					new InetSocketAddress( clientAddress, clientRtpPort ) );
 		}
 
 		rtpClientSession.write( packet.toByteBuffer() );
@@ -217,7 +224,7 @@ public class RtpTrack extends Track {
 	 * same (live) track.
 	 * 
 	 * @param packet
-	 *        a RTCP packet
+	 *            a RTCP packet
 	 */
 	public void forwardRtcpToClient( RtcpPacket packet )
 	{
@@ -225,14 +232,12 @@ public class RtpTrack extends Track {
 		packet.setSsrc( proxySSRC );
 
 		if ( rtcpClientSession == null ) {
-			rtcpClientSession = RtpClientService.newRtcpSession( new InetSocketAddress(
-					clientAddress, clientRtcpPort ) );
-
+			rtcpClientSession = RtcpClientService.getInstance().newSession(
+					new InetSocketAddress( clientAddress, clientRtcpPort ) );
 		}
 
 		rtcpClientSession.write( packet.toByteBuffer() );
 	}
-	
 
 	/**
 	 * Set the address of the server associated with this track.
@@ -241,11 +246,11 @@ public class RtpTrack extends Track {
 	 * same (live) track.
 	 * 
 	 * @param serverHost
-	 *        The serverHost to set.
+	 *            The serverHost to set.
 	 * @param rtpPort
-	 *        the port number used for RTP packets
+	 *            the port number used for RTP packets
 	 * @param rtcpPort
-	 *        the port number used for RTCP packets
+	 *            the port number used for RTCP packets
 	 */
 	public synchronized void setClientAddress( InetAddress clientAddress, int rtpPort,
 			int rtcpPort )
@@ -262,11 +267,11 @@ public class RtpTrack extends Track {
 	 * Set the address of the server associated with this track.
 	 * 
 	 * @param serverHost
-	 *        The serverHost to set.
+	 *            The serverHost to set.
 	 * @param rtpPort
-	 *        the port number used for RTP packets
+	 *            the port number used for RTP packets
 	 * @param rtcpPort
-	 *        the port number used for RTCP packets
+	 *            the port number used for RTCP packets
 	 */
 	public synchronized void setServerAddress( InetAddress serverAddress, int rtpPort,
 			int rtcpPort )
@@ -278,7 +283,7 @@ public class RtpTrack extends Track {
 		serverAddressMap.put( new InetSocketAddress( serverAddress, rtpPort ), this );
 		serverAddressMap.put( new InetSocketAddress( serverAddress, rtcpPort ), this );
 	}
-	
+
 	public synchronized void close()
 	{
 		if ( serverSSRC != null )
@@ -294,7 +299,6 @@ public class RtpTrack extends Track {
 		log.debug( "Closed track " + url );
 	}
 
-	
 	// ////////////////
 
 	/** Used in SSRC id generation */

@@ -21,20 +21,20 @@ package rtspproxy;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
 
-import rtspproxy.proxy.ServerRdtPacketHandler;
+import rtspproxy.proxy.ClientRtcpPacketHandler;
 
 /**
  * @author Matteo Merli
  */
-public class RdtServerService extends ProxyService
+public class RtcpClientService extends ProxyService
 {
-	private IoHandler serverRdtPacketHandler = new ServerRdtPacketHandler();
+	private IoHandler clientRtcpPacketHandler = new ClientRtcpPacketHandler();
 
-	public static final String NAME = "RdtServerService";
+	public static final String NAME = "RtcpClientService";
+	
+	private static RtcpClientService instance;
 
-	private static RdtServerService instance;
-
-	public RdtServerService()
+	public RtcpClientService()
 	{
 		super();
 		instance = this;
@@ -55,23 +55,23 @@ public class RdtServerService extends ProxyService
 	@Override
 	public IoHandler getIoHandler()
 	{
-		return serverRdtPacketHandler;
+		return clientRtcpPacketHandler;
 	}
 
 	@Override
 	public String getNetworkInterface()
 	{
-		return Config.get( "proxy.server.interface", null );
+		return Config.get( "proxy.client.interface", null );
 	}
 
 	@Override
 	public int[] getBindPorts()
 	{
-		int port = Config.getInt( "proxy.server.rdt.port", 8020 );
+		int port = Config.getInt( "proxy.client.rtcp.port", 8003 );
 		return new int[] { port };
 	}
-
-	public static RdtServerService getInstance()
+	
+	public static RtcpClientService getInstance()
 	{
 		return instance;
 	}

@@ -19,7 +19,8 @@
 package rtspproxy;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,8 +32,6 @@ import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
 import org.apache.mina.filter.ThreadPoolFilter;
-import org.apache.mina.registry.Service;
-import org.apache.mina.registry.ServiceRegistry;
 import org.apache.mina.transport.socket.nio.DatagramAcceptor;
 import org.apache.mina.transport.socket.nio.SocketAcceptor;
 import org.apache.mina.transport.vmpipe.VmPipeAcceptor;
@@ -43,127 +42,129 @@ import org.apache.mina.transport.vmpipe.VmPipeAcceptor;
  * 
  * @author Matteo Merli
  */
-public class ProxyServiceRegistry implements ServiceRegistry
+public class ProxyServiceRegistry
 {
 
+	/**
+	 * Thread pool instance that will be added to all acceptors.
+	 */
 	protected final ThreadPoolFilter threadPoolFilter = new ThreadPoolFilter();
 
-	private final ConcurrentMap<String, IoAcceptor> acceptors = new ConcurrentHashMap<String, IoAcceptor>();
-	private final ConcurrentMap<String, Service> services = new ConcurrentHashMap<String, Service>();
+	/** All the services, mapped by name. */
+	private final ConcurrentMap<String, ProxyService> services = new ConcurrentHashMap<String, ProxyService>();
 
-	public void bind( Service service, IoHandler ioHandler ) throws IOException
+	/** Map a ProxyService to all its bound addresses. */
+	private final ConcurrentMap<ProxyService, Set<SocketAddress>> addresses = new ConcurrentHashMap<ProxyService, Set<SocketAddress>>();
+
+	private final ConcurrentMap<ProxyService, IoAcceptor> acceptors = new ConcurrentHashMap<ProxyService, IoAcceptor>();
+
+	public void bind( ProxyService service, IoHandler ioHandler, InetSocketAddress address )
+			throws IOException
 	{
-		bind( service, ioHandler, null );
+		bind( service, ioHandler, address, null );
 	}
 
-	public void bind( Service service, IoHandler ioHandler,
-			IoFilterChainBuilder filterChainBuilder ) throws IOException
+	public void bind( ProxyService service, IoHandler ioHandler,
+			InetSocketAddress address, IoFilterChainBuilder filterChainBuilder )
+			throws IOException
 	{
 		IoAcceptor acceptor = newAcceptor( service );
 		if ( filterChainBuilder == null ) {
 			filterChainBuilder = IoFilterChainBuilder.NOOP;
 		}
-		acceptor.bind( service.getAddress(), ioHandler, new IoFilterChainBuilderWrapper(
-				service, filterChainBuilder ) );
+		acceptor.bind( address, ioHandler, new IoFilterChainBuilderWrapper( service,
+				filterChainBuilder ) );
 
 		services.put( service.getName(), service );
-		acceptors.put( service.getName(), acceptor );
+
+		if ( addresses.get( service ) == null )
+			addresses.put( service, new HashSet<SocketAddress>() );
+		addresses.get( service ).add( address );
 	}
 
-	public synchronized void unbind( Service service )
+	public synchronized void unbind( ProxyService service ) throws Exception
 	{
-		IoAcceptor acceptor = acceptors.get( service.getName() );
-		try {
-			acceptor.unbind( service.getAddress() );
-		} catch ( Exception e ) {
-			// ignore
+		IoAcceptor acceptor = acceptors.get( service );
+		for ( SocketAddress address : addresses.get( service ) ) {
+			try {
+				acceptor.unbind( address );
+			} catch ( Exception e ) {
+				// ignore
+			}
+		}
+
+		if ( service.isRunning() ) {
+			service.stop();
 		}
 
 		services.remove( service.getName() );
-		acceptors.remove( service.getName() );
+		acceptors.remove( service );
+		addresses.remove( service );
 	}
 
-	public void unbind( String serviceName )
+	public synchronized void unbindAll() throws Exception
 	{
-		Service service = services.get( serviceName );
-		if ( service == null )
-			return;
-		else
-			unbind( service );
-	}
-
-	public synchronized void unbindAll()
-	{
-		Collection<Service> serviceList = services.values();
-		for ( Service service : serviceList ) {
+		Set<ProxyService> serviceList = new HashSet<ProxyService>( services.values() );
+		for ( ProxyService service : serviceList ) {
 			unbind( service );
 		}
 	}
 
 	public synchronized Set getAllServices()
 	{
-		return new HashSet<Service>( services.values() );
+		return new HashSet<ProxyService>( services.values() );
 	}
 
-	public Service getService( String name )
+	public ProxyService getService( String name )
 	{
 		return services.get( name );
 	}
 
-	public Set getServices( String name )
-	{
-		Set<Service> oneService = new HashSet<Service>();
-		Service service = services.get( name );
-		if ( service != null )
-			oneService.add( service );
-		return oneService;
-	}
-
-	public Set getServices( TransportType transportType )
-	{
-		// Not implemented
-		return null;
-	}
-
-	public Set getServices( int port )
-	{
-		// Not implemented
-		return null;
-	}
-
-	public IoAcceptor getAcceptor( TransportType transportType )
-	{
-		// Not implemented
-		return null;
-	}
-
 	public IoAcceptor getAcceptor( String serviceName )
 	{
-		return acceptors.get( serviceName );
+		ProxyService service = services.get( serviceName );
+		if ( service == null )
+			return null;
+		else
+			return acceptors.get( service );
 	}
 
-	private static IoAcceptor newAcceptor( Service service )
+	public IoAcceptor getAcceptor( ProxyService service )
 	{
+		return acceptors.get( service );
+	}
+
+	private IoAcceptor newAcceptor( ProxyService service )
+	{
+		// First check if there's already an acceptor
+		IoAcceptor acceptor = acceptors.get( service );
+		if ( acceptor != null )
+			return acceptor;
+
+		// Create a new one
 		TransportType transportType = service.getTransportType();
 		if ( transportType == TransportType.SOCKET )
-			return new SocketAcceptor();
+			acceptor = new SocketAcceptor();
+		else if ( transportType == TransportType.DATAGRAM )
+			acceptor = new DatagramAcceptor();
+		else if ( transportType == TransportType.VM_PIPE )
+			acceptor = new VmPipeAcceptor();
 		else
-			if ( transportType == TransportType.DATAGRAM )
-				return new DatagramAcceptor();
-			else
-				if ( transportType == TransportType.VM_PIPE )
-					return new VmPipeAcceptor();
-				else
-					return null;
+			acceptor = null;
+
+		// Save the acceptor
+		acceptors.put( service, acceptor );
+		return acceptor;
 	}
 
 	private class IoFilterChainBuilderWrapper implements IoFilterChainBuilder
 	{
 
-		private final Service service;
+		private final ProxyService service;
+
 		private final IoFilterChainBuilder originalBuilder;
 
-		private IoFilterChainBuilderWrapper( Service service,
+		private IoFilterChainBuilderWrapper( ProxyService service,
 				IoFilterChainBuilder originalBuilder )
 		{
 			this.service = service;
@@ -172,7 +173,7 @@ public class ProxyServiceRegistry implements ServiceRegistry
 
 		public void buildFilterChain( IoFilterChain chain ) throws Exception
 		{
-			chain.getSession().setAttribute( SERVICE, service );
+			chain.getSession().setAttribute( ProxyService.SERVICE, service );
 
 			try {
 				originalBuilder.buildFilterChain( chain );
