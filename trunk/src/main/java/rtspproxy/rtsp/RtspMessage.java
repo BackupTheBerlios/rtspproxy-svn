@@ -19,14 +19,15 @@
 package rtspproxy.rtsp;
 
 import java.nio.CharBuffer;
-import java.util.Properties;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import rtspproxy.Config;
 
 /**
  * Base abstract class for RTSP messages.
  * 
- * @author mat
+ * @author Matteo Merli
  */
 public abstract class RtspMessage
 {
@@ -47,7 +48,9 @@ public abstract class RtspMessage
 	};
 
 	private int sequenceNumber;
-	private Properties headers;
+
+	private Map<String, String> headers;
+
 	private StringBuffer buffer;
 
 	/**
@@ -56,7 +59,7 @@ public abstract class RtspMessage
 	public RtspMessage()
 	{
 		sequenceNumber = 0;
-		headers = new Properties();
+		headers = new LinkedHashMap<String, String>();
 		buffer = new StringBuffer();
 	}
 
@@ -72,35 +75,35 @@ public abstract class RtspMessage
 	 * Adds a new header to the RTSP message.
 	 * 
 	 * @param key
-	 *        The name of the header
+	 *            The name of the header
 	 * @param value
-	 *        Its value
+	 *            Its value
 	 */
 	public void setHeader( String key, String value )
 	{
 		// Handle some bad formatted headers
 		if ( key.compareToIgnoreCase( "content-length" ) == 0 ) {
-			headers.setProperty( "Content-Length", value );
+			headers.put( "Content-Length", value );
 		} else {
-			headers.setProperty( key, value );
+			headers.put( key, value );
 		}
 	}
 
 	/**
 	 * @param key
-	 *        Header name
+	 *            Header name
 	 * @return the value of the header
 	 */
 	public String getHeader( String key )
 	{
-		return headers.getProperty( key );
+		return headers.get( key );
 	}
 
 	/**
 	 * @param key
-	 *        Header name
+	 *            Header name
 	 * @param defaultValue
-	 *        the default value
+	 *            the default value
 	 * @return the value of the header of <i>defaultValue</i> if header is not
 	 *         found
 	 */
@@ -117,7 +120,7 @@ public abstract class RtspMessage
 	 * Remove an header from the message headers collection
 	 * 
 	 * @param key
-	 *        the name of the header
+	 *            the name of the header
 	 */
 	public void removeHeader( String key )
 	{
@@ -128,9 +131,9 @@ public abstract class RtspMessage
 	 * Formats all the headers into a string ready to be sent in a RTSP message.
 	 * 
 	 * <pre>
-	 *  Header1: Value1
-	 *  Header2: value 2
-	 *  ... 
+	 *     Header1: Value1
+	 *     Header2: value 2
+	 *     ... 
 	 * </pre>
 	 * 
 	 * @return a string containing the serialzed headers
@@ -138,9 +141,8 @@ public abstract class RtspMessage
 	public String getHeadersString()
 	{
 		StringBuilder buf = new StringBuilder();
-		for ( Object key : headers.keySet() ) {
-			String value = headers.getProperty( (String) key );
-			buf.append( key + ": " + value + CRLF );
+		for ( String key : headers.keySet() ) {
+			buf.append( key ).append( ": " ).append( headers.get( key ) ).append( CRLF );
 		}
 		return buf.toString();
 	}
@@ -167,7 +169,7 @@ public abstract class RtspMessage
 
 	/**
 	 * @param buffer
-	 *        StringBuffer containing the contents
+	 *            StringBuffer containing the contents
 	 */
 	public void setBuffer( StringBuffer buffer )
 	{
@@ -176,7 +178,7 @@ public abstract class RtspMessage
 
 	/**
 	 * @param other
-	 *        buffer with content to be appended
+	 *            buffer with content to be appended
 	 */
 	public void appendToBuffer( StringBuffer other )
 	{
@@ -185,7 +187,7 @@ public abstract class RtspMessage
 
 	/**
 	 * @param other
-	 *        buffer with content to be appended
+	 *            buffer with content to be appended
 	 */
 	public void appendToBuffer( CharBuffer other )
 	{
@@ -221,7 +223,7 @@ public abstract class RtspMessage
 
 	/**
 	 * @param sequenceNumber
-	 *        The sequenceNumber to set.
+	 *            The sequenceNumber to set.
 	 */
 	public void setSequenceNumber( int sequenceNumber )
 	{
