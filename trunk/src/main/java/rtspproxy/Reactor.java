@@ -30,12 +30,6 @@ public class Reactor
 
 	private static ProxyServiceRegistry registry = new ProxyServiceRegistry();
 
-	private static ProxyService rtspService;
-	private static ProxyService rtpClientService;
-	private static ProxyService rtpServerService;
-	private static ProxyService rdtClientService;
-	private static ProxyService rdtServerService;
-
 	private static boolean isStandalone = false;
 
 	public static void setStandalone( boolean standalone )
@@ -48,40 +42,36 @@ public class Reactor
 	 */
 	static public void start() throws Exception
 	{
-		rtspService = new RtspService();
+		ProxyService rtspService = new RtspService();
 		rtspService.start();
 
-		rtpClientService = new RtpClientService();
+		ProxyService rtpClientService = new RtpClientService();
 		rtpClientService.start();
 
-		rtpServerService = new RtpServerService();
+		ProxyService rtcpClientService = new RtcpClientService();
+		rtcpClientService.start();
+
+		ProxyService rtpServerService = new RtpServerService();
 		rtpServerService.start();
 		
-		rdtClientService = new RdtClientService();
+		ProxyService rtcpServerService = new RtcpServerService();
+		rtcpServerService.start();
+
+		ProxyService rdtClientService = new RdtClientService();
 		rdtClientService.start();
-		
-		rdtServerService = new RdtServerService();
+
+		ProxyService rdtServerService = new RdtServerService();
 		rdtServerService.start();
 	}
 
 	static public void stop()
 	{
 		try {
-			// registry.unbindAll();
-			if ( rtspService != null )
-				rtspService.stop();
-			if ( rtpClientService != null )
-				rtpClientService.stop();
-			if ( rtpServerService != null )
-				rtpServerService.stop();
-			if ( rdtClientService != null )
-				rdtClientService.stop();
-			if ( rdtServerService != null )
-				rdtServerService.stop();
+			registry.unbindAll();
 		} catch ( Exception e ) {
 			log.debug( "Error shutting down: " + e );
 		}
-		
+
 		log.info( "Shutdown completed" );
 
 		if ( isStandalone )
