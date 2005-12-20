@@ -6,6 +6,9 @@
 	</properties>
 	<body>
 
+		<release version="3.0-ALPHA3-SNAPSHOT" date="2005-12-20">
+		</release>
+
 		<release version="3.0-ALPHA2" date="2005-12-08">
 			<action dev="merlimat" type="add">
 				Added preliminary implementation of the IP address and

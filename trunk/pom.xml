@@ -131,7 +131,6 @@
 					<showWarnings>true</showWarnings>
 				</configuration>
 			</plugin>
-<!-- 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -140,7 +139,7 @@
 						src/resources/release/default.xml
 					</descriptor>
 				</configuration>
-			</plugin> -->
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
