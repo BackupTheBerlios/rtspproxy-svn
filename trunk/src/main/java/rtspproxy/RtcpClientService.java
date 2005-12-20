@@ -21,6 +21,7 @@ package rtspproxy;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
 
+import rtspproxy.config.Config;
 import rtspproxy.proxy.ClientRtcpPacketHandler;
 
 /**
@@ -61,13 +62,13 @@ public class RtcpClientService extends ProxyService
 	@Override
 	public String getNetworkInterface()
 	{
-		return Config.get( "proxy.client.interface", null );
+		return Config.proxyClientInterface.getValue();
 	}
 
 	@Override
 	public int[] getBindPorts()
 	{
-		int port = Config.getInt( "proxy.client.rtcp.port", 8003 );
+		int port = Config.proxyClientRtcpPort.getValue();
 		return new int[] { port };
 	}
 	

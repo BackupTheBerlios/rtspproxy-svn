@@ -20,6 +20,9 @@ package rtspproxy;
 
 import org.apache.log4j.Logger;
 
+import rtspproxy.config.Config;
+import rtspproxy.config.ConfigReader;
+
 /**
  * 
  */
@@ -42,6 +45,39 @@ public class Reactor
 	 */
 	static public void start() throws Exception
 	{
+		// Read configuration files
+		new Config();
+
+		String[] paths = new String[5];
+
+		// Used for testing purposes:
+		// checks for the configuration file
+		paths[4] = "src/resources/conf/rtspproxy.properties";
+
+		// Current directory configuration
+		paths[3] = "rtspproxy.properties";
+
+		// RtspProxy home folder
+		paths[2] = Config.getHome() + "/conf/rtspproxy.properties";
+
+		// Per user config
+		paths[1] = System.getProperty( "user.home", "" ) + "/.rtspproxy.properties";
+		// System wide configuration (tipical in unix systems)
+		paths[0] = "/etc/rtspproxy.properties";
+
+		for ( String path : paths ) {
+			new ConfigReader( path );
+		}
+
+		if ( log.isDebugEnabled() ) {
+			log.debug( Config.debugParameters() );
+		}
+
+		log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
+
+		// Register the "rtsp://" protocol scheme
+		System.setProperty( "java.protocol.handler.pkgs", "rtspproxy" );
+
 		ProxyService rtspService = new RtspService();
 		rtspService.start();
 
@@ -53,7 +89,7 @@ public class Reactor
 
 		ProxyService rtpServerService = new RtpServerService();
 		rtpServerService.start();
-		
+
 		ProxyService rtcpServerService = new RtcpServerService();
 		rtcpServerService.start();
 

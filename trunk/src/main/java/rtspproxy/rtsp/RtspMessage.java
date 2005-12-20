@@ -22,7 +22,7 @@ import java.nio.CharBuffer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import rtspproxy.Config;
+import rtspproxy.config.Config;
 
 /**
  * Base abstract class for RTSP messages.

@@ -45,7 +45,7 @@ public class ServerRtpPacketHandler extends IoHandlerAdapter
 	@Override
 	public void messageReceived( IoSession session, Object buffer ) throws Exception
 	{
-		log.debug( "Received RTP packet" );
+		// log.debug( "Received RTP packet" );
 		RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
 		RtpTrack track = RtpTrack.getByServerSSRC( packet.getSsrc() );
 

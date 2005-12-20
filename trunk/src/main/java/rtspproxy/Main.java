@@ -17,6 +17,7 @@
  */
 package rtspproxy;
 
+import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
 import rtspproxy.lib.Exceptions;
@@ -31,23 +32,14 @@ public class Main
 
 	public static void main( String[] args )
 	{
-		// TODO: remove this temp stuffs
-		/*
-		 * for ( Object key : System.getProperties().keySet() ) { String value =
-		 * System.getProperty( (String)key ); System.out.println( key + " : " +
-		 * value ); }
-		 */
-
-		// Register the "rtsp://" protocol scheme
-		System.setProperty( "java.protocol.handler.pkgs", "rtspproxy" );
-
-		new Config();
+		// Configure the logger with default settings
+		// useful to track pre-config file errors
+		BasicConfigurator.configure();
 
 		// Register the signal handler
 		Runtime.getRuntime().addShutdownHook( new ShutdownHandler() );
 
 		try {
-			log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
 			Reactor.setStandalone( true );
 			Reactor.start();
 

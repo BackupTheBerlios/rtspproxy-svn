@@ -20,6 +20,7 @@ package rtspproxy;
 
 import org.apache.log4j.Logger;
 
+import rtspproxy.config.Config;
 import rtspproxy.lib.Exceptions;
 
 /**

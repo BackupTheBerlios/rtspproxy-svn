@@ -31,7 +31,6 @@ import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 
-import rtspproxy.Config;
 import rtspproxy.RdtClientService;
 import rtspproxy.RdtServerService;
 import rtspproxy.RtcpClientService;
@@ -230,10 +229,6 @@ public class ProxyHandler
 			return;
 		}
 
-		int proxyRtpPort = RtpServerService.getInstance().getPort();
-		int proxyRtcpPort = RtcpServerService.getInstance().getPort();
-		int proxyRdtPort = RdtServerService.getInstance().getPort();
-
 		// I'm saving the client Transport header before modifying it,
 		// because I will need to know which port the client will
 		// use for RTP/RTCP connections.
@@ -249,11 +244,16 @@ public class ProxyHandler
 
 					clientSession.setAttribute( clientPortsATTR, transport
 							.getClientPort() );
+					
+					int proxyRtpPort = RtpServerService.getInstance().getPort();
+					int proxyRtcpPort = RtcpServerService.getInstance().getPort();
 					transport.setClientPort( new int[] { proxyRtpPort, proxyRtcpPort } );
 
 				} else if ( transport.getTransportProtocol() == TransportProtocol.RDT ) {
 					clientSession.setAttribute( clientRdtPortATTR, new Integer( transport
 							.getClientPort()[0] ) );
+					
+					int proxyRdtPort = RdtServerService.getInstance().getPort();
 					transport.setClientPort( proxyRdtPort );
 				}
 				log.debug( "Transport Rewritten: " + transport );
@@ -299,8 +299,6 @@ public class ProxyHandler
 		RtspTransportList rtspTransportList = new RtspTransportList( response
 				.getHeader( "Transport" ) );
 
-		String netInterface = Config.get( "proxy.client.interface", null );
-
 		RtspTransport transport = rtspTransportList.getList().get( 0 );
 		log.debug( "Using Transport:" + transport );
 
@@ -343,13 +341,7 @@ public class ProxyHandler
 				int rtpPort = RtpClientService.getInstance().getPort();
 				int rtcpPort = RtcpClientService.getInstance().getPort();
 				transport.setServerPort( new int[] { rtpPort, rtcpPort } );
-				// transport.setClientPort( );
-				try {
-					transport.setSource( InetAddress.getByName( netInterface )
-							.getHostAddress() );
-				} catch ( UnknownHostException e ) {
-					transport.setSource( netInterface );
-				}
+				transport.setSource( RtpClientService.getInstance().getAddress().getHostAddress() );
 
 				// Obtaing client specified ports
 				int ports[] = (int[]) clientSession.getAttribute( clientPortsATTR );
@@ -396,12 +388,7 @@ public class ProxyHandler
 			} else {
 				int rdtPort = RdtClientService.getInstance().getPort();
 				transport.setServerPort( rdtPort );
-				try {
-					transport.setSource( InetAddress.getByName( netInterface )
-							.getHostAddress() );
-				} catch ( UnknownHostException e ) {
-					transport.setSource( netInterface );
-				}
+				// transport.setSource( RdtClientService.getInstance().getAddress().getHostAddress() );
 
 				// Obtaing client specified ports
 				int port = ((Integer) clientSession.getAttribute( clientRdtPortATTR ))

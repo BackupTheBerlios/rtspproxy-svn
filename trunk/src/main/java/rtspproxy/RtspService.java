@@ -22,9 +22,9 @@ import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
 
+import rtspproxy.config.Config;
 import rtspproxy.filter.RtspClientFilters;
 import rtspproxy.proxy.ClientSide;
-import rtspproxy.rtsp.Handler;
 
 /**
  * @author Matteo Merli
@@ -72,14 +72,13 @@ public class RtspService extends ProxyService
 	@Override
 	public String getNetworkInterface()
 	{
-		return Config.get( "proxy.rtsp.interface", null );
+		return Config.proxyClientInterface.getValue();
 	}
 
 	@Override
 	public int[] getBindPorts()
 	{
-		return Config
-				.getIntArray( "proxy.rtsp.port", Handler.DEFAULT_RTSP_PORT );
+		return Config.proxyRtspPort.getValue();
 	}
 	
 	public static RtspService getInstance()
