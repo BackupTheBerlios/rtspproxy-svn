@@ -26,8 +26,8 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-import rtspproxy.Config;
 import rtspproxy.Reactor;
+import rtspproxy.config.Config;
 import rtspproxy.filter.authentication.scheme.Credentials;
 
 /**
@@ -43,10 +43,8 @@ public class PlainTextAuthenticationProvider implements AuthenticationProvider
 	public void init() throws Exception
 	{
 		// Load users from file
-		String fileName = Config.getHome()
-				+ File.separator
-				+ Config.get( "proxy.filter.authentication.text.file", "conf" + File.separator
-						+ "users.txt" );
+		String fileName = Config.getHome() + File.separator
+				+ Config.proxyFilterAuthenticationTextFile.getValue();
 
 		try {
 			usersDb.load( new FileInputStream( new File( fileName ) ) );
@@ -67,6 +65,11 @@ public class PlainTextAuthenticationProvider implements AuthenticationProvider
 	public void shutdown() throws Exception
 	{
 		// Do nothing
+	}
+	
+	public String getPassword( String username )
+	{
+		return usersDb.getProperty( username );
 	}
 
 	public boolean isAuthenticated( Credentials credentials )

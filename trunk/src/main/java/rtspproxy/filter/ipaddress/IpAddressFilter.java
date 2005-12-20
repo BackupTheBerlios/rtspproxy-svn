@@ -24,8 +24,8 @@ import org.apache.log4j.Logger;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
 
-import rtspproxy.Config;
 import rtspproxy.Reactor;
+import rtspproxy.config.Config;
 
 /**
  * @author Matteo Merli
@@ -42,8 +42,7 @@ public class IpAddressFilter extends IoFilterAdapter
 	{
 		// Check which backend implementation to use
 		// Default is plain-text implementation
-		String className = Config.get( "proxy.filter.ipaddress.implementationClass",
-				"rtspproxy.filter.ipaddress.PlainTextIpAddressProvider" );
+		String className = Config.proxyFilterIpaddressImplementationClass.getValue();
 
 		Class providerClass;
 		try {

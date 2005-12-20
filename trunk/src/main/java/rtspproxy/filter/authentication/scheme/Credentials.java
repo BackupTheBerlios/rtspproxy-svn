@@ -26,8 +26,13 @@ package rtspproxy.filter.authentication.scheme;
 public class Credentials
 {
 
-	private String userName;
-	private String password;
+	protected String userName;
+
+	protected String password;
+	
+	public Credentials()
+	{
+	}
 
 	public Credentials( String userName, String password )
 	{
@@ -45,7 +50,7 @@ public class Credentials
 
 	/**
 	 * @param password
-	 *        The password to set.
+	 *            The password to set.
 	 */
 	public void setPassword( String password )
 	{
@@ -62,10 +67,15 @@ public class Credentials
 
 	/**
 	 * @param userName
-	 *        The userName to set.
+	 *            The userName to set.
 	 */
 	public void setUserName( String userName )
 	{
 		this.userName = userName;
+	}
+
+	public String toString()
+	{
+		return "(" + userName + ":" + password + ")";
 	}
 }

@@ -20,7 +20,10 @@ package rtspproxy.filter.authentication.scheme;
 
 import org.apache.log4j.Logger;
 
+import rtspproxy.RtspService;
 import rtspproxy.lib.Base64;
+import rtspproxy.lib.StringUtil;
+import rtspproxy.rtsp.RtspMessage;
 
 /**
  * Implementation of the Basic authentication scheme.
@@ -32,36 +35,56 @@ public class BasicAuthentication implements AuthenticationScheme
 
 	private static Logger log = Logger.getLogger( BasicAuthentication.class );
 
+	private String realm;
+
+	public BasicAuthentication()
+	{
+		// Initiazialize the realm string
+		realm = "realm=\"RtspProxy @ "
+				+ RtspService.getInstance().getAddress().getHostAddress() + "\"";
+	}
+
 	public String getName()
 	{
 		return "Basic";
 	}
 
-	public Credentials getCredentials( String authString )
+	public Credentials getCredentials( RtspMessage message )
 	{
 		String username;
 		String password;
+
+		String authString = message.getHeader( "Proxy-Authorization" );
 
 		try {
 			// authString = Basic [base64 data]
 			authString = authString.split( " " )[1];
 			// Basic scheme credential are BASE64 encoded.
 			byte[] decBytes = Base64.decode( authString );
-			StringBuilder sb = new StringBuilder();
-			for ( byte b : decBytes )
-				sb.append( (char)b );
-			String auth = sb.toString();
+			String auth = StringUtil.toString( decBytes );
 
 			log.debug( "auth: " + auth );
 			username = auth.split( ":", 2 )[0];
 			password = auth.split( ":", 2 )[1];
 			log.debug( "username=" + username + " - password=" + password );
 		} catch ( Exception e ) {
-			log.info( "Malformed authString: " + authString );
+			log.warn( "Malformed authString: " + authString );
 			return null;
 		}
 
 		return new Credentials( username, password );
+	}
+
+	public String getChallenge()
+	{
+		// The Basic authentication challenge is simply composed of the Realm
+		return realm;
+	}
+
+	public boolean computeAuthentication( Credentials credentials, String storedPassword )
+	{
+		// In basic authentication the password is supplied in clear text
+		return storedPassword.equals( credentials.getPassword() );
 	}
 
 }

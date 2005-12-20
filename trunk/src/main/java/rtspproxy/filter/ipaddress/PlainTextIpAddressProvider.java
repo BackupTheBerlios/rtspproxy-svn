@@ -30,12 +30,11 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import rtspproxy.Config;
+import rtspproxy.config.Config;
 
 /**
- * Implementation of the IpAddressFilter that is based on plain 
- * text file containing instruction on "allowed" and "denied" 
- * addresses and hosts.
+ * Implementation of the IpAddressFilter that is based on plain text file
+ * containing instruction on "allowed" and "denied" addresses and hosts.
  * 
  * @author Matteo Merli
  */
@@ -52,27 +51,30 @@ public class PlainTextIpAddressProvider implements IpAddressProvider
 	{
 
 		public RuleType type;
+
 		public Pattern pattern;
 	}
 
 	private static List<Rule> rules = new LinkedList<Rule>();
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.auth.IpAddressProvider#init()
 	 */
 	public void init() throws Exception
 	{
 		// Load rules from file
-		String fileName = Config.getHome()
-				+ File.separator
-				+ Config.get( "proxy.filter.ipaddress.text.file", "conf" + File.separator
-						+ "ipfilter.txt" );
+		String fileName = Config.getHome() + File.separator
+				+ Config.proxyFilterIpaddressTextFile.getValue();
 
 		loadRules( new FileReader( new File( fileName ) ) );
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.auth.IpAddressProvider#shutdown()
 	 */
 	public void shutdown() throws Exception
@@ -80,7 +82,9 @@ public class PlainTextIpAddressProvider implements IpAddressProvider
 		rules.clear();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see rtspproxy.auth.IpAddressProvider#isBlocked(java.net.InetAddress)
 	 */
 	public boolean isBlocked( InetAddress address )
@@ -98,17 +102,19 @@ public class PlainTextIpAddressProvider implements IpAddressProvider
 
 			if ( rule.pattern.matcher( ip ).matches()
 					|| rule.pattern.matcher( host ).matches() )
-				// the address matches the pattern 
+				// the address matches the pattern
 				// check if it's allow or deny
-				blocked = ( rule.type == RuleType.Allow ) ? false : true;
+				blocked = (rule.type == RuleType.Allow) ? false : true;
 		}
 
 		return blocked;
 	}
 
-	/** 
+	/**
 	 * Reads the rules from a file
-	 * @param reader Reader of a file containing the access rules
+	 * 
+	 * @param reader
+	 *            Reader of a file containing the access rules
 	 * @throws IOException
 	 */
 	protected void loadRules( Reader reader ) throws IOException
@@ -118,24 +124,23 @@ public class PlainTextIpAddressProvider implements IpAddressProvider
 		String line;
 		int lineNumber = 0;
 		try {
-			while ( ( line = in.readLine() ) != null ) {
-				line = line.replaceAll( "\t", " " ); // replace tabs 
+			while ( (line = in.readLine()) != null ) {
+				line = line.replaceAll( "\t", " " ); // replace tabs
 				line = line.trim();
 				++lineNumber;
 
 				if ( line.length() == 0 )
-					continue; // Ignore empty lines 
+					continue; // Ignore empty lines
 				if ( line.startsWith( "#" ) )
 					continue; // Ignore comments
 				RuleType ruleType = null;
 				if ( line.startsWith( "Allow" ) )
 					ruleType = RuleType.Allow;
+				else if ( line.startsWith( "Deny" ) )
+					ruleType = RuleType.Deny;
 				else
-					if ( line.startsWith( "Deny" ) )
-						ruleType = RuleType.Deny;
-					else
-						throw new IOException( "Invalid filter pattern (line "
-								+ lineNumber + ")" );
+					throw new IOException( "Invalid filter pattern (line " + lineNumber
+							+ ")" );
 
 				// read the pattern
 				String[] patternSplit = line.split( " ", 2 );

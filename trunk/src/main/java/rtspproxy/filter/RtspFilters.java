@@ -26,8 +26,8 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 
-import rtspproxy.Config;
 import rtspproxy.Reactor;
+import rtspproxy.config.Config;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
 import rtspproxy.filter.rewrite.RequestUrlRewritingImpl;
@@ -47,6 +47,7 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 
 		// Decoders can be shared
 		private ProtocolEncoder rtspEncoder = new RtspEncoder();
+
 		private ProtocolDecoder rtspDecoder = new RtspDecoder();
 
 		public ProtocolEncoder getEncoder()
@@ -64,6 +65,7 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 
 	// These filters are instanciated only one time, when requested
 	private static IpAddressFilter ipAddressFilter = null;
+
 	private static AuthenticationFilter authenticationFilter = null;
 
 	/**
@@ -75,8 +77,7 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 	 */
 	protected void addIpAddressFilter( IoFilterChain chain )
 	{
-		boolean enableIpAddressFilter = Config.getBoolean(
-				"proxy.filter.ipaddress.enable", false );
+		boolean enableIpAddressFilter = Config.proxyFilterIpaddressEnable.getValue();
 
 		if ( enableIpAddressFilter ) {
 			if ( ipAddressFilter == null )
@@ -99,8 +100,8 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 	 */
 	protected void addAuthenticationFilter( IoFilterChain chain )
 	{
-		boolean enableAuthenticationFilter = Config.getBoolean(
-				"proxy.filter.authentication.enable", false );
+		boolean enableAuthenticationFilter = Config.proxyFilterAuthenticationEnable
+				.getValue();
 
 		if ( enableAuthenticationFilter ) {
 			if ( authenticationFilter == null )
@@ -111,9 +112,9 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 
 	protected void addRewriteFilter( IoFilterChain chain )
 	{
-		// TODO: move this to RtspFilters
-		String rewritingFilter = Config.get(
-				"filter.requestUrlRewriting.implementationClass", null );
+		// TODO: use different parameters..
+		String rewritingFilter = null; //Config.get(
+				//"filter.requestUrlRewriting.implementationClass", null );
 
 		try {
 			if ( rewritingFilter != null )

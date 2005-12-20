@@ -53,4 +53,6 @@ public interface AuthenticationProvider
 	 *         wrong.
 	 */
 	public boolean isAuthenticated( Credentials credentials );
+	
+	public String getPassword( String username );
 }

@@ -18,17 +18,20 @@
 
 package rtspproxy.filter.authentication;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
-import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.common.WriteFuture;
 
-import rtspproxy.Config;
 import rtspproxy.Reactor;
+import rtspproxy.config.Config;
 import rtspproxy.filter.authentication.scheme.AuthenticationScheme;
 import rtspproxy.filter.authentication.scheme.BasicAuthentication;
 import rtspproxy.filter.authentication.scheme.Credentials;
+import rtspproxy.filter.authentication.scheme.DigestAuthentication;
 import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
@@ -41,23 +44,15 @@ public class AuthenticationFilter extends IoFilterAdapter
 {
 
 	private static Logger log = Logger.getLogger( AuthenticationFilter.class );
-	
+
 	private static final String ATTR = AuthenticationFilter.class.toString() + "Attr";
 
-	/** Different authentication schemes implementation */
-	private static AuthenticationScheme[] schemes = { new BasicAuthentication() };
-
-	/** Contains a comma-separated list of the scheme names. */
-	private static String schemesString;
+	private static final Map<String, Class> schemeRegistry = new HashMap<String, Class>();
 
 	static {
-		// Pre-fill the scheme names
-		schemesString = new String();
-		for ( int i = 0; i < schemes.length; i++ ) {
-			schemesString += schemes[i].getName();
-			if ( i < schemes.length - 1 )
-				schemesString += ", ";
-		}
+		// Fill in known schemes
+		schemeRegistry.put( "basic", BasicAuthentication.class );
+		schemeRegistry.put( "digest", DigestAuthentication.class );
 	}
 
 	/**
@@ -65,7 +60,8 @@ public class AuthenticationFilter extends IoFilterAdapter
 	 */
 	private AuthenticationProvider provider;
 
-	private String realm;
+	/** Different authentication schemes implementation */
+	private AuthenticationScheme scheme = null;
 
 	/**
 	 * Construct a new AuthenticationFilter. Looks at the configuration to load
@@ -75,8 +71,7 @@ public class AuthenticationFilter extends IoFilterAdapter
 	{
 		// Check which backend implementation to use
 		// Default is plain-text implementation
-		String className = Config.get( "proxy.filter.authentication.implementationClass",
-				"rtspproxy.filter.authentication.PlainTextAuthenticationProvider" );
+		String className = Config.proxyFilterAuthenticationImplementationClass.getValue();
 
 		Class providerClass;
 		try {
@@ -114,15 +109,32 @@ public class AuthenticationFilter extends IoFilterAdapter
 			return;
 		}
 
-		realm = "RtspProxy " + Config.get( "proxy.rtsp.interface", "" );
+		// Validate the choosen authentication scheme
+		String schemeName = Config.proxyFilterAuthenticationScheme.getValue();
+		Class schemeClass = schemeRegistry.get( schemeName.toLowerCase() );
+		if ( schemeClass == null ) {
+			// scheme not found
+			log.fatal( "Authentication Scheme not found: " + schemeName
+					+ ". Valid values are: "
+					+ Arrays.toString( schemeRegistry.keySet().toArray() ) );
+			Reactor.stop();
+			return;
+		}
 
-		log.info( "Using AuthenticationFilter (" + className + ")" );
+		// Instanciate the selected scheme
+		try {
+			scheme = (AuthenticationScheme) schemeClass.newInstance();
+		} catch ( Exception e ) {
+		}
+
+		log.info( "Using AuthenticationFilter " + scheme.getName() + " (" + className
+				+ ")" );
 	}
 
 	public void messageReceived( NextFilter nextFilter, IoSession session, Object message )
 			throws Exception
 	{
-		if ( !( message instanceof RtspRequest ) ) {
+		if ( !(message instanceof RtspRequest) ) {
 			// Shouldn't happen
 			log.warn( "Object message is not a RTSP message" );
 			return;
@@ -134,48 +146,52 @@ public class AuthenticationFilter extends IoFilterAdapter
 			nextFilter.messageReceived( session, message );
 		}
 
-		String authString = ( (RtspMessage) message ).getHeader( "Proxy-Authorization" );
+		String authString = ((RtspMessage) message).getHeader( "Proxy-Authorization" );
 		if ( authString == null ) {
 			log.debug( "RTSP message: \n" + message );
-			RtspResponse response = RtspResponse.errorResponse( RtspCode.ProxyAuthenticationRequired );
-			response.setHeader( "Proxy-Authenticate", schemesString + " realm=\"" + realm
-					+ "\"" );
+			RtspResponse response = RtspResponse
+					.errorResponse( RtspCode.ProxyAuthenticationRequired );
+			response.setHeader( "Proxy-Authenticate", scheme.getName() + " "
+					+ scheme.getChallenge() );
 
-			// TODO: I should be able to send a RtspMessage here using the
-			// already provided encoder.
-			WriteFuture written = session.write( response );
-			// Why have I to wait here????
-			written.join();
-			// session.close();
+			log.debug( "Sending RTSP message: \n" + response );
+
+			session.write( response );
 			return;
 		}
 
-		AuthenticationScheme scheme = getAuthenticationScheme( authString );
-		if ( scheme == null ) {
+		if ( !validateAuthenticationScheme( authString ) ) {
 			RtspResponse response = RtspResponse.errorResponse( RtspCode.BadRequest );
 
-			// TODO: I should be able to send a RtspMessage here using the
-			// already provided encoder.
-			WriteFuture written = session.write( response );
-			// Why have I to wait here????
-			written.join();
-			// session.close();
+			session.write( response );
 			return;
 		}
+
+		log.debug( "RTSP message: \n" + message );
 
 		// Check the authentication credentials
-		Credentials credentials = scheme.getCredentials( authString );
-		if ( credentials == null || provider.isAuthenticated( credentials ) == false ) {
-			RtspResponse response = RtspResponse.errorResponse( RtspCode.Unauthorized );
+		Credentials credentials = scheme.getCredentials( (RtspMessage) message );
 
-			// TODO: I should be able to send a RtspMessage here using the
-			// already provided encoder.
-			WriteFuture written = session.write( ByteBuffer.wrap( response.toString().getBytes() ) );
-			// Why have I to wait here????
-			written.join();
-			session.close();
+		boolean authenticationOk = false;
+		if ( credentials != null ) {
+			String password = provider.getPassword( credentials.getUserName() );
+			if ( password != null )
+				if ( scheme.computeAuthentication( credentials, password ) == true )
+					authenticationOk = true;
+		}
+
+		if ( !authenticationOk ) {
+			log.warn( "Authentication failed for user: " + credentials );
+			RtspResponse response = RtspResponse
+					.errorResponse( RtspCode.ProxyAuthenticationRequired );
+			response.setHeader( "Proxy-Authenticate", scheme.getName() + " "
+					+ scheme.getChallenge() );
+
+			session.write( response );
 			return;
 		}
+
+		log.debug( "Authentication succesfull for user: " + credentials );
 
 		/*
 		 * Mark the session with an "authenticated" attribute. This will prevent
@@ -193,23 +209,21 @@ public class AuthenticationFilter extends IoFilterAdapter
 	 * @param authString
 	 * @return
 	 */
-	private static AuthenticationScheme getAuthenticationScheme( String authString )
+	private boolean validateAuthenticationScheme( String authString )
 	{
 		String schemeName;
 		try {
 			schemeName = authString.split( " " )[0];
 		} catch ( IndexOutOfBoundsException e ) {
 			// Malformed auth string
-			return null;
+			return false;
 		}
 
-		for ( int i = 0; i < schemes.length; i++ ) {
-			if ( schemeName.equalsIgnoreCase( schemes[i].getName() ) )
-				return schemes[i];
-		}
+		if ( schemeName.equalsIgnoreCase( scheme.getName() ) )
+			return true;
 
 		// Scheme not valid
-		return null;
+		return false;
 	}
 
 }
