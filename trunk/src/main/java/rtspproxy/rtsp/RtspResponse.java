@@ -120,6 +120,7 @@ public class RtspResponse extends RtspMessage
 	{
 		RtspResponse response = new RtspResponse();
 		response.setCode( errorCode );
+		response.setCommonHeaders();
 		return response;
 	}
 
