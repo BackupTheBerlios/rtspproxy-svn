@@ -3,7 +3,6 @@
  */
 package rtspproxy.config;
 
-
 /**
  * @author Matteo Merli
  */
@@ -37,7 +36,7 @@ public class StringParameter extends Parameter
 	@Override
 	public String getType()
 	{
-		return "String";
+		return "java.lang.String";
 	}
 
 	public String getValue()
@@ -51,6 +50,25 @@ public class StringParameter extends Parameter
 	public String getDefaultValue()
 	{
 		return defaultValue;
+	}
+
+	@Override
+	public Object getObjectValue()
+	{
+		return getValue();
+	}
+
+	@Override
+	public void setObjectValue( Object object )
+	{
+		if ( !(object instanceof String) )
+			throw new IllegalArgumentException( "Value must be a String" );
+
+		if ( !object.equals( getObjectValue() ) ) {
+			// Only notify if the value is different
+			this.value = (String) object;
+			setChanged();
+		}
 	}
 
 }

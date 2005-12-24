@@ -2,7 +2,10 @@ package rtspproxy.config;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,8 +16,9 @@ import org.apache.log4j.PropertyConfigurator;
 import rtspproxy.lib.Singleton;
 import rtspproxy.rtsp.Handler;
 
-public class Config extends Singleton
+public class Config extends Singleton implements Observer
 {
+
 	private static ConcurrentMap<String, Parameter> parameters = new ConcurrentHashMap<String, Parameter>();
 
 	protected static void addParameter( Parameter parameter )
@@ -49,15 +53,24 @@ public class Config extends Singleton
 	public static final BooleanParameter logLogToFile = new BooleanParameter(
 			"log.logtofile", // name
 			false, // default value
-			false, // mutable
+			true, // mutable
 			"If you want to save to a file the debug output	set this to Yes" );
 
 	public static final StringParameter logFile = new StringParameter( "log.file", // name
 			"logs/rtspproxy.log", // default value
-			false, // mutable
+			true, // mutable
 			"Here you specify the file to log to." );
 
-	public static final IntegerListParameter proxyRtspPort = new IntegerListParameter(
+	public static final IntegerParameter threadPoolSize = new IntegerParameter(
+			"thread.pool.size", // name
+			new Integer( 0 ), // min value
+			new Integer( 2147483647 ), // max value
+			new Integer( 10 ), // default value
+			true, // mutable
+			"Maximum size of the thread pool. The thread pool is shared "
+					+ "between all services found in RtspProxy." );
+
+	public static final IntegerParameter proxyRtspPort = new IntegerParameter(
 			"proxy.rtsp.port", // name
 			new Integer( 0 ), // min value
 			new Integer( 65536 ), // max value
@@ -69,13 +82,13 @@ public class Config extends Singleton
 	public static final StringParameter proxyClientInterface = new StringParameter(
 			"proxy.client.interface", // name
 			null, // default value
-			true, // mutable
+			false, // mutable
 			"Specify a network interface. Default is to listen on all interfaces." );
 
 	public static final StringParameter proxyServerInterface = new StringParameter(
 			"proxy.server.interface", // name
 			null, // default value
-			true, // mutable
+			false, // mutable
 			"Specify a network interface. Default is to listen on all interfaces." );
 
 	public static final IntegerParameter proxyServerRtpPort = new IntegerParameter(
@@ -181,6 +194,68 @@ public class Config extends Singleton
 
 	// /////////////////////////////////////////////////////////
 
+	// Accounting filter
+
+	public static final BooleanParameter proxyFilterAccountingEnable = new BooleanParameter(
+			"proxy.filter.accounting.enable", // name
+			true, // default value
+			true, // mutable
+			"Controls the activation of the Accounting subsystem." );
+
+	public static final StringParameter proxyFilterAccountingImplementationClass = new StringParameter(
+			"proxy.filter.accounting.implementationClass", // name
+			"rtspproxy.filter.accounting.PlainTextAccountingProvider", // default
+			// value
+			false, // mutable
+			"Use an alternative backend class. This can be any class "
+					+ "that implements the rtspproxy.filter.accounting.AccountingProvider "
+					+ "interface." );
+
+	public static final StringParameter proxyFilterAccountingTextFile = new StringParameter(
+			"proxy.filter.accounting.text.file", // name
+			"logs/access.log", // default value
+			false, // mutable
+			"Plain Text based implementation specific configuration" );
+
+	// /////////////////////////////////////////////////////////
+
+	// JMX
+
+	public static final BooleanParameter proxyManagementEnable = new BooleanParameter(
+			"proxy.management.enable", // name
+			false, // default value
+			false, // mutable
+			"Controls the activation of the management subsystem (JMX)." );
+
+	public static final StringParameter proxyManagementHost = new StringParameter(
+			"proxy.management.host", // name
+			"localhost", // default value
+			false, // mutable
+			"Host to bind the management services. Default is localhost, and the services "
+					+ "will only be reachable from local machine." );
+
+	public static final BooleanParameter proxyManagementWebEnable = new BooleanParameter(
+			"proxy.management.web.enable", // name
+			false, // default value
+			false, // mutable
+			"Controls the activation of the Web management console." );
+
+	public static final IntegerParameter proxyManagementWebPort = new IntegerParameter(
+			"proxy.management.web.port", // name
+			new Integer( 0 ), // min value
+			new Integer( 65536 ), // max value
+			new Integer( 8000 ), // default value
+			false, // mutable
+			"TCP port to be used for the Web Console." );
+
+	public static final BooleanParameter proxyManagementRemoteEnable = new BooleanParameter(
+			"proxy.management.remote.enable", // name
+			false, // default value
+			false, // mutable
+			"Controls the activation of the JMX connector server." );
+
+	// /////////////////////////////////////////////////////////
+
 	private static String rtspproxyHome;
 
 	private static String name;
@@ -188,6 +263,8 @@ public class Config extends Singleton
 	private static String version;
 
 	private static String proxySignature;
+
+	private static Date startDate;
 
 	// /////////////////////////////////////////////////////////
 
@@ -221,6 +298,29 @@ public class Config extends Singleton
 		sb.append( " / " ).append( System.getProperty( "os.arch" ) );
 		sb.append( ")" );
 		proxySignature = sb.toString();
+
+		startDate = new Date();
+
+		// Subscribe to parameter changes notification
+		logDebug.addObserver( this );
+		logFile.addObserver( this );
+		logLogToFile.addObserver( this );
+	}
+
+	/**
+	 * Manage parameters value changes
+	 * 
+	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+	 */
+	public void update( Observable o, Object arg )
+	{
+		if ( !(o instanceof Parameter) )
+			throw new IllegalArgumentException( "Only observe parameters" );
+
+		if ( o == logDebug || o == logFile || o == logLogToFile ) {
+			updateDebugSettings();
+			// log.debug( "Updated logger settings." );
+		}
 	}
 
 	/**
@@ -255,41 +355,58 @@ public class Config extends Singleton
 		return proxySignature;
 	}
 
+	public static Date getStartDate()
+	{
+		return startDate;
+	}
+
 	// /////////////////////////////////////////////////////////
 
 	protected static void updateDebugSettings()
 	{
-		Properties prop = new Properties();
+		Properties logProperties = new Properties();
 		// common properties
-		prop.setProperty( "log4j.appender.A1.layout", "org.apache.log4j.PatternLayout" );
-		prop.setProperty( "log4j.appender.A1.layout.ConversionPattern",
-				"%7p [%t] (%F:%L) - %m%n" );
+		logProperties.setProperty( "log4j.appender.A1.layout",
+				"org.apache.log4j.PatternLayout" );
 
-		if ( logDebug.getValue() )
-			prop.setProperty( "log4j.rootLogger", "DEBUG, A1" );
-		else
+		if ( logDebug.getValue() ) {
+			/*
+			 * For debug messages we want to have a special layout
+			 */
+			logProperties.setProperty( "log4j.appender.A1.layout.ConversionPattern",
+					"%9r %5p [%t] %c - %m%n" );
+			logProperties.setProperty( "log4j.rootLogger", "DEBUG, A1" );
+
+		} else {
 			// only write important messages
-			prop.setProperty( "log4j.rootLogger", "INFO, A1" );
+			logProperties.setProperty( "log4j.appender.A1.layout.ConversionPattern",
+					"%5p - %d - %m%n" );
+			logProperties.setProperty( "log4j.rootLogger", "INFO, A1" );
+		}
 
-		if ( logLogToFile.getValue() ) {
+		if ( logLogToFile.getValue() == true ) {
 			// save logs in a file
-			String filename = logFile.getValue();
-			prop
-					.setProperty( "log4j.appender.A1",
-							"org.apache.log4j.RollingFileAppender" );
-			prop.setProperty( "log4j.appender.A1.File", filename );
+			File file = new File( logFile.getValue() );
+			if ( !file.isAbsolute() ) {
+				file = new File( rtspproxyHome + File.separator + logFile.getValue() );
+			}
+
+			logProperties.setProperty( "log4j.appender.A1",
+					"org.apache.log4j.RollingFileAppender" );
+			logProperties.setProperty( "log4j.appender.A1.File", file.getAbsolutePath() );
 
 			// if logs directory does not exists, create it
-			File logs = new File( rtspproxyHome + File.separator + "logs" );
+			File logs = file.getParentFile();
 			if ( !logs.exists() )
 				logs.mkdir();
 
 		} else {
 			// Log to console
-			prop.setProperty( "log4j.appender.A1", "org.apache.log4j.ConsoleAppender" );
+			logProperties.setProperty( "log4j.appender.A1",
+					"org.apache.log4j.ConsoleAppender" );
 		}
 
-		PropertyConfigurator.configure( prop );
+		PropertyConfigurator.configure( logProperties );
 	}
 
 	/**

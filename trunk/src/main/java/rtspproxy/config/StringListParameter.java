@@ -59,11 +59,14 @@ public class StringListParameter extends Parameter
 	 */
 	public String getDefaultValue()
 	{
-		return defaultValue.toString();
+		return defaultValue;
 	}
 
 	public String[] getValue()
 	{
+		if ( values == null )
+			return new String[] { defaultValue };
+
 		String[] v = new String[values.size()];
 		for ( int i = values.size() - 1; i >= 0; i-- )
 			v[i] = values.get( i );
@@ -73,6 +76,26 @@ public class StringListParameter extends Parameter
 	@Override
 	public String getType()
 	{
-		return "StringList";
+		return "[Ljava.lang.String";
 	}
+
+	@Override
+	public Object getObjectValue()
+	{
+		return getValue();
+	}
+
+	@Override
+	public void setObjectValue( Object object )
+	{
+		if ( !(object instanceof String[]) )
+			throw new IllegalArgumentException( "Value must be a String[]" );
+
+		this.values = new ArrayList<String>( ((String[]) object).length );
+		for ( String s : (String[]) object )
+			values.add( s );
+
+		setChanged();
+	}
+
 }

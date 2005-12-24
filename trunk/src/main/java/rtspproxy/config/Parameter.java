@@ -11,11 +11,11 @@ import java.util.Observable;
 public abstract class Parameter extends Observable
 {
 
-	protected String name;
+	protected final String name;
 
-	protected boolean mutable;
+	protected final boolean mutable;
 
-	protected String description;
+	protected final String description;
 
 	protected Parameter( String name, boolean mutable, String description )
 	{
@@ -24,7 +24,7 @@ public abstract class Parameter extends Observable
 		this.name = name;
 		this.mutable = mutable;
 		this.description = description;
-		
+
 		Config.addParameter( this );
 	}
 
@@ -52,6 +52,10 @@ public abstract class Parameter extends Observable
 	 */
 	public abstract String getStringValue();
 
+	public abstract Object getObjectValue();
+
+	public abstract void setObjectValue( Object object );
+
 	/**
 	 * @return the name of this parameter
 	 */
@@ -78,8 +82,8 @@ public abstract class Parameter extends Observable
 	}
 
 	/**
-	 * @return a human readable type name for this parameter, such as String,
-	 *         Integer...
+	 * @return the string representation of the type for this parameter, such as
+	 *         java.lang.String, java.lang.Integer...
 	 */
 	public abstract String getType();
 

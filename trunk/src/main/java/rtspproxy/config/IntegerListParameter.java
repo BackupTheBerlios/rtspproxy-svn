@@ -40,7 +40,7 @@ public class IntegerListParameter extends Parameter
 		String[] tokens = value.split( "," );
 
 		for ( String token : tokens ) {
-			
+
 			token = token.trim();
 			try {
 				tmpValue = Integer.valueOf( token );
@@ -55,10 +55,10 @@ public class IntegerListParameter extends Parameter
 			if ( maxValue != null && (tmpValue.compareTo( maxValue ) > 0) )
 				throw new IllegalArgumentException( "Integer value for " + name
 						+ " must be lesser than " + maxValue );
-			
+
 			this.values.add( tmpValue );
 		}
-	
+
 		setChanged();
 	}
 
@@ -100,6 +100,26 @@ public class IntegerListParameter extends Parameter
 	@Override
 	public String getType()
 	{
-		return "IntegerList";
+		return "[I";
 	}
+
+	@Override
+	public Object getObjectValue()
+	{
+		return getValue();
+	}
+
+	@Override
+	public void setObjectValue( Object object )
+	{
+		if ( !(object instanceof int[]) )
+			throw new IllegalArgumentException( "Value must be a int[]" );
+		
+		this.values = new ArrayList<Integer>( ((int[]) object).length );
+		for ( int v : (int[]) object )
+			values.add( v );
+
+		setChanged();
+	}
+
 }

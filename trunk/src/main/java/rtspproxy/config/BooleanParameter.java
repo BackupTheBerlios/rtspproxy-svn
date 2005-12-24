@@ -29,7 +29,7 @@ public class BooleanParameter extends Parameter
 			this.value = false;
 		else
 			throw new IllegalArgumentException( "Boolean value not valid: " + value );
-		
+
 		setChanged();
 	}
 
@@ -50,11 +50,34 @@ public class BooleanParameter extends Parameter
 	@Override
 	public String getType()
 	{
-		return "Boolean";
+		return "java.lang.Boolean";
+	}
+
+	public void setValue( boolean value )
+	{
+		this.value = value;
 	}
 
 	public boolean getValue()
 	{
 		return value == null ? defaultValue : value.booleanValue();
+	}
+
+	@Override
+	public Object getObjectValue()
+	{
+		return value == null ? defaultValue : value;
+	}
+
+	@Override
+	public void setObjectValue( Object object )
+	{
+		if ( !(object instanceof Boolean) )
+			throw new IllegalArgumentException( "Value must be a Boolean" );
+
+		if ( !object.equals( getObjectValue() ) ) {
+			this.value = (Boolean) object;
+			setChanged();
+		}
 	}
 }

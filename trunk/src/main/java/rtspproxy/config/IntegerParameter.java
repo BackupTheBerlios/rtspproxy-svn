@@ -41,15 +41,7 @@ public class IntegerParameter extends Parameter
 					+ "not valid: " + value );
 		}
 
-		if ( minValue != null && (tmpValue.compareTo( minValue ) < 0) )
-			throw new IllegalArgumentException( "Integer value for " + name
-					+ " must be greater than " + minValue );
-		if ( maxValue != null && (tmpValue.compareTo( maxValue ) > 0) )
-			throw new IllegalArgumentException( "Integer value for " + name
-					+ " must be lesser than " + maxValue );
-
-		this.value = tmpValue;
-		setChanged();
+		setObjectValue( tmpValue );
 	}
 
 	@Override
@@ -74,6 +66,35 @@ public class IntegerParameter extends Parameter
 	@Override
 	public String getType()
 	{
-		return "Integer";
+		return "java.lang.Integer";
 	}
+
+	@Override
+	public Object getObjectValue()
+	{
+		return value == null ? defaultValue : value;
+	}
+
+	@Override
+	public void setObjectValue( Object object )
+	{
+		if ( !(object instanceof Integer) )
+			throw new IllegalArgumentException( "Value must be a Integer" );
+
+		Integer intVal = (Integer) object;
+
+		if ( minValue != null && (intVal.compareTo( minValue ) < 0) )
+			throw new IllegalArgumentException( "Integer value for " + name
+					+ " must be greater than " + minValue );
+		if ( maxValue != null && (intVal.compareTo( maxValue ) > 0) )
+			throw new IllegalArgumentException( "Integer value for " + name
+					+ " must be lesser than " + maxValue );
+
+		if ( !intVal.equals( getObjectValue() ) ) {
+			// Only notify if the value is different
+			this.value = intVal;
+			setChanged();
+		}
+	}
+
 }
