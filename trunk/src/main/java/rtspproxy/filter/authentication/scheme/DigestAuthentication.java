@@ -77,7 +77,7 @@ public class DigestAuthentication implements AuthenticationScheme
 		long timestamp = Long.valueOf( sTimeStamp, 16 );
 		long current = System.currentTimeMillis();
 		long diff = current - timestamp;
-		log.debug( "Time diff: " + ((float)diff / 1000) + " sec" );
+		log.debug( "Time diff: " + ((float) diff / 1000 ) + " sec" );
 		if ( diff < 0 || diff > NONCE_TIMEOUT * 1000 )
 			// Timeout excedeed
 			return null;
@@ -88,7 +88,7 @@ public class DigestAuthentication implements AuthenticationScheme
 		credentials.setRealm( realm );
 		credentials.setNonce( nonce );
 		credentials.setUri( uri );
-		credentials.setMethod( ((RtspRequest) message).getVerbString() );
+		credentials.setMethod( ( (RtspRequest) message ).getVerbString() );
 		credentials.setCnonce( cnonce );
 		credentials.setNc( nc );
 
@@ -99,9 +99,9 @@ public class DigestAuthentication implements AuthenticationScheme
 	{
 		StringBuilder challenge = new StringBuilder();
 		challenge.append( realm ).append( "," );
-		challenge.append( "nonce=" ).append( quote( newNonce() ) );
+		challenge.append( "nonce=" ).append( quote( newNonce() ) ).append( "," );
 		challenge.append( "qop=auth," );
-		challenge.append( "algorithm=MD5" );
+		challenge.append( "algorithm=" ).append( quote("MD5") );
 		return challenge.toString();
 	}
 
@@ -130,7 +130,7 @@ public class DigestAuthentication implements AuthenticationScheme
 
 	public boolean computeAuthentication( Credentials credentials, String storedPassword )
 	{
-		if ( !(credentials instanceof DigestCredentials) )
+		if ( !( credentials instanceof DigestCredentials ) )
 			return false;
 
 		// response = KD ( H(A1), unq(nonce-value) ":" H(A2) )
@@ -176,6 +176,7 @@ public class DigestAuthentication implements AuthenticationScheme
 	 */
 	private static class DigestCredentials extends Credentials
 	{
+
 		private String response;
 
 		private String realm;
