@@ -18,9 +18,8 @@
 
 package rtspproxy.lib;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Simple base implementation of the Singleton pattern. A singleton is a class
@@ -31,7 +30,8 @@ import java.util.Set;
 public abstract class Singleton
 {
 
-	private static Set<Class> classSet = Collections.synchronizedSet( new HashSet<Class>() );
+	/** Maps a class to its (unique) instance */
+	private static Map<Class, Object> classMap = new ConcurrentHashMap<Class, Object>();
 
 	/**
 	 * Constructor. Takes care that only one instance at a time of this class is
@@ -39,17 +39,22 @@ public abstract class Singleton
 	 */
 	protected Singleton()
 	{
-		if ( classSet.contains( this.getClass() ) ) {
+		if ( classMap.containsKey( this.getClass() ) ) {
 			throw new RuntimeException( "There can be only one instance of class "
 					+ this.getClass().getName() );
 		}
 
-		classSet.add( this.getClass() );
+		classMap.put( this.getClass(), this );
 	}
 
 	public void finalize()
 	{
-		classSet.remove( this.getClass() );
+		classMap.remove( this.getClass() );
+	}
+
+	protected static Object getInstance( Class clazz )
+	{
+		return classMap.get( clazz );
 	}
 
 }
