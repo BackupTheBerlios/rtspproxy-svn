@@ -18,6 +18,8 @@
 
 package rtspproxy.rtsp;
 
+import java.nio.charset.Charset;
+
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolEncoder;
@@ -29,6 +31,7 @@ import org.apache.mina.filter.codec.ProtocolEncoderOutput;
  */
 public class RtspEncoder implements ProtocolEncoder
 {
+	private static final Charset asciiCharset = Charset.forName( "US-ASCII" );
 
 	/*
 	 * (non-Javadoc)
@@ -41,17 +44,7 @@ public class RtspEncoder implements ProtocolEncoder
 	{
 		// Serialization to string is already provided in RTSP messages.
 		String val = ( (RtspMessage) message ).toString();
-		/*
-		ByteBuffer buf = ByteBuffer.allocate( val.length() );
-		for ( int i = 0; i < val.length(); i++ ) {
-			buf.put( (byte) val.charAt( i ) );
-		}
-
-		buf.flip();
-		*/
-		
-		// TODO: Alternative implementation, should be better.
-		ByteBuffer buf = ByteBuffer.wrap( val.getBytes() );
+		ByteBuffer buf = ByteBuffer.wrap( asciiCharset.encode( val ) );
 		
 		out.write( buf );
 	}
