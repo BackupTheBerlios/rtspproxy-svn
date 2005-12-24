@@ -18,31 +18,47 @@
 
 package rtspproxy;
 
+import java.util.Observable;
+
+import org.apache.log4j.Logger;
+import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
 
+import rtspproxy.ProxyServiceRegistry.IoFilterChainBuilderWrapper;
 import rtspproxy.config.Config;
+import rtspproxy.config.Parameter;
 import rtspproxy.filter.RtspClientFilters;
+import rtspproxy.lib.Singleton;
 import rtspproxy.proxy.ClientSide;
 
 /**
  * @author Matteo Merli
  */
-public class RtspService extends ProxyService
+public final class RtspService extends ProxyService
 {
+
+	private static Logger log = Logger.getLogger( RtspService.class );
+
 	private IoHandler rtspHandler = new ClientSide();
 
-	private IoFilterChainBuilder filterChainBuilder = new RtspClientFilters();
+	private final IoFilterChainBuilder filterChainBuilder = new RtspClientFilters();
 
-	public static final String NAME = "RtspService";
-	
-	private static RtspService instance;
+	private static final String NAME = "RtspService";
 
 	public RtspService()
 	{
 		super();
-		instance = this;
+
+		// Subscribe to parameter changes
+		Config.proxyClientInterface.addObserver( this );
+		Config.proxyRtspPort.addObserver( this );
+
+		// Subscribe to filter chain changes notification
+		Config.proxyFilterAuthenticationEnable.addObserver( this );
+		Config.proxyFilterIpaddressEnable.addObserver( this );
+		Config.proxyFilterAccountingEnable.addObserver( this );
 	}
 
 	@Override
@@ -76,14 +92,73 @@ public class RtspService extends ProxyService
 	}
 
 	@Override
-	public int[] getBindPorts()
+	public int getBindPort()
 	{
 		return Config.proxyRtspPort.getValue();
 	}
-	
+
 	public static RtspService getInstance()
 	{
-		return instance;
+		return (RtspService) Singleton.getInstance( RtspService.class );
 	}
 
+	@Override
+	public Parameter getNetworkInterfaceParameter()
+	{
+		return Config.proxyClientInterface;
+	}
+
+	@Override
+	public Parameter getPortParameter()
+	{
+		return Config.proxyRtspPort;
+	}
+
+	@Override
+	public void update( Observable o, Object arg )
+	{
+		if ( !(o instanceof Parameter) )
+			throw new IllegalArgumentException( "Only observe parameters" );
+
+		if ( o == Config.proxyFilterAuthenticationEnable
+				|| o == Config.proxyFilterIpaddressEnable
+				|| o == Config.proxyFilterAccountingEnable ) {
+
+			/*
+			 * Change the filter chain builder to reflect new parameters
+			 * directives.
+			 */
+			IoAcceptor acceptor = ProxyServiceRegistry.getInstance().getAcceptor( this );
+			acceptor.setFilterChainBuilder( new IoFilterChainBuilderWrapper( this,
+					new RtspClientFilters() ) );
+
+			/*
+			 * Print a meaningful info message
+			 */
+			if ( o == Config.proxyFilterAuthenticationEnable ) {
+				if ( Config.proxyFilterAuthenticationEnable.getValue() == true )
+					log.info( "Activated the Authentication filter." );
+				else
+					log.info( "Disabled the Authentication filter." );
+			}
+			if ( o == Config.proxyFilterIpaddressEnable ) {
+				if ( Config.proxyFilterIpaddressEnable.getValue() == true )
+					log.info( "Activated the IP address filter." );
+				else
+					log.info( "Disabled the IP address filter." );
+			}
+			if ( o == Config.proxyFilterAccountingEnable ) {
+				if ( Config.proxyFilterAccountingEnable.getValue() == true )
+					log.info( "Activated the Accounting filter." );
+				else
+					log.info( "Disabled the Accounting filter." );
+			}
+
+		} else {
+			/*
+			 * Other parameters are observed by base class
+			 */
+			super.update( o, arg );
+		}
+	}
 }

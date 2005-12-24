@@ -22,23 +22,29 @@ import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
 
 import rtspproxy.config.Config;
+import rtspproxy.config.Parameter;
+import rtspproxy.lib.Singleton;
 import rtspproxy.proxy.ServerRtcpPacketHandler;
 
 /**
+ * ProxyService that manages the RTCP packets incoming from servers.
+ * 
  * @author Matteo Merli
  */
-public class RtcpServerService extends ProxyService
+public final class RtcpServerService extends ProxyService
 {
 	private IoHandler serverRtcpPacketHandler = new ServerRtcpPacketHandler();
 
-	public static final String NAME = "RtcpServerService";
-	
-	private static RtcpServerService instance;
+	/** The name of this service */
+	private static final String NAME = "RtcpServerService";
 
 	public RtcpServerService()
 	{
 		super();
-		instance = this;
+
+		// Subscribe to parameter changes
+		Config.proxyServerInterface.addObserver( this );
+		Config.proxyServerRtcpPort.addObserver( this );
 	}
 
 	@Override
@@ -66,15 +72,29 @@ public class RtcpServerService extends ProxyService
 	}
 
 	@Override
-	public int[] getBindPorts()
+	public int getBindPort()
 	{
-		int port = Config.proxyServerRtcpPort.getValue();
-		return new int[] { port };
+		return Config.proxyServerRtcpPort.getValue();
 	}
-	
+
+	/**
+	 * @return a reference to the (unique) instance of this class
+	 */
 	public static RtcpServerService getInstance()
 	{
-		return instance;
+		return (RtcpServerService) Singleton.getInstance( RtcpServerService.class );
+	}
+
+	@Override
+	public Parameter getNetworkInterfaceParameter()
+	{
+		return Config.proxyServerInterface;
+	}
+
+	@Override
+	public Parameter getPortParameter()
+	{
+		return Config.proxyServerRtcpPort;
 	}
 
 }

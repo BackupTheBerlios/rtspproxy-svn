@@ -22,6 +22,8 @@ import org.apache.log4j.Logger;
 
 import rtspproxy.config.Config;
 import rtspproxy.config.ConfigReader;
+import rtspproxy.jmx.JmxAgent;
+import rtspproxy.lib.Exceptions;
 
 /**
  * 
@@ -31,7 +33,9 @@ public class Reactor
 
 	private static Logger log = Logger.getLogger( Reactor.class );
 
-	private static ProxyServiceRegistry registry = new ProxyServiceRegistry();
+	private static ProxyServiceRegistry registry = null;
+
+	private static JmxAgent jmxAgent = null;
 
 	private static boolean isStandalone = false;
 
@@ -75,6 +79,8 @@ public class Reactor
 
 		log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
 
+		registry = new ProxyServiceRegistry();
+
 		// Register the "rtsp://" protocol scheme
 		System.setProperty( "java.protocol.handler.pkgs", "rtspproxy" );
 
@@ -98,17 +104,27 @@ public class Reactor
 
 		ProxyService rdtServerService = new RdtServerService();
 		rdtServerService.start();
+
+		boolean enableJmx = Config.proxyManagementEnable.getValue();
+		if ( enableJmx )
+			jmxAgent = new JmxAgent();
 	}
 
 	static public void stop()
 	{
 		try {
-			registry.unbindAll();
-		} catch ( Exception e ) {
-			log.debug( "Error shutting down: " + e );
-		}
+			if ( jmxAgent != null )
+				jmxAgent.stop();
 
-		log.info( "Shutdown completed" );
+			if ( registry != null )
+				registry.unbindAll();
+			
+			log.info( "Shutdown completed" );
+
+		} catch ( Exception e ) {
+			log.warn( "Error shutting down: " + e );
+			Exceptions.logStackTrace( e );
+		}
 
 		if ( isStandalone )
 			Runtime.getRuntime().halt( 0 );

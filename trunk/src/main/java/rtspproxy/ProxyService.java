@@ -32,10 +32,15 @@ import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
 
+import rtspproxy.config.Parameter;
+import rtspproxy.lib.Exceptions;
 import rtspproxy.lib.NetworkInterface;
 import rtspproxy.lib.Singleton;
 
 /**
+ * ProxyService is the base abstract class for all the "Services" that can be
+ * found on the RtspProxy application.
+ * 
  * @author Matteo Merli
  */
 public abstract class ProxyService extends Singleton implements Observer
@@ -43,11 +48,22 @@ public abstract class ProxyService extends Singleton implements Observer
 
 	private static Logger log = Logger.getLogger( ProxyService.class );
 
+	/**
+	 * Main Socket address used by the service. It can be bound on several
+	 * different addresses and network interfaces, but it MUST have a default
+	 * address to be communicated to third parties.
+	 */
 	private InetSocketAddress socketAddress = null;
 
+	/**
+	 * Flag used to keep track of the service status.
+	 */
 	private volatile boolean isRunning = false;
 
-	public static final String SERVICE = ProxyService.class.getName();
+	/**
+	 * Service hook name.
+	 */
+	protected static final String SERVICE = ProxyService.class.getName();
 
 	/**
 	 * Starts the service.
@@ -62,7 +78,7 @@ public abstract class ProxyService extends Singleton implements Observer
 		}
 
 		String netInterface = getNetworkInterface();
-		int[] ports = getBindPorts();
+		int port = getBindPort();
 
 		try {
 
@@ -71,18 +87,16 @@ public abstract class ProxyService extends Singleton implements Observer
 			for ( InetAddress inetAddress : addressSet ) {
 				// Bind to all addresses
 
-				for ( int port : ports ) {
-					// Bind to all the specified ports
-					socketAddress = new InetSocketAddress( inetAddress, port );
+				socketAddress = new InetSocketAddress( inetAddress, port );
 
-					Reactor.getRegistry().bind( this, getIoHandler(), socketAddress,
-							getFilterChainBuilder() );
-				}
+				Reactor.getRegistry().bind( this, getIoHandler(), socketAddress,
+						getFilterChainBuilder() );
+
 			}
 
 			// Choose a bind address
 			InetAddress inetAddress = NetworkInterface.getBindAddress( addressSet );
-			socketAddress = new InetSocketAddress( inetAddress, ports[0] );
+			socketAddress = new InetSocketAddress( inetAddress, port );
 
 			log.info( getName() + " Started - Listening on: " + socketAddress );
 
@@ -99,7 +113,7 @@ public abstract class ProxyService extends Singleton implements Observer
 	 * 
 	 * @throws Exception
 	 */
-	protected void stop() throws Exception
+	public void stop() throws Exception
 	{
 		if ( !isRunning ) {
 			log.warn( getName() + " is not running." );
@@ -110,18 +124,25 @@ public abstract class ProxyService extends Singleton implements Observer
 		isRunning = false;
 	}
 
-	protected void restart() throws Exception
+	/**
+	 * Restart the service.
+	 * 
+	 * @throws Exception
+	 */
+	public void restart() throws Exception
 	{
-		if ( !isRunning ) {
-			log.warn( getName() + " is not running." );
-			return;
-		}
-
 		log.info( "Restarting " + getName() );
-		stop();
+		if ( isRunning )
+			stop();
+		else
+			log.warn( getName() + " is not running." );
+
 		start();
 	}
 
+	/**
+	 * @return true if the server is running
+	 */
 	public boolean isRunning()
 	{
 		return isRunning;
@@ -138,10 +159,14 @@ public abstract class ProxyService extends Singleton implements Observer
 	 */
 	public abstract IoHandler getIoHandler();
 
+	/**
+	 * @return the filter chain builder to be be used by the IoAcceptor
+	 *         associated with the service.
+	 */
 	public IoFilterChainBuilder getFilterChainBuilder()
 	{
 		// By default there's no filter chain
-		return null;
+		return IoFilterChainBuilder.NOOP;
 	}
 
 	/**
@@ -151,25 +176,61 @@ public abstract class ProxyService extends Singleton implements Observer
 	 */
 	public abstract String getName();
 
+	/**
+	 * @return the network interface to bind this service on, as it appears in
+	 *         the configuratio registry (Config).
+	 */
 	public abstract String getNetworkInterface();
 
-	public abstract int[] getBindPorts();
+	/**
+	 * @return the port to bind on, as it appear in the configuration registry.
+	 */
+	public abstract int getBindPort();
 
+	/**
+	 * @return the Parameter associated with the network interface used by the
+	 *         service.
+	 */
+	public abstract Parameter getNetworkInterfaceParameter();
+
+	/**
+	 * @return the Parameter associated with the port number used by the
+	 *         service.
+	 */
+	public abstract Parameter getPortParameter();
+
+	/**
+	 * @return the main IP address where the service is bound.
+	 */
 	public InetAddress getAddress()
 	{
 		return socketAddress.getAddress();
 	}
 
+	/**
+	 * @return the main TCP or UDP port where the service is bound.
+	 */
 	public int getPort()
 	{
 		return socketAddress.getPort();
 	}
 
+	/**
+	 * @return the TCP or UDP address (IP+port) where the service is bound.
+	 */
 	public SocketAddress getSocketAddress()
 	{
 		return socketAddress;
 	}
 
+	/**
+	 * Creates a new connection-less IoSession to a remote address. This is only
+	 * used to create UDP session.
+	 * 
+	 * @param remoteAddress
+	 *            the address of the remote host to connect to.
+	 * @return the newly created IoSession
+	 */
 	public IoSession newSession( SocketAddress remoteAddress )
 	{
 		return Reactor.getRegistry().getAcceptor( this ).newSession( remoteAddress,
@@ -193,10 +254,15 @@ public abstract class ProxyService extends Singleton implements Observer
 	 */
 	public void update( Observable o, Object arg )
 	{
+		if ( !(o instanceof Parameter) )
+			throw new IllegalArgumentException( "Only observe parameters" );
+
 		try {
 			restart();
 		} catch ( Exception e ) {
-			log.error( "Error restarting " + getName(), e );
+			log.error( "Error restarting " + getName() );
+			Exceptions.logStackTrace( e );
+			throw new RuntimeException( e );
 		}
 	}
 }

@@ -22,24 +22,30 @@ import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
 
 import rtspproxy.config.Config;
+import rtspproxy.config.Parameter;
+import rtspproxy.lib.Singleton;
 import rtspproxy.proxy.ClientRdtPacketHandler;
 
 /**
+ * ProxyService that manages the RDT packets incoming from clients.
+ * 
  * @author Matteo Merli
  */
-public class RdtClientService extends ProxyService
+public final class RdtClientService extends ProxyService
 {
 
 	private IoHandler clientRdtPacketHandler = new ClientRdtPacketHandler();
 
-	public static final String NAME = "RdtClientService";
-
-	private static RdtClientService instance;
+	/** Service name */
+	private static final String NAME = "RdtClientService";
 
 	public RdtClientService()
 	{
 		super();
-		instance = this;
+
+		// Subscribe to parameter changes
+		Config.proxyClientInterface.addObserver( this );
+		Config.proxyClientRdtPort.addObserver( this );
 	}
 
 	@Override
@@ -67,15 +73,29 @@ public class RdtClientService extends ProxyService
 	}
 
 	@Override
-	public int[] getBindPorts()
+	public int getBindPort()
 	{
-		int port = Config.proxyClientRdtPort.getValue();
-		return new int[] { port };
+		return Config.proxyClientRdtPort.getValue();
 	}
 
+	/**
+	 * @return a reference to the (unique) instance of this class
+	 */
 	public static RdtClientService getInstance()
 	{
-		return instance;
+		return (RdtClientService) Singleton.getInstance( RdtClientService.class );
+	}
+
+	@Override
+	public Parameter getNetworkInterfaceParameter()
+	{
+		return Config.proxyClientInterface;
+	}
+
+	@Override
+	public Parameter getPortParameter()
+	{
+		return Config.proxyClientRdtPort;
 	}
 
 }
