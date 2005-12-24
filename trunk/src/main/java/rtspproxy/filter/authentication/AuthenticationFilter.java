@@ -45,7 +45,7 @@ public class AuthenticationFilter extends IoFilterAdapter
 
 	private static Logger log = Logger.getLogger( AuthenticationFilter.class );
 
-	private static final String ATTR = AuthenticationFilter.class.toString() + "Attr";
+	public static final String ATTR = AuthenticationFilter.class.getName() + "Attr";
 
 	private static final Map<String, Class> schemeRegistry = new HashMap<String, Class>();
 
