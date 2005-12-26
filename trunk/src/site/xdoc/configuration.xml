@@ -108,20 +108,6 @@
 						</tr>
 						<tr>
 							<td>
-								<code>proxy.rtsp.interface</code>
-							</td>
-							<td>String</td>
-							<td>*</td>
-							<td>
-								If you need to define a particular
-								network interface to bind on, specify it
-								here. Default is to listen on all
-								interfaces.
-							</td>
-						</tr>
-
-						<tr>
-							<td>
 								<code>proxy.server.rtp.port</code>
 							</td>
 							<td>Integer</td>
@@ -152,20 +138,6 @@
 								Network interface to listen for RTP/RTCP
 								packets from servers. Default is to
 								listen on all interfaces.
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<code>proxy.server.dynamicPorts</code>
-							</td>
-							<td>Boolean</td>
-							<td>
-								<code>false</code>
-							</td>
-							<td>
-								If true the proxy will try to bind the
-								listener for packet in the first
-								available ports.
 							</td>
 						</tr>
 
@@ -201,20 +173,6 @@
 								Network interface to listen for RTP/RTCP
 								packets from clients. Default is to
 								listen on all interfaces.
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<code>proxy.client.dynamicPorts</code>
-							</td>
-							<td>Boolean</td>
-							<td>
-								<code>false</code>
-							</td>
-							<td>
-								If true the proxy will try to bind the
-								listener for packet in the first
-								available ports.
 							</td>
 						</tr>
 					</tbody>
