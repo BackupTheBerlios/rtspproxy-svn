@@ -6,7 +6,19 @@
 	</properties>
 	<body>
 
-		<release version="3.0-ALPHA3-SNAPSHOT" date="2005-12-20">
+		<release version="3.0-ALPHA3-SNAPSHOT" date="in SVN">
+			<action dev="merlimat" type="add">
+				Added support for RDT transport and RealVideo streams.
+			</action>
+			<action dev="merlimat" type="change">
+				Refactored the configuration subsystem.
+			</action>
+			<action dev="merlimat" type="add">
+				Added JMX complaint remote management capabilities.
+			</action>
+			<action dev="merlimat" type="add">
+				Added accounting filter to log accesses to the proxy service.
+			</action>
 		</release>
 
 		<release version="3.0-ALPHA2" date="2005-12-08">
