@@ -234,6 +234,18 @@ public class Config extends Singleton implements Observer
 			"Host to bind the management services. Default is localhost, and the services "
 					+ "will only be reachable from local machine." );
 
+	public static final StringParameter proxyManagementUser = new StringParameter(
+			"proxy.management.user", // name
+			null, // default value
+			true, // mutable
+			"Remote management administrator user name." );
+	
+	public static final StringParameter proxyManagementPassword = new StringParameter(
+			"proxy.management.password", // name
+			null, // default value
+			true, // mutable
+			"Remote management administrator password." );
+
 	public static final BooleanParameter proxyManagementWebEnable = new BooleanParameter(
 			"proxy.management.web.enable", // name
 			false, // default value
@@ -281,8 +293,8 @@ public class Config extends Singleton implements Observer
 		// Read program name and version
 		Properties jarProps = new Properties();
 		try {
-			jarProps.load( Thread.currentThread().getContextClassLoader()
-					.getResourceAsStream( "META-INF/application.properties" ) );
+			jarProps.load( Thread.currentThread().getContextClassLoader().getResourceAsStream(
+					"META-INF/application.properties" ) );
 			name = jarProps.getProperty( "application.name" );
 			version = jarProps.getProperty( "application.version" );
 		} catch ( Exception e ) {
@@ -314,7 +326,7 @@ public class Config extends Singleton implements Observer
 	 */
 	public void update( Observable o, Object arg )
 	{
-		if ( !(o instanceof Parameter) )
+		if ( !( o instanceof Parameter ) )
 			throw new IllegalArgumentException( "Only observe parameters" );
 
 		if ( o == logDebug || o == logFile || o == logLogToFile ) {
@@ -415,8 +427,8 @@ public class Config extends Singleton implements Observer
 	public static String debugParameters()
 	{
 		StringBuilder sb = new StringBuilder();
-		Map<String, Parameter> parameters = new TreeMap<String, Parameter>( Config
-				.getParametersMap() );
+		Map<String, Parameter> parameters = new TreeMap<String, Parameter>(
+				Config.getParametersMap() );
 		sb.append( "Parameters:\n" );
 		for ( Parameter parameter : parameters.values() ) {
 			sb.append( parameter.getName() );

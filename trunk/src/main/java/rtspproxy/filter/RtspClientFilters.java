@@ -33,6 +33,7 @@ public class RtspClientFilters extends RtspFilters
 		addIpAddressFilter( chain );
 		addRtspCodecFilter( chain );
 		addAuthenticationFilter( chain );
+		addAccountingFilter( chain );
 	}
 
 }
