@@ -14,9 +14,9 @@ public class BooleanParameter extends Parameter
 	private boolean defaultValue;
 
 	public BooleanParameter( String name, boolean defaultValue, boolean mutable,
-			String description )
+			String description, String xpathExpr )
 	{
-		super( name, mutable, description );
+		super( name, mutable, description, xpathExpr );
 		this.defaultValue = defaultValue;
 	}
 

@@ -17,9 +17,9 @@ public class IntegerParameter extends Parameter
 	private Integer defaultValue;
 
 	public IntegerParameter( String name, Integer minValue, Integer maxValue,
-			Integer defaultValue, boolean mutable, String description )
+			Integer defaultValue, boolean mutable, String description, String xpathExpr )
 	{
-		super( name, mutable, description );
+		super( name, mutable, description, xpathExpr );
 
 		if ( defaultValue == null )
 			throw new IllegalArgumentException( "Default value for " + name

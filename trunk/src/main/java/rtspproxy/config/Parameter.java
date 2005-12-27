@@ -16,15 +16,18 @@ public abstract class Parameter extends Observable
 	protected final boolean mutable;
 
 	protected final String description;
+	
+	protected final String xpathExpr;
 
-	protected Parameter( String name, boolean mutable, String description )
+	protected Parameter( String name, boolean mutable, String description, String xpathExpr )
 	{
 		validateName( name );
 
 		this.name = name;
 		this.mutable = mutable;
 		this.description = description;
-
+		this.xpathExpr = xpathExpr;
+		
 		Config.addParameter( this );
 	}
 
@@ -87,6 +90,14 @@ public abstract class Parameter extends Observable
 	 */
 	public abstract String getType();
 
+	/**
+	 * @return the xpath expression used to address this parameter in the xml configuration file.
+	 * If null, this parameter is ignored in the configuration file evaluation.
+	 */
+	public final String getXPathExpr() {
+		return this.xpathExpr;
+	}
+	
 	/**
 	 * Marks the parameter as changed and notify all the Observers.
 	 * 

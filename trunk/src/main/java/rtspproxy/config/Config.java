@@ -48,18 +48,24 @@ public class Config extends Singleton implements Observer
 			false, // default value
 			true, // mutable
 			"This flag let you to enable or disable the debug "
-					+ "output of the program." );
+					+ "output of the program.",
+			"/rtspproxy/log/debug" // xpathExpr
+	);
 
 	public static final BooleanParameter logLogToFile = new BooleanParameter(
 			"log.logtofile", // name
 			false, // default value
 			true, // mutable
-			"If you want to save to a file the debug output	set this to Yes" );
+			"If you want to save to a file the debug output	set this to Yes",
+			"/rtspproxy/log/logToFile" // xpathExpr
+	);
 
 	public static final StringParameter logFile = new StringParameter( "log.file", // name
 			"logs/rtspproxy.log", // default value
 			true, // mutable
-			"Here you specify the file to log to." );
+			"Here you specify the file to log to.",
+			"/rtspproxy/log/file"  // xpathExpr
+	);
 
 	public static final IntegerParameter threadPoolSize = new IntegerParameter(
 			"thread.pool.size", // name
@@ -68,7 +74,9 @@ public class Config extends Singleton implements Observer
 			new Integer( 10 ), // default value
 			true, // mutable
 			"Maximum size of the thread pool. The thread pool is shared "
-					+ "between all services found in RtspProxy." );
+					+ "between all services found in RtspProxy.",
+			"/rtspproxy/threadPoolSize" // xpathExpr
+	);
 
 	public static final IntegerParameter proxyRtspPort = new IntegerParameter(
 			"proxy.rtsp.port", // name
@@ -77,19 +85,25 @@ public class Config extends Singleton implements Observer
 			new Integer( Handler.DEFAULT_RTSP_PORT ), // default value
 			true, // mutable
 			"This is the port which the proxy will listen for "
-					+ "RTSP connection. The default is 554, like normal RTSP servers." );
+					+ "RTSP connection. The default is 554, like normal RTSP servers.",
+			"/rtspproxy/proxy/rtspPort" // xpathExpr
+			);
 
 	public static final StringParameter proxyClientInterface = new StringParameter(
 			"proxy.client.interface", // name
 			null, // default value
 			false, // mutable
-			"Specify a network interface. Default is to listen on all interfaces." );
+			"Specify a network interface. Default is to listen on all interfaces." ,
+			"/rtspproxy/proxy/client/interface" // xpathExpr
+			);
 
 	public static final StringParameter proxyServerInterface = new StringParameter(
 			"proxy.server.interface", // name
 			null, // default value
 			false, // mutable
-			"Specify a network interface. Default is to listen on all interfaces." );
+			"Specify a network interface. Default is to listen on all interfaces.",
+			"/rtspproxy/proxy/server/interface" // pathExpr
+			);
 
 	public static final IntegerParameter proxyServerRtpPort = new IntegerParameter(
 			"proxy.server.rtp.port", // name
@@ -97,7 +111,9 @@ public class Config extends Singleton implements Observer
 			new Integer( 65536 ), // max value
 			new Integer( 8000 ), // default value
 			true, // mutable
-			"Port to listen for RTP packets arriving from servers." );
+			"Port to listen for RTP packets arriving from servers.",
+			"/rtspproxy/proxy/server/rtpPort" // xpathExpr
+			);
 
 	public static final IntegerParameter proxyServerRtcpPort = new IntegerParameter(
 			"proxy.server.rtcp.port", // name
@@ -105,7 +121,9 @@ public class Config extends Singleton implements Observer
 			new Integer( 65536 ), // max value
 			new Integer( 8001 ), // default value
 			true, // mutable
-			"Port to listen for RTCP packets arriving from servers." );
+			"Port to listen for RTCP packets arriving from servers.",
+			"/rtspproxy/proxy/server/rtcpPort" // xpathExpr
+			);
 
 	public static final IntegerParameter proxyClientRtpPort = new IntegerParameter(
 			"proxy.client.rtp.port", // name
@@ -113,7 +131,9 @@ public class Config extends Singleton implements Observer
 			new Integer( 65536 ), // max value
 			new Integer( 8002 ), // default value
 			true, // mutable
-			"Port to listen for RTP packets arriving from clients." );
+			"Port to listen for RTP packets arriving from clients.",
+			"/rtspproxy/proxy/client/rtpPort" // xpathExpr
+			);
 
 	public static final IntegerParameter proxyClientRtcpPort = new IntegerParameter(
 			"proxy.client.rtcp.port", // name
@@ -121,7 +141,9 @@ public class Config extends Singleton implements Observer
 			new Integer( 65536 ), // max value
 			new Integer( 8003 ), // default value
 			true, // mutable
-			"Port to listen for RTCP packets arriving from clients." );
+			"Port to listen for RTCP packets arriving from clients.",
+			"/rtspproxy/proxy/client/rtcpPort" // xpathExpr
+			);
 
 	public static final IntegerParameter proxyServerRdtPort = new IntegerParameter(
 			"proxy.server.rdt.port", // name
@@ -129,7 +151,9 @@ public class Config extends Singleton implements Observer
 			new Integer( 65536 ), // max value
 			new Integer( 8020 ), // default value
 			true, // mutable
-			"Port to listen for RDT packets arriving from servers." );
+			"Port to listen for RDT packets arriving from servers.",
+			"/rtspproxy/proxy/server/rdtPort" // xpathExpr
+			);
 
 	public static final IntegerParameter proxyClientRdtPort = new IntegerParameter(
 			"proxy.client.rdt.port", // name
@@ -137,7 +161,9 @@ public class Config extends Singleton implements Observer
 			new Integer( 65536 ), // max value
 			new Integer( 8022 ), // default value
 			true, // mutable
-			"Port to listen for RDT packets arriving from clients." );
+			"Port to listen for RDT packets arriving from clients.",
+			"/rtspproxy/proxy/server/rdtPort" // xpathExpr
+			);
 
 	// // IP address filter
 
@@ -145,7 +171,9 @@ public class Config extends Singleton implements Observer
 			"proxy.filter.ipaddress.enable", // name
 			false, // default value
 			true, // mutable
-			"Enable or disable the IP address filtering system." );
+			"Enable or disable the IP address filtering system.",
+			null // xpathExpr
+			);
 
 	public static final StringParameter proxyFilterIpaddressImplementationClass = new StringParameter(
 			"proxy.filter.ipaddress.implementationClass", // name
@@ -154,13 +182,17 @@ public class Config extends Singleton implements Observer
 			false, // mutable
 			"Use an alternative backend class. This can be any class "
 					+ "that implements the rtspproxy.filter.ipaddress.IpAddressProvider "
-					+ "interface." );
+					+ "interface.",
+			null // xpathExpr
+			);
 
 	public static final StringParameter proxyFilterIpaddressTextFile = new StringParameter(
 			"proxy.filter.ipaddress.text.file", // name
 			"conf/ipfilter.txt", // default value
 			false, // mutable
-			"Plain Text based implementation specific configuration" );
+			"Plain Text based implementation specific configuration",
+			null // xpathExpr
+			);
 
 	// // Authentication filter
 
@@ -168,14 +200,18 @@ public class Config extends Singleton implements Observer
 			"proxy.filter.authentication.enable", // name
 			false, // default value
 			true, // mutable
-			"Enable or disable the authentication system." );
+			"Enable or disable the authentication system.",
+			null // xpathExpr
+			 );
 
 	public static final StringParameter proxyFilterAuthenticationScheme = new StringParameter(
 			"proxy.filter.authentication.scheme", // name
 			"Basic", // default value
 			false, // mutable
 			"Authentication Scheme. This could be Basic (the default), Digest or any "
-					+ "other supported scheme." );
+					+ "other supported scheme.",
+					null // xpathExpr
+					 );
 
 	public static final StringParameter proxyFilterAuthenticationImplementationClass = new StringParameter(
 			"proxy.filter.authentication.implementationClass", // name
@@ -184,13 +220,17 @@ public class Config extends Singleton implements Observer
 			false, // mutable
 			"Use an alternative backend class. This can be any class "
 					+ "that implements the rtspproxy.filter.authentication.AuthenticationProvider "
-					+ "interface." );
+					+ "interface.",
+					null // xpathExpr
+					 );
 
 	public static final StringParameter proxyFilterAuthenticationTextFile = new StringParameter(
 			"proxy.filter.authentication.text.file", // name
 			"conf/users.txt", // default value
 			false, // mutable
-			"Plain Text based implementation specific configuration" );
+			"Plain Text based implementation specific configuration",
+			null // xpathExpr
+			 );
 
 	// /////////////////////////////////////////////////////////
 
@@ -200,7 +240,9 @@ public class Config extends Singleton implements Observer
 			"proxy.filter.accounting.enable", // name
 			true, // default value
 			true, // mutable
-			"Controls the activation of the Accounting subsystem." );
+			"Controls the activation of the Accounting subsystem.",
+			null // xpathExpr
+			 );
 
 	public static final StringParameter proxyFilterAccountingImplementationClass = new StringParameter(
 			"proxy.filter.accounting.implementationClass", // name
@@ -209,13 +251,17 @@ public class Config extends Singleton implements Observer
 			false, // mutable
 			"Use an alternative backend class. This can be any class "
 					+ "that implements the rtspproxy.filter.accounting.AccountingProvider "
-					+ "interface." );
+					+ "interface.",
+					null // xpathExpr
+					 );
 
 	public static final StringParameter proxyFilterAccountingTextFile = new StringParameter(
 			"proxy.filter.accounting.text.file", // name
 			"logs/access.log", // default value
 			false, // mutable
-			"Plain Text based implementation specific configuration" );
+			"Plain Text based implementation specific configuration",
+			null // xpathExpr
+			 );
 
 	// /////////////////////////////////////////////////////////
 
@@ -225,32 +271,42 @@ public class Config extends Singleton implements Observer
 			"proxy.management.enable", // name
 			false, // default value
 			false, // mutable
-			"Controls the activation of the management subsystem (JMX)." );
+			"Controls the activation of the management subsystem (JMX).",
+			"/rtspproxy/jmx/manageable" // xpathExpr
+			);
 
 	public static final StringParameter proxyManagementHost = new StringParameter(
 			"proxy.management.host", // name
 			"localhost", // default value
 			false, // mutable
 			"Host to bind the management services. Default is localhost, and the services "
-					+ "will only be reachable from local machine." );
+					+ "will only be reachable from local machine.",
+			"/rtspproxy/jmx/interface" // xpathExpr
+			 );
 
 	public static final StringParameter proxyManagementUser = new StringParameter(
 			"proxy.management.user", // name
 			null, // default value
 			true, // mutable
-			"Remote management administrator user name." );
+			"Remote management administrator user name.",
+			"/rtspproxy/jmx/user" // xpathExpr
+			 );
 	
 	public static final StringParameter proxyManagementPassword = new StringParameter(
 			"proxy.management.password", // name
 			null, // default value
 			true, // mutable
-			"Remote management administrator password." );
+			"Remote management administrator password.",
+			"/rtspproxy/jmx/password" // xpathExpr
+			 );
 
 	public static final BooleanParameter proxyManagementWebEnable = new BooleanParameter(
 			"proxy.management.web.enable", // name
 			false, // default value
 			false, // mutable
-			"Controls the activation of the Web management console." );
+			"Controls the activation of the Web management console.",
+			"/rtspproxy/jmx/web/manageable" // xpathExpr
+			 );
 
 	public static final IntegerParameter proxyManagementWebPort = new IntegerParameter(
 			"proxy.management.web.port", // name
@@ -258,13 +314,17 @@ public class Config extends Singleton implements Observer
 			new Integer( 65536 ), // max value
 			new Integer( 8000 ), // default value
 			false, // mutable
-			"TCP port to be used for the Web Console." );
+			"TCP port to be used for the Web Console.",
+			"/rtspproxy/jmx/web/port" // xpathExpr
+			 );
 
 	public static final BooleanParameter proxyManagementRemoteEnable = new BooleanParameter(
 			"proxy.management.remote.enable", // name
 			false, // default value
 			false, // mutable
-			"Controls the activation of the JMX connector server." );
+			"Controls the activation of the JMX connector server.",
+			"/rtspproxy/jmx/connectorService/manageable" // xpathExpr
+			 );
 
 	// /////////////////////////////////////////////////////////
 

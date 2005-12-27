@@ -9,16 +9,16 @@ import java.util.List;
 /**
  * @author Matteo Merli
  */
-public class StringListParameter extends Parameter
+public class StringListParameter extends ListParameter
 {
 	private List<String> values = null;
 
 	private String defaultValue;
 
 	public StringListParameter( String name, String defaultValue, boolean mutable,
-			String description )
+			String description, String xpathExpr )
 	{
-		super( name, mutable, description );
+		super( name, mutable, description, xpathExpr );
 
 		if ( defaultValue == null )
 			throw new IllegalArgumentException( "Default value for " + name
@@ -35,6 +35,13 @@ public class StringListParameter extends Parameter
 		for ( String token : tokens ) {
 			this.values.add( token );
 		}
+		setChanged();
+	}
+	
+	@Override	
+	public void addValue(String value) {
+		this.values.add(value);
+		
 		setChanged();
 	}
 

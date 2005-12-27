@@ -1,0 +1,51 @@
+<rtspproxy>
+  <log>
+    <debug>false</debug>
+    <logToFile>true</logToFile>
+    <file>/tmp/rtspproxy.log</file>
+  </log>
+  <threadPoolSize>10</threadPoolSize>
+  <proxy>
+    <rtspPort>554</rtspPort>
+    <server>
+      <rtpPort>6970</rtpPort>
+      <rtcpPort>6971</rtcpPort>
+      <rdtPort>6972</rdtPort>
+      <interface>10.0.0.24</interface>
+    </server>
+    <client>
+      <rtpPort>6970</rtpPort>
+      <rtcpPort>6971</rtcpPort>
+      <rdtPort>6972</rdtPort>
+      <interface>10.0.0.23</interface>
+    </client>
+  </proxy>
+  <jmx>
+    <manageable>true</manageable>
+    <interface>10.0.0.22</interface>
+    <user>admin</user>
+    <password>admin123</password>
+    <web>
+      <manageable>true</manageable>
+      <port>8080</port>
+    </web>
+    <connectorService>
+      <manageable>true</manageable>
+    </connectorService>
+  </jmx>
+  <aaa>
+    <authentication implClass="rtspproxy.filter.authentication.PlainTextAuthenticationProvider">
+      <scheme>Digest</scheme>
+      <user>
+	<name>myuser</name>
+	<password>itspassword</password>
+      </user>
+    </authentication>
+    <authorization implClass="rtspproxy.filter.ipaddress.PlainTextIpAddressProvider">
+      <deny>*</deny>
+      <allow>127.0.0.1</allow>
+      <allow>10.0.0.*</allow>
+      <allow>*.some.domain</allow>
+    </authorization>
+  </aaa>
+</rtspproxy>

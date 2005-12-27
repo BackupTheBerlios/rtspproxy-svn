@@ -14,9 +14,9 @@ public class StringParameter extends Parameter
 	private String defaultValue;
 
 	public StringParameter( String name, String defaultValue, boolean mutable,
-			String description )
+			String description, String xpathExpr )
 	{
-		super( name, mutable, description );
+		super( name, mutable, description, xpathExpr );
 		this.defaultValue = defaultValue;
 	}
 

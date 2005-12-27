@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author Matteo Merli
  */
-public class IntegerListParameter extends Parameter
+public class IntegerListParameter extends ListParameter
 {
 	private List<Integer> values = null;
 
@@ -20,9 +20,9 @@ public class IntegerListParameter extends Parameter
 	private Integer defaultValue;
 
 	public IntegerListParameter( String name, Integer minValue, Integer maxValue,
-			Integer defaultValue, boolean mutable, String description )
+			Integer defaultValue, boolean mutable, String description, String xpathExpr )
 	{
-		super( name, mutable, description );
+		super( name, mutable, description, xpathExpr );
 
 		if ( defaultValue == null )
 			throw new IllegalArgumentException( "Default value for " + name
@@ -59,6 +59,20 @@ public class IntegerListParameter extends Parameter
 			this.values.add( tmpValue );
 		}
 
+		setChanged();
+	}
+
+	@Override	
+	public void addValue(String value) {
+		try {
+			Integer tmpValue = Integer.valueOf(value);
+
+			this.values.add(tmpValue);
+		} catch ( NumberFormatException nfe ) {
+			throw new IllegalArgumentException( "Integer value for " + name
+					+ " not valid: " + value );
+		}
+		
 		setChanged();
 	}
 
