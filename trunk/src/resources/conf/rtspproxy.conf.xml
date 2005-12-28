@@ -33,7 +33,7 @@
       <manageable>true</manageable>
     </connectorService>
   </jmx>
-  <aaa>
+  <filters>
     <authentication implClass="rtspproxy.filter.authentication.PlainTextAuthenticationProvider">
       <scheme>Digest</scheme>
       <user>
@@ -47,5 +47,8 @@
       <allow>10.0.0.*</allow>
       <allow>*.some.domain</allow>
     </authorization>
-  </aaa>
+    <accounting implClass="rtspproxy.filter.accounting.PlainTextAccountingProvider" >
+      <log>/tmp/rtspproxy-access.log</log>
+    </accounting>
+  </filters>
 </rtspproxy>

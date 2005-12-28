@@ -94,5 +94,27 @@ public class XMLConfigReader {
 				}
 			}
 		}
+		
+		for(Node aaaNode : (List<Node>)doc.selectNodes("/rtspproxy/filters/*")) {
+			String name = aaaNode.getName();
+			String implClass = ((Element)aaaNode).attributeValue("implClass");
+			
+			logger.debug("element name=" + name + ", implClass=" + implClass);
+			
+			if(implClass == null || implClass.length() == 0)
+				throw new IllegalArgumentException("no implementation class given");
+			
+			if(name.equals("authentication")) {
+				Config.addAuthenticationFilter(new AAAConfig(implClass, 
+						(List<Element>)((Element)aaaNode).elements()));
+			} else if(name.equals("authorization")) {
+				Config.addAuthorizationFilter(new AAAConfig(implClass, 
+						(List<Element>)((Element)aaaNode).elements()));
+			} else if(name.equals("accounting")) {
+				Config.addAccountingFilter(new AAAConfig(implClass, 
+						(List<Element>)((Element)aaaNode).elements()));				
+			} else
+				throw new IllegalArgumentException("invalid AAA element given, name=" + name);
+		}
 	}
 }

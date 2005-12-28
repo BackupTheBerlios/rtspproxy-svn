@@ -1,8 +1,11 @@
 package rtspproxy.config;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
@@ -338,6 +341,41 @@ public class Config extends Singleton implements Observer
 
 	private static Date startDate;
 
+	// /////////////////////////////////////////////////////////
+	
+	// filter configurations from XML
+	private static List<AAAConfig> authenticationFilters = new ArrayList<AAAConfig>();
+
+	// filter configurations from XML
+	private static List<AAAConfig> authorizationFilters = new ArrayList<AAAConfig>();
+
+	// filter configurations from XML
+	private static List<AAAConfig> accountingFilters = new ArrayList<AAAConfig>();
+
+	static void addAuthenticationFilter(AAAConfig config) {
+		authenticationFilters.add(config);
+	}
+	
+	static void addAuthorizationFilter(AAAConfig config) {
+		authorizationFilters.add(config);
+	}
+	
+	static void addAccountingFilter(AAAConfig config) {
+		accountingFilters.add(config);
+	}
+	
+	public static List<AAAConfig> getAuthenticationFilters() {
+		return Collections.unmodifiableList(authenticationFilters);
+	}
+	
+	public static List<AAAConfig> getAuthorizationFilters() {
+		return Collections.unmodifiableList(authorizationFilters);
+	}
+	
+	public static List<AAAConfig> getAccountingFilters() {
+		return Collections.unmodifiableList(accountingFilters);
+	}
+	
 	// /////////////////////////////////////////////////////////
 
 	public Config()
