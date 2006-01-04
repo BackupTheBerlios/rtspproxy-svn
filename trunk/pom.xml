@@ -92,10 +92,11 @@
 
   <modules>
     <module>RTSPProxy-Core</module>
+    <module>RTSPProxy-OSGi</module>
   </modules>
     
   <build>
-    <defaultGoal>assembly:directory</defaultGoal>
+    <defaultGoal>package</defaultGoal>
     
     <resources>
       <resource>
