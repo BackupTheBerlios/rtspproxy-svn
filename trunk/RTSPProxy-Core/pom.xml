@@ -11,7 +11,7 @@
 
 	<name>RTSP Proxy</name>
 	<groupId>net.merlimat</groupId>
-	<artifactId>rtspproxy</artifactId>
+	<artifactId>rtspproxy-core</artifactId>
 	<version>3.0-ALPHA3-SNAPSHOT</version>
 	<url>http://rtspproxy.berlios.de</url>
 	<inceptionYear>2003</inceptionYear>
@@ -39,6 +39,13 @@
 			<email>matteo.merli@gmail.com</email>
 			<!-- <timezone>+1</timezone> -->
 			<url>http://merlimat.net/about</url>
+		</developer>
+		<developer>
+			<id>rbieniek</id>
+			<name>Rainer Bieniek</name>
+			<email>Rainer.Bieniek@vodafone.com</email>
+			<!-- <timezone>+1</timezone> -->
+			<!-- <url>http://merlimat.net/about</url> -->
 		</developer>
 	</developers>
 
