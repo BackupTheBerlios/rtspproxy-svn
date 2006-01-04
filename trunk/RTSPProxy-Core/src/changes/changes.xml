@@ -6,6 +6,12 @@
 	</properties>
 	<body>
 
+		<release version="3.0-ALPHA4-SNAPSHOT" date="in SVN">
+			<action dev="rbieniek" type="add">
+				Added support for XML based comfiguration files.
+			</action>
+		</release>
+
 		<release version="3.0-ALPHA3-SNAPSHOT" date="in SVN">
 			<action dev="merlimat" type="add">
 				Added support for RDT transport and RealVideo streams.

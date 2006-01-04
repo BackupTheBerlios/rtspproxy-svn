@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+  <properties>
+    <title>Changes History</title>
+    <author email="Rainer.Bieniek@vodafone.com">Rainer Bieniek</author>
+  </properties>
+  <body>
+    
+    <release version="3.0-ALPHA4-SNAPSHOT" date="in SVN">
+      <action dev="rbieniek" type="change">
+	Restructured project for multi-module project
+      </action>
+    </release>
+  </body>
+</document>
