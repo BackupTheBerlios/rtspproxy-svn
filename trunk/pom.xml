@@ -92,6 +92,7 @@
 
   <modules>
     <module>RTSPProxy-Core</module>
+    <module>RTSPProxy-App</module>
     <module>RTSPProxy-OSGi</module>
   </modules>
     

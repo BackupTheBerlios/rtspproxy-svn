@@ -14,9 +14,9 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<name>RTSP Proxy core</name>
+	<name>RTSP Proxy standalone application</name>
 	<groupId>net.merlimat</groupId>
-	<artifactId>RTSPProxy-Core</artifactId>
+	<artifactId>RTSPProxy-App</artifactId>
 	<version>3.0-ALPHA4-SNAPSHOT</version>
 	<url>http://rtspproxy.berlios.de</url>
 	<inceptionYear>2003</inceptionYear>
@@ -95,28 +95,23 @@
 	</distributionManagement>
 
 	<dependencies>
+
+    <dependency>
+      <groupId>net.merlimat</groupId>
+      <artifactId>RTSPProxy-Core</artifactId>
+      <version>3.0-ALPHA4-SNAPSHOT</version>
+    </dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.0-rc3</version>
+		</dependency>
+
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.9</version>
-		</dependency>
-
-		<dependency>
-			<groupId>directory-network</groupId>
-			<artifactId>mina</artifactId>
-			<version>0.9.0</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>mx4j</groupId>
-			<artifactId>mx4j-tools</artifactId>
-			<version>2.1.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>dom4j</groupId>
-			<artifactId>dom4j</artifactId>
-			<version>1.6.1</version>
 		</dependency>
 
 		<dependency>
