@@ -8,7 +8,7 @@
 		<fileSet>
 			<directory>target</directory>
 			<includes>
-				<include>rtspproxy*.jar</include>
+				<include>RTSPProxy*.jar</include>
 			</includes>
 			<outputDirectory>/lib</outputDirectory>
 		</fileSet>

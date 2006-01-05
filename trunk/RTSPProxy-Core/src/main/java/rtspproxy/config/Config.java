@@ -14,8 +14,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.log4j.PropertyConfigurator;
-
 import rtspproxy.lib.Singleton;
 import rtspproxy.rtsp.Handler;
 
