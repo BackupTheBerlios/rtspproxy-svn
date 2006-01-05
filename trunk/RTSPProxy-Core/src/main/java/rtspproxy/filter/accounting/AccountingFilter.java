@@ -1,6 +1,7 @@
 package rtspproxy.filter.accounting;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
 
@@ -15,7 +16,7 @@ import rtspproxy.rtsp.RtspMessage;
 public class AccountingFilter extends IoFilterAdapter
 {
 
-	private static Logger log = Logger.getLogger( AccountingFilter.class );
+	private static Logger log = LoggerFactory.getLogger( AccountingFilter.class );
 
 	private AccountingProvider provider = null;
 
@@ -30,7 +31,7 @@ public class AccountingFilter extends IoFilterAdapter
 			providerClass = Class.forName( className );
 
 		} catch ( ClassNotFoundException e ) {
-			log.fatal( "Invalid AccountingProvider class: " + className );
+			log.error( "Invalid AccountingProvider class: " + className );
 			Reactor.stop();
 			return;
 		}
@@ -45,7 +46,7 @@ public class AccountingFilter extends IoFilterAdapter
 		}
 
 		if ( !found ) {
-			log.fatal( "Class (" + providerClass
+			log.error( "Class (" + providerClass
 					+ ") does not implement the AccountingProvider interface." );
 			Reactor.stop();
 			return;
@@ -56,7 +57,7 @@ public class AccountingFilter extends IoFilterAdapter
 			provider.init();
 
 		} catch ( Exception e ) {
-			log.fatal( "Error starting AccountingProvider: " + e );
+			log.error( "Error starting AccountingProvider: " + e );
 			Reactor.stop();
 			return;
 		}

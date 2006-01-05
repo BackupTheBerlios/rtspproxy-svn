@@ -3,7 +3,8 @@
  */
 package rtspproxy.config;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,8 +26,7 @@ import org.dom4j.io.SAXReader;
 public class XMLConfigReader {
 
 	// logger
-	private static final Logger logger = Logger
-			.getLogger(XMLConfigReader.class);
+	private static final Logger logger = LoggerFactory.getLogger(XMLConfigReader.class);
 	
 	/**
 	 * create the xml config read object

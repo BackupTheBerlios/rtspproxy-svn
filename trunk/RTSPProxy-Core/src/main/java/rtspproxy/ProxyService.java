@@ -26,7 +26,8 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
@@ -46,7 +47,7 @@ import rtspproxy.lib.Singleton;
 public abstract class ProxyService extends Singleton implements Observer
 {
 
-	private static Logger log = Logger.getLogger( ProxyService.class );
+	private static Logger log = LoggerFactory.getLogger( ProxyService.class );
 
 	/**
 	 * Main Socket address used by the service. It can be bound on several
@@ -101,7 +102,7 @@ public abstract class ProxyService extends Singleton implements Observer
 			log.info( getName() + " Started - Listening on: " + socketAddress );
 
 		} catch ( IOException e ) {
-			log.fatal( "Can't start " + getName() + " " + e );
+			log.error( "Can't start " + getName() + " " + e );
 			throw e;
 		}
 

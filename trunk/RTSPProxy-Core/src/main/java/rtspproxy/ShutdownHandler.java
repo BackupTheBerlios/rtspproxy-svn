@@ -18,7 +18,8 @@
 
 package rtspproxy;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.config.Config;
 import rtspproxy.lib.Exceptions;
@@ -31,7 +32,7 @@ import rtspproxy.lib.Exceptions;
 public class ShutdownHandler extends Thread
 {
 
-	private static Logger log = Logger.getLogger( ShutdownHandler.class );
+	private static Logger log = LoggerFactory.getLogger( ShutdownHandler.class );
 
 	public void run()
 	{
@@ -41,7 +42,7 @@ public class ShutdownHandler extends Thread
 			Reactor.stop();
 
 		} catch ( Exception e ) {
-			log.fatal( "Exception in the reactor: " + e );
+			log.error( "Exception in the reactor: " + e );
 			Exceptions.logStackTrace( e );
 		}
 	}

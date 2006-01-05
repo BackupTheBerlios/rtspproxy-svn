@@ -28,7 +28,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoFilterChain;
@@ -52,7 +53,7 @@ import rtspproxy.lib.Singleton;
 public final class ProxyServiceRegistry extends Singleton implements Observer
 {
 
-	private static Logger log = Logger.getLogger( ProxyServiceRegistry.class );
+	private static Logger log = LoggerFactory.getLogger( ProxyServiceRegistry.class );
 
 	public static final String threadPoolFilterNAME = "threadPoolFilter";
 

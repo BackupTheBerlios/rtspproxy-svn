@@ -18,7 +18,8 @@
 
 package rtspproxy.proxy;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
@@ -35,7 +36,7 @@ import rtspproxy.rtsp.RtspResponse;
 public class ClientSide extends IoHandlerAdapter
 {
 
-	private static Logger log = Logger.getLogger( ClientSide.class );
+	private static Logger log = LoggerFactory.getLogger( ClientSide.class );
 
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception

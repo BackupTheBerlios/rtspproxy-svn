@@ -6,7 +6,8 @@ package rtspproxy.filter.rewrite;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
@@ -25,8 +26,7 @@ public class RequestUrlRewritingImpl extends IoFilterAdapter {
 	/**
 	 * Logger for this class
 	 */
-	private static final Logger logger = Logger
-			.getLogger(RequestUrlRewritingImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(RequestUrlRewritingImpl.class);
 
 	// the filter instance
 	private RequestUrlRewritingFilter filter;
@@ -48,7 +48,7 @@ public class RequestUrlRewritingImpl extends IoFilterAdapter {
 			this.filter = (RequestUrlRewritingFilter) filterClazz.newInstance();
 			logger.info("using request URL rewriter " + clazzName);
 		} catch (Exception e) {
-			logger.error(e);
+			logger.error("error instantiating filter", e);
 
 			throw e;
 		}

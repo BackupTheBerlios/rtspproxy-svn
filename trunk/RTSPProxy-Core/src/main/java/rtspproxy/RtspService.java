@@ -20,7 +20,8 @@ package rtspproxy;
 
 import java.util.Observable;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
@@ -39,7 +40,7 @@ import rtspproxy.proxy.ClientSide;
 public final class RtspService extends ProxyService
 {
 
-	private static Logger log = Logger.getLogger( RtspService.class );
+	private static Logger log = LoggerFactory.getLogger( RtspService.class );
 
 	private IoHandler rtspHandler = new ClientSide();
 

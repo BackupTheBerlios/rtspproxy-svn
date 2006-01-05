@@ -22,7 +22,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
 
@@ -43,7 +44,7 @@ import rtspproxy.rtsp.RtspResponse;
 public class AuthenticationFilter extends IoFilterAdapter
 {
 
-	private static Logger log = Logger.getLogger( AuthenticationFilter.class );
+	private static Logger log = LoggerFactory.getLogger( AuthenticationFilter.class );
 
 	public static final String ATTR = AuthenticationFilter.class.getName() + "Attr";
 
@@ -78,7 +79,7 @@ public class AuthenticationFilter extends IoFilterAdapter
 			providerClass = Class.forName( className );
 
 		} catch ( ClassNotFoundException e ) {
-			log.fatal( "Invalid AuthenticationProvider class: " + className );
+			log.error( "Invalid AuthenticationProvider class: " + className );
 			Reactor.stop();
 			return;
 		}
@@ -93,7 +94,7 @@ public class AuthenticationFilter extends IoFilterAdapter
 		}
 
 		if ( !found ) {
-			log.fatal( "Class (" + providerClass
+			log.error( "Class (" + providerClass
 					+ ") does not implement the AuthenticationProvider interface." );
 			Reactor.stop();
 			return;
@@ -104,7 +105,7 @@ public class AuthenticationFilter extends IoFilterAdapter
 			provider.init();
 
 		} catch ( Exception e ) {
-			log.fatal( "Error starting AuthenticationProvider: " + e );
+			log.error( "Error starting AuthenticationProvider: " + e );
 			Reactor.stop();
 			return;
 		}
@@ -114,7 +115,7 @@ public class AuthenticationFilter extends IoFilterAdapter
 		Class schemeClass = schemeRegistry.get( schemeName.toLowerCase() );
 		if ( schemeClass == null ) {
 			// scheme not found
-			log.fatal( "Authentication Scheme not found: " + schemeName
+			log.error( "Authentication Scheme not found: " + schemeName
 					+ ". Valid values are: "
 					+ Arrays.toString( schemeRegistry.keySet().toArray() ) );
 			Reactor.stop();

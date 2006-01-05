@@ -26,7 +26,8 @@ import javax.management.remote.JMXAuthenticator;
 import javax.management.remote.JMXPrincipal;
 import javax.security.auth.Subject;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.config.Config;
 
@@ -39,7 +40,7 @@ import rtspproxy.config.Config;
 public class Authenticator implements JMXAuthenticator
 {
 
-	private static Logger log = Logger.getLogger( Authenticator.class );
+	private static Logger log = LoggerFactory.getLogger( Authenticator.class );
 
 	public Subject authenticate( Object credentials ) throws SecurityException
 	{

@@ -22,7 +22,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.lib.number.UnsignedLong;
 import rtspproxy.proxy.track.RdtTrack;
@@ -37,7 +38,7 @@ import rtspproxy.proxy.track.Track;
 public class ProxySession
 {
 
-	private static Logger log = Logger.getLogger( ProxySession.class );
+	private static Logger log = LoggerFactory.getLogger( ProxySession.class );
 
 	protected static final String ATTR = ProxySession.class.toString() + "Attr";
 

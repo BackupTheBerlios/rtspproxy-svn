@@ -18,7 +18,8 @@
 
 package rtspproxy.rtp;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.ByteBuffer;
 
 import rtspproxy.lib.number.UnsignedByte;
@@ -55,7 +56,7 @@ import rtspproxy.lib.number.UnsignedShort;
  */
 public class RtpPacket implements Packet {
 
-	private static Logger log = Logger.getLogger(RtpPacket.class);
+	private static Logger log = LoggerFactory.getLogger(RtpPacket.class);
 
 	/**
 	 * This field identifies the version of RTP. The version defined by this

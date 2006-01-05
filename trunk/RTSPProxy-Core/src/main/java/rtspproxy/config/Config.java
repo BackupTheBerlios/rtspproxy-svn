@@ -46,30 +46,7 @@ public class Config extends Singleton implements Observer
 	{
 		return parameters;
 	}
-
-	public static final BooleanParameter logDebug = new BooleanParameter( "log.debug", // name
-			false, // default value
-			true, // mutable
-			"This flag let you to enable or disable the debug "
-					+ "output of the program.",
-			"/rtspproxy/log/debug" // xpathExpr
-	);
-
-	public static final BooleanParameter logLogToFile = new BooleanParameter(
-			"log.logtofile", // name
-			false, // default value
-			true, // mutable
-			"If you want to save to a file the debug output	set this to Yes",
-			"/rtspproxy/log/logToFile" // xpathExpr
-	);
-
-	public static final StringParameter logFile = new StringParameter( "log.file", // name
-			"logs/rtspproxy.log", // default value
-			true, // mutable
-			"Here you specify the file to log to.",
-			"/rtspproxy/log/file"  // xpathExpr
-	);
-
+	
 	public static final IntegerParameter threadPoolSize = new IntegerParameter(
 			"thread.pool.size", // name
 			new Integer( 0 ), // min value
@@ -384,8 +361,6 @@ public class Config extends Singleton implements Observer
 		rtspproxyHome = System.getProperty( "rtspproxy.home" );
 		if ( rtspproxyHome == null ) {
 			rtspproxyHome = System.getProperty( "user.dir" );
-			if ( rtspproxyHome == null )
-				rtspproxyHome = "";
 		}
 
 		// Read program name and version
@@ -411,10 +386,6 @@ public class Config extends Singleton implements Observer
 
 		startDate = new Date();
 
-		// Subscribe to parameter changes notification
-		logDebug.addObserver( this );
-		logFile.addObserver( this );
-		logLogToFile.addObserver( this );
 	}
 
 	/**
@@ -426,15 +397,10 @@ public class Config extends Singleton implements Observer
 	{
 		if ( !( o instanceof Parameter ) )
 			throw new IllegalArgumentException( "Only observe parameters" );
-
-		if ( o == logDebug || o == logFile || o == logLogToFile ) {
-			updateDebugSettings();
-			// log.debug( "Updated logger settings." );
-		}
 	}
 
 	/**
-	 * @return the application base dir
+	 * @return the application base dir or null if the home directory cannot be determined.
 	 */
 	public static String getHome()
 	{
@@ -471,53 +437,6 @@ public class Config extends Singleton implements Observer
 	}
 
 	// /////////////////////////////////////////////////////////
-
-	protected static void updateDebugSettings()
-	{
-		Properties logProperties = new Properties();
-		// common properties
-		logProperties.setProperty( "log4j.appender.A1.layout",
-				"org.apache.log4j.PatternLayout" );
-
-		if ( logDebug.getValue() ) {
-			/*
-			 * For debug messages we want to have a special layout
-			 */
-			logProperties.setProperty( "log4j.appender.A1.layout.ConversionPattern",
-					"%9r %5p [%t] %c - %m%n" );
-			logProperties.setProperty( "log4j.rootLogger", "DEBUG, A1" );
-
-		} else {
-			// only write important messages
-			logProperties.setProperty( "log4j.appender.A1.layout.ConversionPattern",
-					"%5p - %d - %m%n" );
-			logProperties.setProperty( "log4j.rootLogger", "INFO, A1" );
-		}
-
-		if ( logLogToFile.getValue() == true ) {
-			// save logs in a file
-			File file = new File( logFile.getValue() );
-			if ( !file.isAbsolute() ) {
-				file = new File( rtspproxyHome + File.separator + logFile.getValue() );
-			}
-
-			logProperties.setProperty( "log4j.appender.A1",
-					"org.apache.log4j.RollingFileAppender" );
-			logProperties.setProperty( "log4j.appender.A1.File", file.getAbsolutePath() );
-
-			// if logs directory does not exists, create it
-			File logs = file.getParentFile();
-			if ( !logs.exists() )
-				logs.mkdir();
-
-		} else {
-			// Log to console
-			logProperties.setProperty( "log4j.appender.A1",
-					"org.apache.log4j.ConsoleAppender" );
-		}
-
-		PropertyConfigurator.configure( logProperties );
-	}
 
 	/**
 	 * @return a String containing all the parameters

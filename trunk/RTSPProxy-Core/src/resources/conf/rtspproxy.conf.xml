@@ -1,9 +1,4 @@
 <rtspproxy>
-  <log>
-    <debug>false</debug>
-    <logToFile>true</logToFile>
-    <file>/tmp/rtspproxy.log</file>
-  </log>
   <threadPoolSize>10</threadPoolSize>
   <proxy>
     <rtspPort>554</rtspPort>

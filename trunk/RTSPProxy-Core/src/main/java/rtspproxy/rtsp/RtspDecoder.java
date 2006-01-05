@@ -21,7 +21,8 @@ import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolDecoder;
@@ -64,7 +65,7 @@ public class RtspDecoder implements ProtocolDecoder
 		Dispatch
 	}
 
-	private static Logger log = Logger.getLogger( RtspDecoder.class );
+	private static Logger log = LoggerFactory.getLogger( RtspDecoder.class );
 
 	private static final Pattern rtspRequestPattern = Pattern.compile( "([A-Z_]+) ([^ ]+) RTSP/1.0" );
 	private static final Pattern rtspResponsePattern = Pattern.compile( "RTSP/1.0 ([0-9]+) .+" );
@@ -147,7 +148,7 @@ public class RtspDecoder implements ProtocolDecoder
 								try {
 									url = new URL( strUrl );
 								} catch ( MalformedURLException e ) {
-									log.info( e );
+									log.info( "malformed URL: " + url, e );
 									url = null;
 									session.setAttribute( readStateATTR, ReadState.Failed );
 									throw new ProtocolDecoderException( "Invalid URL" );

@@ -20,7 +20,8 @@ package rtspproxy.proxy;
 
 import java.net.InetSocketAddress;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
@@ -39,7 +40,7 @@ import rtspproxy.rtp.rtcp.RtcpPacket;
 public class ClientRtcpPacketHandler extends IoHandlerAdapter
 {
 
-	private static Logger log = Logger.getLogger( ClientRtcpPacketHandler.class );
+	private static Logger log = LoggerFactory.getLogger( ClientRtcpPacketHandler.class );
 
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception

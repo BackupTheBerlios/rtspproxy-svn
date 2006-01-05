@@ -26,7 +26,8 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility used to get all the addresses of the network interfaces found on the
@@ -37,7 +38,7 @@ import org.apache.log4j.Logger;
 public class NetworkInterface
 {
 
-	private static Logger log = Logger.getLogger( NetworkInterface.class );
+	private static Logger log = LoggerFactory.getLogger( NetworkInterface.class );
 
 	/**
 	 * Return all the addresses associated with the given interface. If the
@@ -58,7 +59,7 @@ public class NetworkInterface
 				addresses.addAll( getAddresses( networkInterface ) );
 
 			} catch ( Exception e ) {
-				log.fatal( "Cannot register network interface: " + interfaceAddress, e );
+				log.error( "Cannot register network interface: " + interfaceAddress, e );
 				return null;
 			}
 		} else {
@@ -68,7 +69,7 @@ public class NetworkInterface
 			try {
 				interfaces = java.net.NetworkInterface.getNetworkInterfaces();
 			} catch ( SocketException se ) {
-				log.fatal( "Cannot get the interfaces list." );
+				log.error( "Cannot get the interfaces list." );
 				return null;
 			}
 

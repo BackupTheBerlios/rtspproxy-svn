@@ -18,20 +18,22 @@
 
 package rtspproxy;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.config.Config;
-import rtspproxy.config.ConfigReader;
 import rtspproxy.jmx.JmxAgent;
 import rtspproxy.lib.Exceptions;
 
 /**
- * 
+ * Main reactor of RTSP proxy. This reactor assembles all required services.
+ * The reactor expects a valid configuration before startup eg the global configuration must
+ * have been filled before starting the reactor.
  */
 public class Reactor
 {
 
-	private static Logger log = Logger.getLogger( Reactor.class );
+	private static Logger log = LoggerFactory.getLogger( Reactor.class );
 
 	private static ProxyServiceRegistry registry = null;
 
@@ -46,37 +48,12 @@ public class Reactor
 
 	/**
 	 * Constructor. Creates a new Reactor and starts it.
+	 * The reactor relies on configuration info that has to be provided 
+	 * <b>before</b> starting the reactor.
+	 * @exception Exception reactor startup failed.
 	 */
 	static public void start() throws Exception
 	{
-		// Read configuration files
-		new Config();
-
-		String[] paths = new String[5];
-
-		// Used for testing purposes:
-		// checks for the configuration file
-		paths[4] = "src/resources/conf/rtspproxy.properties";
-
-		// Current directory configuration
-		paths[3] = "rtspproxy.properties";
-
-		// RtspProxy home folder
-		paths[2] = Config.getHome() + "/conf/rtspproxy.properties";
-
-		// Per user config
-		paths[1] = System.getProperty( "user.home", "" ) + "/.rtspproxy.properties";
-		// System wide configuration (tipical in unix systems)
-		paths[0] = "/etc/rtspproxy.properties";
-
-		for ( String path : paths ) {
-			new ConfigReader( path );
-		}
-
-		if ( log.isDebugEnabled() ) {
-			log.debug( Config.debugParameters() );
-		}
-
 		log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
 
 		registry = new ProxyServiceRegistry();

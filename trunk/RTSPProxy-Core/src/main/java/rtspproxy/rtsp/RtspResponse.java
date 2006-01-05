@@ -18,7 +18,8 @@
 
 package rtspproxy.rtsp;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.ByteBuffer;
 
 /**
@@ -27,7 +28,7 @@ import org.apache.mina.common.ByteBuffer;
 public class RtspResponse extends RtspMessage
 {
 
-	private static Logger log = Logger.getLogger( RtspResponse.class );
+	private static Logger log = LoggerFactory.getLogger( RtspResponse.class );
 
 	RtspCode code;
 	RtspRequest.Verb requestVerb = RtspRequest.Verb.None;

@@ -20,7 +20,8 @@ package rtspproxy.filter.ipaddress;
 
 import java.net.InetSocketAddress;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
 
@@ -34,7 +35,7 @@ import rtspproxy.config.Config;
 public class IpAddressFilter extends IoFilterAdapter
 {
 
-	private static Logger log = Logger.getLogger( IpAddressFilter.class );
+	private static Logger log = LoggerFactory.getLogger( IpAddressFilter.class );
 
 	private IpAddressProvider provider;
 
@@ -49,7 +50,7 @@ public class IpAddressFilter extends IoFilterAdapter
 			providerClass = Class.forName( className );
 
 		} catch ( ClassNotFoundException e ) {
-			log.fatal( "Invalid IpAddressProvider class: " + className );
+			log.error( "Invalid IpAddressProvider class: " + className );
 			Reactor.stop();
 			return;
 		}
@@ -64,7 +65,7 @@ public class IpAddressFilter extends IoFilterAdapter
 		}
 
 		if ( !found ) {
-			log.fatal( "Class (" + provider
+			log.error( "Class (" + provider
 					+ ") does not implement the IpAddressProvider interface." );
 			Reactor.stop();
 			return;
@@ -74,7 +75,7 @@ public class IpAddressFilter extends IoFilterAdapter
 			provider = (IpAddressProvider) providerClass.newInstance();
 			provider.init();
 		} catch ( Exception e ) {
-			log.fatal( "Error starting IpAddressProvider: " + e );
+			log.error( "Error starting IpAddressProvider: " + e );
 			Reactor.stop();
 			return;
 		}

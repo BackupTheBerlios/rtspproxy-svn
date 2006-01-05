@@ -18,7 +18,8 @@
 
 package rtspproxy.filter.authentication.scheme;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.RtspService;
 import rtspproxy.lib.Base64;
@@ -33,7 +34,7 @@ import rtspproxy.rtsp.RtspMessage;
 public class BasicAuthentication implements AuthenticationScheme
 {
 
-	private static Logger log = Logger.getLogger( BasicAuthentication.class );
+	private static Logger log = LoggerFactory.getLogger( BasicAuthentication.class );
 
 	private String realm;
 

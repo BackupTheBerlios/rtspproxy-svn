@@ -22,7 +22,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.lib.number.UnsignedLong;
 
@@ -34,7 +35,7 @@ import rtspproxy.lib.number.UnsignedLong;
 public class RtspSession
 {
 
-	private static Logger log = Logger.getLogger( RtspSession.class );
+	private static Logger log = LoggerFactory.getLogger( RtspSession.class );
 
 	private static Map<String, RtspSession> sessions = new ConcurrentHashMap<String, RtspSession>();
 

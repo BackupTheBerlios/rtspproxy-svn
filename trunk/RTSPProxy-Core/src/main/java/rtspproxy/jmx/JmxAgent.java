@@ -30,12 +30,12 @@ import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
 
 import mx4j.log.Log;
-import mx4j.log.Log4JLogger;
 import mx4j.tools.adaptor.http.HttpAdaptor;
 import mx4j.tools.adaptor.http.XSLTProcessor;
 import mx4j.tools.naming.NamingService;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.ProxyService;
 import rtspproxy.RdtClientService;
@@ -56,7 +56,7 @@ import rtspproxy.config.Config;
 public class JmxAgent
 {
 
-	private static Logger log = Logger.getLogger( JmxAgent.class );
+	private static Logger log = LoggerFactory.getLogger( JmxAgent.class );
 
 	private static final String DOMAIN = "RtspProxy";
 
@@ -72,7 +72,7 @@ public class JmxAgent
 		System.setProperty( "mx4j.log.priority", "warn" );
 
 		// Redirect mx4j messages to our own logger
-		Log.redirectTo( new Log4JLogger() );
+		Log.redirectTo( new Slf4JLogger() );
 
 		mbeanServer = MBeanServerFactory.createMBeanServer();
 
@@ -105,7 +105,7 @@ public class JmxAgent
 			startConnectorServer();
 
 		} catch ( Exception e ) {
-			log.fatal( "Exception: ", e );
+			log.error( "Exception: ", e );
 			Reactor.stop();
 		}
 	}
@@ -179,4 +179,55 @@ public class JmxAgent
 		log.info( "Started JMX connector server. Service url: " + uri );
 	}
 
+	/**
+	 * simple wrapper to log mx4j logging info into slf4j subsystem
+	 * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
+	 *
+	 */
+	public static class Slf4JLogger extends mx4j.log.Logger {
+
+		private Logger m_logger;
+		
+		/**
+		 * default no-op constructor
+		 */
+		public Slf4JLogger() {}
+		
+		/* (non-Javadoc)
+		 * @see mx4j.log.Logger#log(int, java.lang.Object, java.lang.Throwable)
+		 */
+		@Override
+		protected void log(int level, Object msg, Throwable t) {
+			switch(level) {
+			case mx4j.log.Logger.DEBUG:
+				this.m_logger.debug(msg.toString(), t);
+				break;
+			case mx4j.log.Logger.ERROR:
+				this.m_logger.error(msg.toString(), t);
+				break;
+			case mx4j.log.Logger.FATAL:
+				this.m_logger.error(msg.toString(), t);
+				break;
+			case mx4j.log.Logger.INFO:
+				this.m_logger.info(msg.toString(), t);
+				break;
+			case mx4j.log.Logger.TRACE:
+				this.m_logger.debug(msg.toString(), t);
+				break;
+			case mx4j.log.Logger.WARN:
+				this.m_logger.warn(msg.toString(), t);
+				break;
+			}
+		}
+
+		/* (non-Javadoc)
+		 * @see mx4j.log.Logger#setCategory(java.lang.String)
+		 */
+		@Override
+		protected void setCategory(String arg0) {
+			super.setCategory(arg0);
+			
+			this.m_logger = LoggerFactory.getLogger(arg0);
+		}		
+	}
 }

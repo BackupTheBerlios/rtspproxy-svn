@@ -20,7 +20,8 @@ package rtspproxy.rtp.rtcp;
 
 import java.nio.ByteBuffer;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author mat
@@ -28,7 +29,7 @@ import org.apache.log4j.Logger;
  */
 public class SDESInfo implements RtcpInfo
 {
-	static Logger log = Logger.getLogger( SDESInfo.class );
+	static Logger log = LoggerFactory.getLogger( SDESInfo.class );
 	
 	public enum Type {
 		END(0), CNAME(1), NAME(2), EMAIL(3), PHONE(4), LOC(5), TOOL(6), NOTE(7), PRIV(8);

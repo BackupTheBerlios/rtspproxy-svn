@@ -18,7 +18,8 @@
 
 package rtspproxy.lib;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provide logging for stack trace of exceptions.
@@ -28,7 +29,7 @@ import org.apache.log4j.Logger;
 public class Exceptions
 {
 
-	private static Logger log = Logger.getRootLogger();
+	private static Logger log = LoggerFactory.getLogger("");
 
 	private final static String CRLF = "\r\n";
 

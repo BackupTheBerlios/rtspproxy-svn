@@ -10,7 +10,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.RtspService;
 import rtspproxy.lib.number.UnsignedLong;
@@ -20,7 +21,7 @@ import rtspproxy.rtsp.RtspRequest;
 public class DigestAuthentication implements AuthenticationScheme
 {
 
-	private static Logger log = Logger.getLogger( DigestAuthentication.class );
+	private static Logger log = LoggerFactory.getLogger( DigestAuthentication.class );
 
 	/** This is the value of the validity of a challenge response. */
 	private static final int NONCE_TIMEOUT = 60 * 5; // 5 minutes

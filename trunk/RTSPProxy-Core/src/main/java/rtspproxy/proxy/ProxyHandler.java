@@ -26,7 +26,8 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.channels.UnresolvedAddressException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.transport.socket.nio.SocketConnector;
@@ -55,7 +56,7 @@ import rtspproxy.rtsp.RtspTransport.TransportProtocol;
 public class ProxyHandler
 {
 
-	private static Logger log = Logger.getLogger( ProxyHandler.class );
+	private static Logger log = LoggerFactory.getLogger( ProxyHandler.class );
 
 	/** Used to save a reference to this handler in the IoSession */
 	protected static final String ATTR = ProxyHandler.class.toString() + "Attr";
@@ -109,7 +110,7 @@ public class ProxyHandler
 				connectServerSide( request.getUrl() );
 
 			} catch ( IOException e ) {
-				log.error( e );
+				log.error( "I/O exception", e );
 				// closeAll();
 			} finally {
 				if ( serverSession == null )
@@ -494,7 +495,7 @@ public class ProxyHandler
 		try {
 			session.write( request );
 		} catch ( Exception e ) {
-			log.error( e.getCause() );
+			log.error( "exception sending request", e.getCause() );
 		}
 	}
 
@@ -512,7 +513,7 @@ public class ProxyHandler
 		try {
 			session.write( response );
 		} catch ( Exception e ) {
-			log.error( e.getCause() );
+			log.error( "exception sending response", e.getCause() );
 		}
 	}
 

@@ -3,7 +3,8 @@ package rtspproxy.proxy.track;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 
@@ -13,7 +14,7 @@ import rtspproxy.RdtServerService;
 public class RdtTrack extends Track
 {
 
-	private static Logger log = Logger.getLogger( RdtTrack.class );
+	private static Logger log = LoggerFactory.getLogger( RdtTrack.class );
 
 	/**
 	 * Cached references to IoSession objects used to send packets to server and

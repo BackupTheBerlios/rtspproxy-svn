@@ -13,7 +13,8 @@
 
 package rtspproxy.proxy;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
@@ -29,7 +30,7 @@ import rtspproxy.rtsp.RtspResponse;
 public class ServerSide extends IoHandlerAdapter
 {
 
-	private static Logger log = Logger.getLogger( ServerSide.class );
+	private static Logger log = LoggerFactory.getLogger( ServerSide.class );
 
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
@@ -199,7 +200,7 @@ public class ServerSide extends IoHandlerAdapter
 
 		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( ProxyHandler.ATTR ) );
 		if ( proxyHandler == null ) {
-			log.fatal( "proxyHandler is null" );
+			log.error( "proxyHandler is null" );
 			throw new NullPointerException( "proxyHandler in session is null" );
 		}
 

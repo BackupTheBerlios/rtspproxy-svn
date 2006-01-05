@@ -24,7 +24,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The PortManager will keep a list of reserved ports
@@ -32,7 +33,7 @@ import org.apache.log4j.Logger;
 public class PortManager
 {
 
-	private static Logger log = Logger.getLogger( PortManager.class );
+	private static Logger log = LoggerFactory.getLogger( PortManager.class );
 
 	protected static final int minUdpPort = 6790;
 	protected static final int maxUdpPort = 49151;

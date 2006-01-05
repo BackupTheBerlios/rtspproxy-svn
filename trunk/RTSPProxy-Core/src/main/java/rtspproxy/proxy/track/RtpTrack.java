@@ -9,7 +9,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoSession;
 
 import rtspproxy.RtcpClientService;
@@ -23,7 +24,7 @@ import rtspproxy.rtp.rtcp.RtcpPacket;
 public class RtpTrack extends Track
 {
 
-	private static Logger log = Logger.getLogger( RtpTrack.class );
+	private static Logger log = LoggerFactory.getLogger( RtpTrack.class );
 
 	/** Maps a server SSRC id to a Track */
 	private static Map<UnsignedInt, RtpTrack> serverSsrcMap = new ConcurrentHashMap<UnsignedInt, RtpTrack>();
