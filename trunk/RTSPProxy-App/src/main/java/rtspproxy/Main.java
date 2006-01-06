@@ -61,7 +61,7 @@ public class Main
 
 			// RtspProxy home folder
 			if(Config.getHome() != null)
-				log4jList.add(Config.getHome() + "/rtspproxy.log4j.");
+				log4jList.add(Config.getHome() + "/conf/rtspproxy.log4j.");
 
 			// Current directory configuration
 			log4jList.add("rtspproxy.log4j.");
@@ -90,7 +90,7 @@ public class Main
 
 			// RtspProxy home folder
 			if(Config.getHome() != null)
-				pathlist.add(Config.getHome() + "/rtspproxy.conf.xml");
+				pathlist.add(Config.getHome() + "/conf/rtspproxy.conf.xml");
 
 			// Current directory configuration
 			pathlist.add("rtspproxy.conf.xml");
@@ -113,7 +113,7 @@ public class Main
 			Reactor.start();
 
 		} catch ( Exception e ) {
-			log.fatal( "Exception in the reactor: " + e );
+			log.fatal( "Exception in the reactor: ", e );
 			Exceptions.logStackTrace( e );
 			System.exit( -1 );
 		}

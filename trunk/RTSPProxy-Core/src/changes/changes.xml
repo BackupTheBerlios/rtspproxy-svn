@@ -10,6 +10,35 @@
 			<action dev="rbieniek" type="add">
 				Added support for XML based comfiguration files.
 			</action>
+			
+			<action dev="rbieniek" type="change">
+				Configuration has been changed from property-file to XML config file. The configuration has been changed
+				to allow multiple filters per type and each filter may take its configuration information from a 
+				central configuration file.
+			</action>
+			
+			<action dev="rbieniek" type="change" >
+				Changed logging framework from log4j to slf4j (Simple Logging Facade for Java). This change streamlines
+				the logging framework with the underlying mina logging approach. This changes also allows an easier
+				integration into containers which provide their own logging mechanisms (like OSGi).
+			</action>
+			
+			<action dev="rbieniek" type="add">
+				Added a concept of filters being applied to the upstream (remote server) connection and the downstream
+				client connection. This allows for example IP addess based filters which might constrain access to either
+				the streaming proxy, to remote streaming servers or both.
+			</action>
+			
+			<action dev="rbieniek" type="add" >
+				Made installed filters manageable through JMX. An individual filter can be suspended or resumed via
+				JMX and may provide addtional management capabilites by exposing an linked MBean.
+			</action>
+			
+			<action dev="rbieniek" type="add" >
+				All RTSP filters (except URL rewriting) are now managed through a central filter registry. This will
+				allow the dynamic reconfiguration of the applied filter chain per new session.
+			</action>
+			
 		</release>
 
 		<release version="3.0-ALPHA3-SNAPSHOT" date="in SVN">

@@ -140,80 +140,13 @@ public class Config extends Singleton implements Observer
 			new Integer( 8022 ), // default value
 			true, // mutable
 			"Port to listen for RDT packets arriving from clients.",
-			"/rtspproxy/proxy/server/rdtPort" // xpathExpr
+			"/rtspproxy/proxy/client/rdtPort" // xpathExpr
 			);
-
-	// // IP address filter
-
-	public static final BooleanParameter proxyFilterIpaddressEnable = new BooleanParameter(
-			"proxy.filter.ipaddress.enable", // name
-			false, // default value
-			true, // mutable
-			"Enable or disable the IP address filtering system.",
-			null // xpathExpr
-			);
-
-	public static final StringParameter proxyFilterIpaddressImplementationClass = new StringParameter(
-			"proxy.filter.ipaddress.implementationClass", // name
-			"rtspproxy.filter.ipaddress.PlainTextIpAddressProvider", // default
-			// value
-			false, // mutable
-			"Use an alternative backend class. This can be any class "
-					+ "that implements the rtspproxy.filter.ipaddress.IpAddressProvider "
-					+ "interface.",
-			null // xpathExpr
-			);
-
-	public static final StringParameter proxyFilterIpaddressTextFile = new StringParameter(
-			"proxy.filter.ipaddress.text.file", // name
-			"conf/ipfilter.txt", // default value
-			false, // mutable
-			"Plain Text based implementation specific configuration",
-			null // xpathExpr
-			);
-
-	// // Authentication filter
-
-	public static final BooleanParameter proxyFilterAuthenticationEnable = new BooleanParameter(
-			"proxy.filter.authentication.enable", // name
-			false, // default value
-			true, // mutable
-			"Enable or disable the authentication system.",
-			null // xpathExpr
-			 );
-
-	public static final StringParameter proxyFilterAuthenticationScheme = new StringParameter(
-			"proxy.filter.authentication.scheme", // name
-			"Basic", // default value
-			false, // mutable
-			"Authentication Scheme. This could be Basic (the default), Digest or any "
-					+ "other supported scheme.",
-					null // xpathExpr
-					 );
-
-	public static final StringParameter proxyFilterAuthenticationImplementationClass = new StringParameter(
-			"proxy.filter.authentication.implementationClass", // name
-			"rtspproxy.filter.authentication.PlainTextAuthenticationProvider", // default
-			// value
-			false, // mutable
-			"Use an alternative backend class. This can be any class "
-					+ "that implements the rtspproxy.filter.authentication.AuthenticationProvider "
-					+ "interface.",
-					null // xpathExpr
-					 );
-
-	public static final StringParameter proxyFilterAuthenticationTextFile = new StringParameter(
-			"proxy.filter.authentication.text.file", // name
-			"conf/users.txt", // default value
-			false, // mutable
-			"Plain Text based implementation specific configuration",
-			null // xpathExpr
-			 );
 
 	// /////////////////////////////////////////////////////////
 
 	// Accounting filter
-
+	/*
 	public static final BooleanParameter proxyFilterAccountingEnable = new BooleanParameter(
 			"proxy.filter.accounting.enable", // name
 			true, // default value
@@ -240,7 +173,9 @@ public class Config extends Singleton implements Observer
 			"Plain Text based implementation specific configuration",
 			null // xpathExpr
 			 );
-
+			 
+	*/
+	
 	// /////////////////////////////////////////////////////////
 
 	// JMX
@@ -322,7 +257,7 @@ public class Config extends Singleton implements Observer
 	private static List<AAAConfig> authenticationFilters = new ArrayList<AAAConfig>();
 
 	// filter configurations from XML
-	private static List<AAAConfig> authorizationFilters = new ArrayList<AAAConfig>();
+	private static List<AAAConfig> ipAddressFilters = new ArrayList<AAAConfig>();
 
 	// filter configurations from XML
 	private static List<AAAConfig> accountingFilters = new ArrayList<AAAConfig>();
@@ -331,8 +266,8 @@ public class Config extends Singleton implements Observer
 		authenticationFilters.add(config);
 	}
 	
-	static void addAuthorizationFilter(AAAConfig config) {
-		authorizationFilters.add(config);
+	static void addIpAddressFilter(AAAConfig config) {
+		ipAddressFilters.add(config);
 	}
 	
 	static void addAccountingFilter(AAAConfig config) {
@@ -343,8 +278,8 @@ public class Config extends Singleton implements Observer
 		return Collections.unmodifiableList(authenticationFilters);
 	}
 	
-	public static List<AAAConfig> getAuthorizationFilters() {
-		return Collections.unmodifiableList(authorizationFilters);
+	public static List<AAAConfig> getIpAddressFilters() {
+		return Collections.unmodifiableList(ipAddressFilters);
 	}
 	
 	public static List<AAAConfig> getAccountingFilters() {

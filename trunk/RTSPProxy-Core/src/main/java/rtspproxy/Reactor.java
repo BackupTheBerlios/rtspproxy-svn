@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rtspproxy.config.Config;
+import rtspproxy.filter.FilterRegistry;
 import rtspproxy.jmx.JmxAgent;
 import rtspproxy.lib.Exceptions;
 
@@ -40,6 +41,8 @@ public class Reactor
 	private static JmxAgent jmxAgent = null;
 
 	private static boolean isStandalone = false;
+	
+	private static FilterRegistry filterRegistry = null;
 
 	public static void setStandalone( boolean standalone )
 	{
@@ -85,6 +88,9 @@ public class Reactor
 		boolean enableJmx = Config.proxyManagementEnable.getValue();
 		if ( enableJmx )
 			jmxAgent = new JmxAgent();
+
+		filterRegistry = new FilterRegistry();
+		filterRegistry.populateRegistry();		
 	}
 
 	static public void stop()

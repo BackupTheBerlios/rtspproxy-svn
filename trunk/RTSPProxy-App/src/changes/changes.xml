@@ -6,14 +6,19 @@
   </properties>
   <body>
     
-    <release version="3.0-ALPHA4-SNAPSHOT" date="in SVN">
-      <action dev="rbieniek" type="change">
-	Restructured project for multi-module project.
-      </action>
-
-      <action dev="rbieniek" type="change">
-	Moved standalone RTSP proxy application into seperate subproject.
-      </action>
-    </release>
+	<release version="3.0-ALPHA4-SNAPSHOT" date="in SVN">
+		<action dev="rbieniek" type="change"> Restructured project for multi-module
+			project. </action>
+		
+		<action dev="rbieniek" type="change"> Moved standalone RTSP proxy application
+			into seperate subproject. </action>
+		
+		<action dev="rbieniek" type="change"> Adapted filter implementations to the new xml-based 
+			configuration framework. The old property-based configuration files are no longer supported.</action>
+		
+		<action dev="rbieniek" type="change"> Logging configuration has been taken out of the java source
+		 and moved into a separate configuration file.</action>
+		
+	</release>
   </body>
 </document>

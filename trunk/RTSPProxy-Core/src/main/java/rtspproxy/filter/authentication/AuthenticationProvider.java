@@ -54,5 +54,5 @@ public interface AuthenticationProvider
 	 */
 	public boolean isAuthenticated( Credentials credentials );
 	
-	public String getPassword( String username );
+	public String getPassword( String username );	
 }

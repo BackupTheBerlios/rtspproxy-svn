@@ -56,10 +56,6 @@ public final class RtspService extends ProxyService
 		Config.proxyClientInterface.addObserver( this );
 		Config.proxyRtspPort.addObserver( this );
 
-		// Subscribe to filter chain changes notification
-		Config.proxyFilterAuthenticationEnable.addObserver( this );
-		Config.proxyFilterIpaddressEnable.addObserver( this );
-		Config.proxyFilterAccountingEnable.addObserver( this );
 	}
 
 	@Override
@@ -121,45 +117,9 @@ public final class RtspService extends ProxyService
 		if ( !(o instanceof Parameter) )
 			throw new IllegalArgumentException( "Only observe parameters" );
 
-		if ( o == Config.proxyFilterAuthenticationEnable
-				|| o == Config.proxyFilterIpaddressEnable
-				|| o == Config.proxyFilterAccountingEnable ) {
-
-			/*
-			 * Change the filter chain builder to reflect new parameters
-			 * directives.
-			 */
-			IoAcceptor acceptor = ProxyServiceRegistry.getInstance().getAcceptor( this );
-			acceptor.setFilterChainBuilder( new IoFilterChainBuilderWrapper( this,
-					new RtspClientFilters() ) );
-
-			/*
-			 * Print a meaningful info message
-			 */
-			if ( o == Config.proxyFilterAuthenticationEnable ) {
-				if ( Config.proxyFilterAuthenticationEnable.getValue() == true )
-					log.info( "Activated the Authentication filter." );
-				else
-					log.info( "Disabled the Authentication filter." );
-			}
-			if ( o == Config.proxyFilterIpaddressEnable ) {
-				if ( Config.proxyFilterIpaddressEnable.getValue() == true )
-					log.info( "Activated the IP address filter." );
-				else
-					log.info( "Disabled the IP address filter." );
-			}
-			if ( o == Config.proxyFilterAccountingEnable ) {
-				if ( Config.proxyFilterAccountingEnable.getValue() == true )
-					log.info( "Activated the Accounting filter." );
-				else
-					log.info( "Disabled the Accounting filter." );
-			}
-
-		} else {
-			/*
-			 * Other parameters are observed by base class
-			 */
-			super.update( o, arg );
-		}
+		/*
+		 * Other parameters are observed by base class
+		 */
+		super.update( o, arg );
 	}
 }

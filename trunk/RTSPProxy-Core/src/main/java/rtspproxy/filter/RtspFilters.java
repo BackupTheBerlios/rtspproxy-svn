@@ -18,6 +18,8 @@
 
 package rtspproxy.filter;
 
+import java.util.List;
+
 import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoFilterChainBuilder;
@@ -33,6 +35,7 @@ import rtspproxy.filter.accounting.AccountingFilter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
 import rtspproxy.filter.rewrite.RequestUrlRewritingImpl;
+import rtspproxy.lib.Side;
 import rtspproxy.rtsp.RtspDecoder;
 import rtspproxy.rtsp.RtspEncoder;
 
@@ -65,20 +68,11 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 
 	private static final IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
 
-	// These filters are instanciated only one time, when requested
-	private static IpAddressFilter ipAddressFilter = null;
-
 	private static AuthenticationFilter authenticationFilter = null;
 
 	private static AccountingFilter accountingFilter = null;
 
 	public static final String rtspCodecNAME = "rtspCodec";
-
-	public static final String ipAddressFilterNAME = "ipAddressFilter";
-
-	public static final String authenticationFilterNAME = "authenticationFilter";
-
-	public static final String accountingFilterNAME = "accountingFilter";
 
 	public static final String rewriteFilterNAME = "rewriteFilter";
 
@@ -89,17 +83,22 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 	 * in the early stage of the connection, preventing network and computation
 	 * load from unwanted hosts.
 	 */
-	protected void addIpAddressFilter( IoFilterChain chain )
+	protected void addIpAddressFilter( IoFilterChain chain, Side side )
 	{
-		boolean enableIpAddressFilter = Config.proxyFilterIpaddressEnable.getValue();
-
-		if ( enableIpAddressFilter ) {
-			if ( ipAddressFilter == null )
-				ipAddressFilter = new IpAddressFilter();
+		List<IpAddressFilter> filters;
+		
+		if(side == Side.Client)
+			filters = FilterRegistry.getInstance().getClientAddressFilters();
+		else
+			filters = FilterRegistry.getInstance().getServerAddressFilters();
+		
+		for(IpAddressFilter ipAddressFilter : filters) {
 
 			chain.addAfter( ProxyServiceRegistry.threadPoolFilterNAME,
-					ipAddressFilterNAME, ipAddressFilter );
+					ipAddressFilter.getChainName(), ipAddressFilter );
+			
 		}
+		
 	}
 
 	/**
@@ -116,20 +115,34 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 	 */
 	protected void addAuthenticationFilter( IoFilterChain chain )
 	{
-		boolean enableAuthenticationFilter = Config.proxyFilterAuthenticationEnable
-				.getValue();
-
-		if ( enableAuthenticationFilter ) {
-			if ( authenticationFilter == null )
-				authenticationFilter = new AuthenticationFilter();
-			chain
-					.addAfter( rtspCodecNAME, authenticationFilterNAME,
-							authenticationFilter );
+		for(AuthenticationFilter authenticationFilter : FilterRegistry.getInstance().getClientAuthenticationFilters()) {
+			chain.addAfter( rtspCodecNAME, authenticationFilter.getChainName(),
+					authenticationFilter );
+			
 		}
 	}
 
-	protected void addAccountingFilter( IoFilterChain chain )
+	protected void addAccountingFilter( IoFilterChain chain, Side side )
 	{
+		List<AccountingFilter> filters;
+		
+		if(side == Side.Client) {
+			filters = FilterRegistry.getInstance().getClientAccountingFilters();
+
+			for(AccountingFilter accountingFilter : filters) {
+				chain.addAfter( rtspCodecNAME,
+						authenticationFilter.getChainName(), authenticationFilter );
+			}
+		} else {
+			filters = FilterRegistry.getInstance().getServerAccountingFilters();
+
+			for(AccountingFilter accountingFilter : filters) {
+				chain.addAfter( rtspCodecNAME,
+						authenticationFilter.getChainName(), authenticationFilter );
+			}
+		}
+		
+		/*
 		boolean enableAccountingFilter = Config.proxyFilterAccountingEnable.getValue();
 
 		if ( enableAccountingFilter ) {
@@ -137,21 +150,22 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 				accountingFilter = new AccountingFilter();
 			}
 			if ( chain.contains( authenticationFilterNAME ) ) {
-				/*
+				/ *
 				 * If we have the authentication filter in the chain, it's
 				 * preferable to have the accounting after that, to see the user
 				 * identity if authenticated.
-				 */
+				 * /
 				chain.addAfter( authenticationFilterNAME, accountingFilterNAME,
 						accountingFilter );
 			} else {
-				/*
+				/ *
 				 * At least we want to have it after the RTSP codec, because it
 				 * deals with already parsed RTSP messages.
-				 */
+				 * /
 				chain.addAfter( rtspCodecNAME, accountingFilterNAME, accountingFilter );
 			}
 		}
+		*/
 	}
 
 	protected void addRewriteFilter( IoFilterChain chain )

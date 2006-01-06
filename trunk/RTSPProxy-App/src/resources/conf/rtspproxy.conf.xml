@@ -29,21 +29,26 @@
     </connectorService>
   </jmx>
   <filters>
-    <authentication implClass="rtspproxy.filter.authentication.PlainTextAuthenticationProvider">
-      <scheme>Digest</scheme>
+    <authentication implClass="rtspproxy.filter.authentication.PlainTextAuthenticationProvider" scheme="Digest" side="client">
       <user>
 	<name>myuser</name>
 	<password>itspassword</password>
       </user>
     </authentication>
-    <authorization implClass="rtspproxy.filter.ipaddress.PlainTextIpAddressProvider">
+    <ipaddress implClass="rtspproxy.filter.ipaddress.PlainTextIpAddressProvider" side="client">
       <deny>*</deny>
       <allow>127.0.0.1</allow>
       <allow>10.0.0.*</allow>
       <allow>*.some.domain</allow>
-    </authorization>
+    </ipaddress>
+    <ipaddress implClass="rtspproxy.filter.ipaddress.PlainTextIpAddressProvider" side="server">
+      <deny>*</deny>
+      <allow>127.0.0.1</allow>
+      <allow>10.0.0.*</allow>
+      <allow>*.some.domain</allow>
+    </ipaddress>
     <accounting implClass="rtspproxy.filter.accounting.PlainTextAccountingProvider" >
-      <log>/tmp/rtspproxy-access.log</log>
+      <category>accounting.rtspproxy</category>
     </accounting>
   </filters>
 </rtspproxy>

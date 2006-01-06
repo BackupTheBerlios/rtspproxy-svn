@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.InetSocketAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -14,7 +15,9 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
 import org.apache.mina.common.IoSession;
+import org.dom4j.Element;
 
+import rtspproxy.config.AAAConfigurable;
 import rtspproxy.config.Config;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.rtsp.RtspMessage;
@@ -23,7 +26,8 @@ import rtspproxy.rtsp.RtspRequest;
 /**
  * @author Matteo Merli
  */
-public class PlainTextAccountingProvider implements AccountingProvider, Observer
+public class PlainTextAccountingProvider extends AccountingProviderAdapter 
+implements AccountingProvider,  AAAConfigurable
 {
 
 	private static String datePattern = "yyyy-MM-dd HH:mm:ss Z";
@@ -35,30 +39,11 @@ public class PlainTextAccountingProvider implements AccountingProvider, Observer
 	public PlainTextAccountingProvider()
 	{
 		accessLog = Logger.getLogger( "accessLog" );
-
-		// Subcribe to changes notification
-		Config.proxyFilterAccountingTextFile.addObserver( this );
 	}
 
 	public void init() throws Exception
 	{
-		// Set the file appender
-		String fileName = Config.proxyFilterAccountingTextFile.getValue();
-		File file = new File( fileName );
-		if ( !file.isAbsolute() ) {
-			file = new File( Config.getHome() + File.separator + fileName );
-		}
-
-		// if logs directory does not exists, create it
-		File logs = file.getParentFile();
-		if ( !logs.exists() )
-			logs.mkdir();
-
-		Layout layout = new PatternLayout( "%m%n" );
-		Appender appender = new RollingFileAppender( layout, file.getAbsolutePath() );
-		accessLog.setAdditivity( false );
-		accessLog.addAppender( appender );
-		accessLog.setLevel( Level.INFO );
+		// Do nothing
 	}
 
 	public void shutdown() throws Exception
@@ -78,21 +63,10 @@ public class PlainTextAccountingProvider implements AccountingProvider, Observer
 
 	public void messageSent( IoSession session, RtspMessage message )
 	{
-		// StringBuilder sb = new StringBuilder();
-		// sb.append( "ciao" );
-		// accessLog.info( buildLogMessage( session, message, sb ) );
+		StringBuilder logMessage = new StringBuilder();
+		accessLog.info( buildLogMessage( session, message, logMessage ) );
 	}
 
-	public void update( Observable o, Object arg )
-	{
-		if ( o == Config.proxyFilterAccountingTextFile ) {
-			try {
-				// Reload the configuration
-				init();
-			} catch ( Exception e ) {
-			}
-		}
-	}
 
 	private static String buildLogMessage( IoSession session, RtspMessage message,
 			StringBuilder logMessage )
@@ -113,5 +87,18 @@ public class PlainTextAccountingProvider implements AccountingProvider, Observer
 		}
 
 		return sb.toString();
+	}
+
+	public void configure(List<Element> configElements) throws Exception {
+		for(Element el : configElements) {
+			if(el.getName().equals("category")) {
+				String category = el.getTextTrim();
+				
+				if(category == null || category.length() == 0) 					
+					throw new IllegalArgumentException("invalid log category given");
+				
+				accessLog = Logger.getLogger(category);
+			}
+		}
 	}
 }

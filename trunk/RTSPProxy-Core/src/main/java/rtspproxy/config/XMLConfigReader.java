@@ -6,6 +6,7 @@ package rtspproxy.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,6 +18,8 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
+
+import rtspproxy.lib.Side;
 
 /**
  * This class implements a parser for XML configuration files.
@@ -40,7 +43,11 @@ public class XMLConfigReader {
 	 * @throws DocumentException parsing the config file failed.
 	 */ 
 	public final void readConfig(String fName) throws IOException, DocumentException {
-		this.readConfig(new FileInputStream(fName));
+		logger.debug("radConfig, fName=" + fName);
+		File fFile = new File(fName);
+		
+		if(fFile.canRead())
+			this.readConfig(new FileInputStream(fFile));
 	}
 	
 	/**
@@ -98,21 +105,28 @@ public class XMLConfigReader {
 		for(Node aaaNode : (List<Node>)doc.selectNodes("/rtspproxy/filters/*")) {
 			String name = aaaNode.getName();
 			String implClass = ((Element)aaaNode).attributeValue("implClass");
+			Side side = Side.fromString(((Element)aaaNode).attributeValue("side"));
 			
-			logger.debug("element name=" + name + ", implClass=" + implClass);
+			logger.debug("element name=" + name + ", implClass=" + implClass + ",side=" + side);
 			
 			if(implClass == null || implClass.length() == 0)
 				throw new IllegalArgumentException("no implementation class given");
+
+			AAAConfig aaa = new AAAConfig(implClass, side, 
+					(List<Element>)((Element)aaaNode).elements());
+			
+			for(Attribute attr : (List<Attribute>)((Element)aaaNode).attributes()) {
+				if(attr.getName().equals("implClass") || attr.getName().equals("side"))
+					continue;
+				aaa.setAttribute(attr.getName(), attr.getText().trim());
+			}
 			
 			if(name.equals("authentication")) {
-				Config.addAuthenticationFilter(new AAAConfig(implClass, 
-						(List<Element>)((Element)aaaNode).elements()));
-			} else if(name.equals("authorization")) {
-				Config.addAuthorizationFilter(new AAAConfig(implClass, 
-						(List<Element>)((Element)aaaNode).elements()));
+				Config.addAuthenticationFilter(aaa);
+			} else if(name.equals("ipaddress")) {
+				Config.addIpAddressFilter(aaa);
 			} else if(name.equals("accounting")) {
-				Config.addAccountingFilter(new AAAConfig(implClass, 
-						(List<Element>)((Element)aaaNode).elements()));				
+				Config.addAccountingFilter(aaa);				
 			} else
 				throw new IllegalArgumentException("invalid AAA element given, name=" + name);
 		}

@@ -47,18 +47,20 @@ import rtspproxy.RtpClientService;
 import rtspproxy.RtpServerService;
 import rtspproxy.RtspService;
 import rtspproxy.config.Config;
+import rtspproxy.filter.FilterBase;
+import rtspproxy.lib.Singleton;
 
 /**
  * Entry point class for all the JMX interface.
  * 
  * @author Matteo Merli
  */
-public class JmxAgent
+public class JmxAgent extends Singleton
 {
 
 	private static Logger log = LoggerFactory.getLogger( JmxAgent.class );
 
-	private static final String DOMAIN = "RtspProxy";
+	static final String DOMAIN = "RtspProxy";
 
 	private MBeanServer mbeanServer = null;
 
@@ -179,6 +181,31 @@ public class JmxAgent
 		log.info( "Started JMX connector server. Service url: " + uri );
 	}
 
+	/**
+	 * get the singleton instance
+	 */
+	public static JmxAgent getInstance() {
+		return (JmxAgent)Singleton.getInstance(JmxAgent.class);
+	}
+	
+	/**
+	 * register a MBean as a management facade to a filter implementation
+	 */
+	public void registerFilter(FilterBase filter) {
+		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		if ( !enabled )
+			return;
+
+		try {
+			Filter mbean = new Filter(filter);
+			
+			mbeanServer.registerMBean(mbean, mbean.getName());
+			filter.setMbeanName(mbean.getName());
+		} catch(Exception e) {
+			log.error( "failed to register filter MBean: filter=" + filter, e );			
+		}
+	}
+	
 	/**
 	 * simple wrapper to log mx4j logging info into slf4j subsystem
 	 * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)

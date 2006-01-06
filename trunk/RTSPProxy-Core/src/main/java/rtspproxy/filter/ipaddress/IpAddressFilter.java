@@ -19,38 +19,45 @@
 package rtspproxy.filter.ipaddress;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
+import org.dom4j.Element;
 
 import rtspproxy.Reactor;
+import rtspproxy.config.AAAConfigurable;
 import rtspproxy.config.Config;
+import rtspproxy.filter.FilterBase;
+import rtspproxy.filter.RtspFilters;
 
 /**
  * @author Matteo Merli
  *
  */
-public class IpAddressFilter extends IoFilterAdapter
+public class IpAddressFilter extends FilterBase
 {
 
 	private static Logger log = LoggerFactory.getLogger( IpAddressFilter.class );
+	
+	public static final String FilterNAME = "ipAddressFilter";
 
 	private IpAddressProvider provider;
 
-	public IpAddressFilter()
+	public IpAddressFilter(String className, List<Element> configElements)
 	{
-		// Check which backend implementation to use
-		// Default is plain-text implementation
-		String className = Config.proxyFilterIpaddressImplementationClass.getValue();
-
+		super(FilterNAME, className, "ipaddress");
+		
 		Class providerClass;
 		try {
 			providerClass = Class.forName( className );
 
-		} catch ( ClassNotFoundException e ) {
+		} catch ( Throwable t ) {
+			log.debug("cant load IpAddressProvider class", t);
 			log.error( "Invalid IpAddressProvider class: " + className );
+
 			Reactor.stop();
 			return;
 		}
@@ -73,6 +80,9 @@ public class IpAddressFilter extends IoFilterAdapter
 
 		try {
 			provider = (IpAddressProvider) providerClass.newInstance();
+			
+			if(provider instanceof AAAConfigurable)
+				((AAAConfigurable)provider).configure(configElements);
 			provider.init();
 		} catch ( Exception e ) {
 			log.error( "Error starting IpAddressProvider: " + e );
@@ -87,7 +97,10 @@ public class IpAddressFilter extends IoFilterAdapter
 	public void messageReceived( NextFilter nextFilter, IoSession session, Object message )
 			throws Exception
 	{
-		if ( !provider.isBlocked( ( (InetSocketAddress) session.getRemoteAddress() ).getAddress() ) ) {
+		if(!isRunning()) {
+			// forward because filter is suspended
+			nextFilter.messageReceived( session, message );			
+		} else if ( !provider.isBlocked( ( (InetSocketAddress) session.getRemoteAddress() ).getAddress() ) ) {
 			// forward if not blocked
 			nextFilter.messageReceived( session, message );
 		} else {
@@ -99,7 +112,10 @@ public class IpAddressFilter extends IoFilterAdapter
 	public void sessionCreated( NextFilter nextFilter, IoSession session )
 			throws Exception
 	{
-		if ( !provider.isBlocked( ( (InetSocketAddress) session.getRemoteAddress() ).getAddress() ) ) {
+		if(!isRunning()) {
+			// forward because filter is suspended
+			nextFilter.sessionCreated( session );
+		} else if ( !provider.isBlocked( ( (InetSocketAddress) session.getRemoteAddress() ).getAddress() ) ) {
 			// forward if not blocked
 			nextFilter.sessionCreated( session );
 		} else {

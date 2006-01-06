@@ -102,7 +102,7 @@ public abstract class ProxyService extends Singleton implements Observer
 			log.info( getName() + " Started - Listening on: " + socketAddress );
 
 		} catch ( IOException e ) {
-			log.error( "Can't start " + getName() + " " + e );
+			log.error( "Can't start " + getName(), e );
 			throw e;
 		}
 

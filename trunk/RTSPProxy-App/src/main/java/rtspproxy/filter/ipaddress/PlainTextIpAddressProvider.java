@@ -29,7 +29,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+import org.dom4j.Element;
 
+import rtspproxy.config.AAAConfigurable;
 import rtspproxy.config.Config;
 
 /**
@@ -38,7 +40,7 @@ import rtspproxy.config.Config;
  * 
  * @author Matteo Merli
  */
-public class PlainTextIpAddressProvider implements IpAddressProvider
+public class PlainTextIpAddressProvider implements IpAddressProvider, AAAConfigurable
 {
 
 	private static Logger log = Logger.getLogger( PlainTextIpAddressProvider.class );
@@ -64,12 +66,13 @@ public class PlainTextIpAddressProvider implements IpAddressProvider
 	 */
 	public void init() throws Exception
 	{
+		/*
 		// Load rules from file
 		String fileName = Config.getHome() + File.separator
 				+ Config.proxyFilterIpaddressTextFile.getValue();
 
 		loadRules( new FileReader( new File( fileName ) ) );
-
+		*/
 	}
 
 	/*
@@ -162,6 +165,32 @@ public class PlainTextIpAddressProvider implements IpAddressProvider
 		} catch ( IOException e ) {
 			log.error( "Error reading IpAddressFilter rules: " + e );
 			throw e;
+		}
+	}
+
+	public void configure(List<Element> configElements) throws Exception {
+		for(Element el : configElements) {
+			RuleType ruleType = null;
+			
+			if ( el.getName().equals( "allow" ) )
+				ruleType = RuleType.Allow;
+			else if ( el.getName().equals( "deny" ) )
+				ruleType = RuleType.Deny;
+			else
+				throw new IllegalArgumentException( "Invalid filter pattern (element " + el	+ ")" );
+			
+			String pattern = el.getTextTrim();
+			log.debug( "Rule: " + ruleType + " " + pattern );
+
+			// Transform the patterns escaping "." and "*" characters
+			pattern = pattern.replaceAll( "\\.", "\\\\." );
+			pattern = pattern.replaceAll( "\\*", ".*" );
+
+			Rule rule = new Rule();
+			rule.type = ruleType;
+			rule.pattern = Pattern.compile( pattern );
+			rules.add( rule );
+			
 		}
 	}
 }

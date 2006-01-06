@@ -20,6 +20,8 @@ package rtspproxy.filter;
 
 import org.apache.mina.common.IoFilterChain;
 
+import rtspproxy.lib.Side;
+
 /**
  * Builds the filter chain used for connection from RTSP client.
  * 
@@ -30,10 +32,10 @@ public class RtspClientFilters extends RtspFilters
 
 	public void buildFilterChain( IoFilterChain chain ) throws Exception
 	{
-		addIpAddressFilter( chain );
+		addIpAddressFilter( chain, Side.Client );
 		addRtspCodecFilter( chain );
 		addAuthenticationFilter( chain );
-		addAccountingFilter( chain );
+		addAccountingFilter( chain, Side.Client );
 	}
 
 }

@@ -3,9 +3,12 @@
  */
 package rtspproxy.config;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.dom4j.Element;
+
+import rtspproxy.lib.Side;
 
 /**
  * This class contains the configuration for an AAA filter.
@@ -20,12 +23,19 @@ public class AAAConfig {
 	// list of configuration elements
 	private List<Element> configElements;
 	
+	// filter application
+	private Side side = Side.Any;
+	
+	// any additional attributes given
+	private HashMap<String, String> attrs = new HashMap<String, String>();
+	
 	/**
 	 * 
 	 */
-	AAAConfig(String implClass, List<Element> configElements) {
+	AAAConfig(String implClass, Side side, List<Element> configElements) {
 		this.implClass = implClass;
 		this.configElements = configElements;
+		this.side = side;
 	}
 
 	public final List<Element> getConfigElements() {
@@ -36,4 +46,22 @@ public class AAAConfig {
 		return implClass;
 	}
 
+	public final Side getSide() {
+		return this.side;
+	}
+	
+	final void setAttribute(String name, String value) {
+		this.attrs.put(name, value);
+	}
+	
+	public final String getAttribute(String name) {
+		return this.getAttribute(name, null);
+	}
+
+	public final String getAttribute(String name, String defValue) {
+		if(this.attrs.containsKey(name))
+			return this.attrs.get(name);
+		
+		return defValue;
+	}
 }

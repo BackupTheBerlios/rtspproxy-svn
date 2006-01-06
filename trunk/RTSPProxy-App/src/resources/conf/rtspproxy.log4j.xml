@@ -35,6 +35,17 @@
       </layout>
    </appender>
 
+   <!-- A time/date based rolling appender -->
+   <appender name="ACCOUNTING" class="org.apache.log4j.FileAppender">
+      <param name="File" value="/tmp/rtspproxy-accounting.log"/>
+      <param name="Append" value="true"/>
+
+      <layout class="org.apache.log4j.PatternLayout">
+         <!-- The default pattern: Date Priority [Category] Message\n -->
+         <param name="ConversionPattern" value="%m%n"/>
+      </layout>
+   </appender>
+
    <!-- ============================== -->
    <!-- Append messages to the console -->
    <!-- ============================== -->
@@ -49,6 +60,10 @@
       </layout>
    </appender>
 
+   <category name="accounting.rtspproxy" >
+      <priority value="INFO" />
+      <appender-ref ref="ACCOUNTING" />
+   </category>
 
    <!-- ======================= -->
    <!-- Setup the Root category -->
