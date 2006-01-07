@@ -90,5 +90,8 @@
 			-->
 		</menu>
 
+               ${modules}
+
+               ${reports}
 	</body>
 </project>

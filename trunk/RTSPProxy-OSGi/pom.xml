@@ -192,7 +192,6 @@
 	  </targetJdk>
 	</configuration>
       </plugin>
-
       <!-- see http://docs.safehaus.org/display/OSGI/OSGi+Plugin+for+Maven+2.0 for further instructions -->
       <plugin>
         <groupId>org.apache.felix.plugins</groupId>
