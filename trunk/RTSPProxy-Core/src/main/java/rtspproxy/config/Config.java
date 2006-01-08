@@ -1,6 +1,5 @@
 package rtspproxy.config;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -145,39 +144,6 @@ public class Config extends Singleton implements Observer
 
 	// /////////////////////////////////////////////////////////
 
-	// Accounting filter
-	/*
-	public static final BooleanParameter proxyFilterAccountingEnable = new BooleanParameter(
-			"proxy.filter.accounting.enable", // name
-			true, // default value
-			true, // mutable
-			"Controls the activation of the Accounting subsystem.",
-			null // xpathExpr
-			 );
-
-	public static final StringParameter proxyFilterAccountingImplementationClass = new StringParameter(
-			"proxy.filter.accounting.implementationClass", // name
-			"rtspproxy.filter.accounting.PlainTextAccountingProvider", // default
-			// value
-			false, // mutable
-			"Use an alternative backend class. This can be any class "
-					+ "that implements the rtspproxy.filter.accounting.AccountingProvider "
-					+ "interface.",
-					null // xpathExpr
-					 );
-
-	public static final StringParameter proxyFilterAccountingTextFile = new StringParameter(
-			"proxy.filter.accounting.text.file", // name
-			"logs/access.log", // default value
-			false, // mutable
-			"Plain Text based implementation specific configuration",
-			null // xpathExpr
-			 );
-			 
-	*/
-	
-	// /////////////////////////////////////////////////////////
-
 	// JMX
 
 	public static final BooleanParameter proxyManagementEnable = new BooleanParameter(
@@ -262,6 +228,9 @@ public class Config extends Singleton implements Observer
 	// filter configurations from XML
 	private static List<AAAConfig> accountingFilters = new ArrayList<AAAConfig>();
 
+	// filter configurations from XML
+	private static List<AAAConfig> urlRewritingFilters = new ArrayList<AAAConfig>();
+
 	static void addAuthenticationFilter(AAAConfig config) {
 		authenticationFilters.add(config);
 	}
@@ -274,6 +243,10 @@ public class Config extends Singleton implements Observer
 		accountingFilters.add(config);
 	}
 	
+	static void addUrlRewritingFilter(AAAConfig config) {
+		urlRewritingFilters.add(config);
+	}
+	
 	public static List<AAAConfig> getAuthenticationFilters() {
 		return Collections.unmodifiableList(authenticationFilters);
 	}
@@ -284,6 +257,10 @@ public class Config extends Singleton implements Observer
 	
 	public static List<AAAConfig> getAccountingFilters() {
 		return Collections.unmodifiableList(accountingFilters);
+	}
+
+	public static List<AAAConfig> getUrlRewritingFilters() {
+		return Collections.unmodifiableList(urlRewritingFilters);
 	}
 	
 	// /////////////////////////////////////////////////////////

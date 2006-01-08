@@ -34,7 +34,7 @@ import rtspproxy.config.Config;
 import rtspproxy.filter.accounting.AccountingFilter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
-import rtspproxy.filter.rewrite.RequestUrlRewritingImpl;
+import rtspproxy.filter.rewrite.UrlRewritingFilter;
 import rtspproxy.lib.Side;
 import rtspproxy.rtsp.RtspDecoder;
 import rtspproxy.rtsp.RtspEncoder;
@@ -67,10 +67,6 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 	};
 
 	private static final IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
-
-	private static AuthenticationFilter authenticationFilter = null;
-
-	private static AccountingFilter accountingFilter = null;
 
 	public static final String rtspCodecNAME = "rtspCodec";
 
@@ -131,14 +127,14 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 
 			for(AccountingFilter accountingFilter : filters) {
 				chain.addAfter( rtspCodecNAME,
-						authenticationFilter.getChainName(), authenticationFilter );
+						accountingFilter.getChainName(), accountingFilter );
 			}
 		} else {
 			filters = FilterRegistry.getInstance().getServerAccountingFilters();
 
 			for(AccountingFilter accountingFilter : filters) {
 				chain.addAfter( rtspCodecNAME,
-						authenticationFilter.getChainName(), authenticationFilter );
+						accountingFilter.getChainName(), accountingFilter );
 			}
 		}
 		
@@ -168,24 +164,19 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 		*/
 	}
 
-	protected void addRewriteFilter( IoFilterChain chain )
+	protected void addRewriteFilter( IoFilterChain chain, Side side )
 	{
-		// TODO: use different parameters..
-		String rewritingFilter = null; // Config.get(
-		// "filter.requestUrlRewriting.implementationClass", null );
+		List<UrlRewritingFilter> filters;
+		
+		if(side == Side.Client)
+			filters = FilterRegistry.getInstance().getClientUrlRewritingFilters();
+		else
+			filters = FilterRegistry.getInstance().getServerUrlRewritingFilters();
+		
+		for(UrlRewritingFilter urlRewritingFilter : filters) {
 
-		try {
-			if ( rewritingFilter != null ) {
-				/*
-				 * The rewrite filter will be placed after the codec filter
-				 * because it deals with already formed RTSP messages.
-				 */
-				chain.addAfter( rtspCodecNAME, rewriteFilterNAME,
-						new RequestUrlRewritingImpl( rewritingFilter ) );
-			}
-		} catch ( Exception e ) {
-			// already logged
-			Reactor.stop();
+			chain.addAfter( rtspCodecNAME, urlRewritingFilter.getChainName(), urlRewritingFilter );
+			
 		}
 	}
 }

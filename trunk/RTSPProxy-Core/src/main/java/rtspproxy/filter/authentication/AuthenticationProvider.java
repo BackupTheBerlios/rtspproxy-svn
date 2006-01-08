@@ -17,6 +17,7 @@
  */
 package rtspproxy.filter.authentication;
 
+import rtspproxy.filter.GenericProvider;
 import rtspproxy.filter.authentication.scheme.Credentials;
 
 /**
@@ -24,23 +25,8 @@ import rtspproxy.filter.authentication.scheme.Credentials;
  * 
  * @author Matteo Merli
  */
-public interface AuthenticationProvider
+public interface AuthenticationProvider extends GenericProvider
 {
-
-	/**
-	 * Called once at service startup. Should be used to initialize the
-	 * provider.
-	 * 
-	 * @throws Exception
-	 */
-	public void init() throws Exception;
-
-	/**
-	 * Called once at service shutdown.
-	 * 
-	 * @throws Exception
-	 */
-	public void shutdown() throws Exception;
 
 	/**
 	 * Called every time that there is the need to verify the identity of a

@@ -23,15 +23,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
 import org.dom4j.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.Reactor;
-import rtspproxy.config.AAAConfigurable;
-import rtspproxy.config.Config;
 import rtspproxy.filter.FilterBase;
 import rtspproxy.filter.authentication.scheme.AuthenticationScheme;
 import rtspproxy.filter.authentication.scheme.BasicAuthentication;
@@ -78,46 +75,10 @@ public class AuthenticationFilter extends FilterBase
 	{
 		super(FilterNAME, className, "authentication");
 		
-
-		Class providerClass;
-		try {
-			providerClass = Class.forName( className );
-
-		} catch ( Throwable t ) {
-			log.error( "Invalid AuthenticationProvider class: " + className, t );
-			Reactor.stop();
-			return;
-		}
-
-		// Check if the class implements the IpAddressProvider interfaces
-		boolean found = false;
-		for ( Class interFace : providerClass.getInterfaces() ) {
-			if ( AuthenticationProvider.class.equals( interFace ) ) {
-				found = true;
-				break;
-			}
-		}
-
-		if ( !found ) {
-			log.error( "Class (" + providerClass
-					+ ") does not implement the AuthenticationProvider interface." );
-			Reactor.stop();
-			return;
-		}
-
-		try {
-			provider = (AuthenticationProvider) providerClass.newInstance();
-			
-			if(provider instanceof AAAConfigurable)
-				((AAAConfigurable)provider).configure(configElements);
-			provider.init();
-
-		} catch ( Exception e ) {
-			log.error( "Error starting AuthenticationProvider: " + e );
-			Reactor.stop();
-			return;
-		}
-
+		this.provider = (AuthenticationProvider)loadConfigInitProvider(className, 
+				AuthenticationProvider.class, 
+				configElements);
+		
 		// Validate the choosen authentication scheme
 		Class schemeClass = schemeRegistry.get( schemeName.toLowerCase() );
 		if ( schemeClass == null ) {

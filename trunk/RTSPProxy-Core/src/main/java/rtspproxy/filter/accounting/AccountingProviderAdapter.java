@@ -6,6 +6,7 @@ package rtspproxy.filter.accounting;
 import org.apache.mina.common.IdleStatus;
 import org.apache.mina.common.IoSession;
 
+import rtspproxy.filter.GenericProviderAdapter;
 import rtspproxy.rtsp.RtspMessage;
 
 /**
@@ -15,24 +16,12 @@ import rtspproxy.rtsp.RtspMessage;
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
  *
  */
-public class AccountingProviderAdapter implements AccountingProvider {
+public class AccountingProviderAdapter extends GenericProviderAdapter implements AccountingProvider {
 
 	/**
 	 * 
 	 */
 	public AccountingProviderAdapter() {
-	}
-
-	/* (non-Javadoc)
-	 * @see rtspproxy.filter.accounting.AccountingProvider#init()
-	 */
-	public void init() throws Exception {
-	}
-
-	/* (non-Javadoc)
-	 * @see rtspproxy.filter.accounting.AccountingProvider#shutdown()
-	 */
-	public void shutdown() throws Exception {
 	}
 
 	/* (non-Javadoc)

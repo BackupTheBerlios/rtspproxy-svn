@@ -35,8 +35,15 @@
 			</action>
 			
 			<action dev="rbieniek" type="add" >
-				All RTSP filters (except URL rewriting) are now managed through a central filter registry. This will
+				All RTSP filters are now managed through a central filter registry. This will
 				allow the dynamic reconfiguration of the applied filter chain per new session.
+			</action>
+			
+			<action dev="rbieniek" type="change" >
+				Made URL rewriting working again. This filter is actually applied to both the
+				client and the server connection because it needs to modify both request and
+				response. The response filter currently honours the Content-base header, the
+				RTP-Info header is not processed yet.
 			</action>
 			
 		</release>

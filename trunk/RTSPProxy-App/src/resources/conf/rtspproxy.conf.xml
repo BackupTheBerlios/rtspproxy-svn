@@ -29,26 +29,32 @@
     </connectorService>
   </jmx>
   <filters>
-    <authentication implClass="rtspproxy.filter.authentication.PlainTextAuthenticationProvider" scheme="Digest" side="client">
+    <authentication implClass="rtspproxy.filter.authentication.SimpleAuthenticationProvider" scheme="Digest" side="client">
       <user>
 	<name>myuser</name>
 	<password>itspassword</password>
       </user>
     </authentication>
-    <ipaddress implClass="rtspproxy.filter.ipaddress.PlainTextIpAddressProvider" side="client">
+    <ipaddress implClass="rtspproxy.filter.ipaddress.SimpleIpAddressProvider" side="client">
       <deny>*</deny>
       <allow>127.0.0.1</allow>
       <allow>10.0.0.*</allow>
       <allow>*.some.domain</allow>
     </ipaddress>
-    <ipaddress implClass="rtspproxy.filter.ipaddress.PlainTextIpAddressProvider" side="server">
+    <ipaddress implClass="rtspproxy.filter.ipaddress.SimpleIpAddressProvider" side="server">
       <deny>*</deny>
       <allow>127.0.0.1</allow>
       <allow>10.0.0.*</allow>
       <allow>*.some.domain</allow>
     </ipaddress>
-    <accounting implClass="rtspproxy.filter.accounting.PlainTextAccountingProvider" >
+    <accounting implClass="rtspproxy.filter.accounting.SimpleAccountingProvider" >
       <category>accounting.rtspproxy</category>
     </accounting>
+	<rewriting implClass="rtspproxy.filter.rewrite.SimpleUrlRewritingProvider" side="client">
+		<mapping>
+			<from>rtsp://10.0.0.1:554/</from>
+			<to>rtsp://10.0.0.2:1554/foo/</to>
+		</mapping>
+	</rewriting>
   </filters>
 </rtspproxy>

@@ -19,8 +19,6 @@
 package rtspproxy.filter.ipaddress;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
@@ -32,18 +30,18 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
 import rtspproxy.config.AAAConfigurable;
-import rtspproxy.config.Config;
+import rtspproxy.filter.GenericProviderAdapter;
 
 /**
- * Implementation of the IpAddressFilter that is based on plain text file
- * containing instruction on "allowed" and "denied" addresses and hosts.
+ * Implementation of the IpAddressFilter that is based on a list of XML config elements
+ * which contain instruction on "allowed" and "denied" addresses and hosts.
  * 
  * @author Matteo Merli
  */
-public class PlainTextIpAddressProvider implements IpAddressProvider, AAAConfigurable
-{
+public class SimpleIpAddressProvider extends GenericProviderAdapter implements
+		IpAddressProvider, AAAConfigurable {
 
-	private static Logger log = Logger.getLogger( PlainTextIpAddressProvider.class );
+	private static Logger log = Logger.getLogger( SimpleIpAddressProvider.class );
 
 	private enum RuleType {
 		Allow, Deny
@@ -57,30 +55,15 @@ public class PlainTextIpAddressProvider implements IpAddressProvider, AAAConfigu
 		public Pattern pattern;
 	}
 
-	private static List<Rule> rules = new LinkedList<Rule>();
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see rtspproxy.auth.IpAddressProvider#init()
-	 */
-	public void init() throws Exception
-	{
-		/*
-		// Load rules from file
-		String fileName = Config.getHome() + File.separator
-				+ Config.proxyFilterIpaddressTextFile.getValue();
-
-		loadRules( new FileReader( new File( fileName ) ) );
-		*/
-	}
+	private List<Rule> rules = new LinkedList<Rule>();
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see rtspproxy.auth.IpAddressProvider#shutdown()
 	 */
-	public void shutdown() throws Exception
+	@Override
+	public void shutdown()
 	{
 		rules.clear();
 	}

@@ -35,6 +35,7 @@ public class RtspClientFilters extends RtspFilters
 		addIpAddressFilter( chain, Side.Client );
 		addRtspCodecFilter( chain );
 		addAuthenticationFilter( chain );
+		addRewriteFilter( chain, Side.Client );
 		addAccountingFilter( chain, Side.Client );
 	}
 

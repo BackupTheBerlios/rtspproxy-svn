@@ -16,6 +16,9 @@ import rtspproxy.config.Config;
 import rtspproxy.filter.accounting.AccountingFilter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
+import rtspproxy.filter.rewrite.ClientUrlRewritingFilter;
+import rtspproxy.filter.rewrite.ServerUrlRewritingFilter;
+import rtspproxy.filter.rewrite.UrlRewritingFilter;
 import rtspproxy.jmx.JmxAgent;
 import rtspproxy.lib.Side;
 import rtspproxy.lib.Singleton;
@@ -43,6 +46,12 @@ public class FilterRegistry extends Singleton {
 	
 	// server side accounting filter
 	private LinkedList<AccountingFilter> serverAccountingFilters = new LinkedList<AccountingFilter>();
+	
+	// client side rewriting filters
+	private LinkedList<UrlRewritingFilter> clientUrlRewritingFilters = new LinkedList<UrlRewritingFilter>();
+	
+	// server side rewriting filters
+	private LinkedList<UrlRewritingFilter> serverUrlRewritingFilters = new LinkedList<UrlRewritingFilter>();
 	
 	/**
 	 * 
@@ -117,6 +126,22 @@ public class FilterRegistry extends Singleton {
 				}
 			}
 
+			for(AAAConfig filterConfig : Config.getUrlRewritingFilters()) {
+				UrlRewritingFilter urlRewritingFilter;
+				
+				urlRewritingFilter = new ClientUrlRewritingFilter(filterConfig.getImplClass(), 
+						filterConfig.getConfigElements());			
+				urlRewritingFilter.setSide(Side.Client);
+				registerFilterMBean(urlRewritingFilter);
+				this.clientUrlRewritingFilters.add(urlRewritingFilter);
+
+				urlRewritingFilter = new ServerUrlRewritingFilter(filterConfig.getImplClass(), 
+						filterConfig.getConfigElements());			
+				urlRewritingFilter.setSide(Side.Server);
+				registerFilterMBean(urlRewritingFilter);
+				this.serverUrlRewritingFilters.add(urlRewritingFilter);
+			}
+
 		} catch (Throwable t) {
 			logger.error("failed to populate filter registry", t);
 			
@@ -156,15 +181,23 @@ public class FilterRegistry extends Singleton {
 	/**
 	 * @return Returns the clientAccountingFilters.
 	 */
-	public LinkedList<AccountingFilter> getClientAccountingFilters() {
-		return clientAccountingFilters;
+	public List<AccountingFilter> getClientAccountingFilters() {
+		return Collections.unmodifiableList(clientAccountingFilters);
 	}
 
 	/**
 	 * @return Returns the serverAccountingFilters.
 	 */
-	public LinkedList<AccountingFilter> getServerAccountingFilters() {
-		return serverAccountingFilters;
+	public List<AccountingFilter> getServerAccountingFilters() {
+		return Collections.unmodifiableList(serverAccountingFilters);
+	}
+
+	public List<UrlRewritingFilter> getClientUrlRewritingFilters() {
+		return Collections.unmodifiableList(clientUrlRewritingFilters);
+	}
+
+	public List<UrlRewritingFilter> getServerUrlRewritingFilters() {
+		return Collections.unmodifiableList(serverUrlRewritingFilters);
 	}
 	
 }

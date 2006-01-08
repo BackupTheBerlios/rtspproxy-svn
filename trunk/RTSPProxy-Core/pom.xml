@@ -48,14 +48,19 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-<!--
+
 	<repositories>
+<!--
 		<repository>
 		<id>Apache repository</id>
 		<url>http://svn.apache.org/repository/</url>
 		</repository>
-	</repositories>
 -->
+		<repository>
+		<id>ibilio maven1</id>
+		<url>http://www.ibiblio.org/maven/</url>
+		</repository>
+	</repositories>
 
 	<build>
 		<defaultGoal>assembly:directory</defaultGoal>

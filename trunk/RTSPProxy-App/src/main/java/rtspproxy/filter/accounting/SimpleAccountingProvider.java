@@ -1,24 +1,15 @@
 package rtspproxy.filter.accounting;
 
-import java.io.File;
 import java.net.InetSocketAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.Layout;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.RollingFileAppender;
 import org.apache.mina.common.IoSession;
 import org.dom4j.Element;
 
 import rtspproxy.config.AAAConfigurable;
-import rtspproxy.config.Config;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
@@ -26,7 +17,7 @@ import rtspproxy.rtsp.RtspRequest;
 /**
  * @author Matteo Merli
  */
-public class PlainTextAccountingProvider extends AccountingProviderAdapter 
+public class SimpleAccountingProvider extends AccountingProviderAdapter 
 implements AccountingProvider,  AAAConfigurable
 {
 
@@ -36,19 +27,9 @@ implements AccountingProvider,  AAAConfigurable
 	// This is not static since it's a separate log
 	private Logger accessLog;
 
-	public PlainTextAccountingProvider()
+	public SimpleAccountingProvider()
 	{
 		accessLog = Logger.getLogger( "accessLog" );
-	}
-
-	public void init() throws Exception
-	{
-		// Do nothing
-	}
-
-	public void shutdown() throws Exception
-	{
-		// Do nothing
 	}
 
 	public void messageReceived( IoSession session, RtspMessage message )

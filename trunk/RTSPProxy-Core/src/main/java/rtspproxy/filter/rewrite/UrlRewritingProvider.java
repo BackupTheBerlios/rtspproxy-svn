@@ -19,13 +19,15 @@ package rtspproxy.filter.rewrite;
 
 import java.net.URL;
 
+import rtspproxy.filter.GenericProvider;
+
 /**
  * This filter is used to rewrite the requested URL before passing it
  * to the upstream server.
  * 
  * @author Rainer Bieniek
  */
-public interface RequestUrlRewritingFilter {
+public interface UrlRewritingProvider extends GenericProvider {
 	/**
 	 * rewrite the request URL.
 	 * @return a replacement URL or null if the URL is not to be modified.

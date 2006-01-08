@@ -3,12 +3,17 @@
  */
 package rtspproxy.filter;
 
+import java.util.List;
+
 import javax.management.ObjectName;
 
 import org.apache.mina.common.IoFilterAdapter;
+import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rtspproxy.Reactor;
+import rtspproxy.config.AAAConfigurable;
 import rtspproxy.lib.Side;
 
 /**
@@ -126,5 +131,59 @@ public class FilterBase extends IoFilterAdapter {
 	 */
 	public String getChainName() {
 		return this.filterName +  "/" + this.typeName + "/" + this.className;
+	}
+	
+	/**
+	 * load a provider class, instantiate an object, configure and init it.
+	 * @param className the name of the provider class to load
+	 * @param requiredInterface the provider interface the loaded class should implement.
+	 * This implementation assumes that the interface is a sub-interface of GenericProvider
+	 * @param configElements the configuration elements used to configure the loaded provider
+	 */
+	protected GenericProvider loadConfigInitProvider(String className, Class requiredInterface, 
+			List<Element> configElements) {
+		GenericProvider provider = null;
+		String providerName = requiredInterface.getSimpleName();
+		Class providerClass;
+		try {
+			providerClass = Class.forName( className );
+
+		} catch ( Throwable t ) {
+			logger.error( "Invalid " + providerName + "class: " + className, t );
+			Reactor.stop();
+			return null;
+		}
+
+		// Check if the class implements the IpAddressProvider interfaces
+		boolean found = false;
+		for ( Class interFace : providerClass.getInterfaces() ) {
+			if ( requiredInterface.equals( interFace ) ) {
+				found = true;
+				break;
+			}
+		}
+
+		if ( !found ) {
+			logger.error( "Class (" + providerClass
+					+ ") does not implement the " + providerName + " interface." );
+			Reactor.stop();
+			return null;
+		}
+
+		try {
+			provider = (GenericProvider) providerClass.newInstance();
+			
+			if(provider instanceof AAAConfigurable)
+				((AAAConfigurable)provider).configure(configElements);
+
+			provider.init();
+
+		} catch ( Exception e ) {
+			logger.error( "Error starting " + providerName + ": " + e );
+			Reactor.stop();
+			return null;
+		}		
+		
+		return provider;
 	}
 }

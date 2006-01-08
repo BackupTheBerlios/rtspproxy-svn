@@ -20,16 +20,14 @@ package rtspproxy.filter.ipaddress;
 
 import java.net.InetAddress;
 
+import rtspproxy.filter.GenericProvider;
+
 /**
  * @author Matteo Merli
  */
-public interface IpAddressProvider
+public interface IpAddressProvider extends GenericProvider
 {
 
-	public void init() throws Exception;
-
-	public void shutdown() throws Exception;
-	
 	public boolean isBlocked( InetAddress address );
 	
 }

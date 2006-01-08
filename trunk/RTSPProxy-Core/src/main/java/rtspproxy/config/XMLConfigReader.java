@@ -127,6 +127,8 @@ public class XMLConfigReader {
 				Config.addIpAddressFilter(aaa);
 			} else if(name.equals("accounting")) {
 				Config.addAccountingFilter(aaa);				
+			} else if(name.equals("rewriting")) {
+				Config.addUrlRewritingFilter(aaa);				
 			} else
 				throw new IllegalArgumentException("invalid AAA element given, name=" + name);
 		}

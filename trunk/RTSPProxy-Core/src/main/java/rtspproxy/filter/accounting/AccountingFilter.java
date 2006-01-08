@@ -2,17 +2,12 @@ package rtspproxy.filter.accounting;
 
 import java.util.List;
 
+import org.apache.mina.common.IdleStatus;
+import org.apache.mina.common.IoSession;
+import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.mina.common.IdleStatus;
-import org.apache.mina.common.IoFilterAdapter;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.IoFilter.NextFilter;
-import org.dom4j.Element;
 
-import rtspproxy.Reactor;
-import rtspproxy.config.AAAConfigurable;
-import rtspproxy.config.Config;
 import rtspproxy.filter.FilterBase;
 import rtspproxy.rtsp.RtspMessage;
 
@@ -33,47 +28,8 @@ public class AccountingFilter extends FilterBase
 	{
 		super(FilterNAME, className, "accounting");
 		
-		Class providerClass;
-		try {
-			providerClass = Class.forName( className );
-
-		} catch ( Throwable t ) {
-			log.error( "Invalid AccountingProvider class: " + className, t );
-			Reactor.stop();
-			return;
-		}
-
-		// Check if the class implements the IpAddressProvider interfaces
-		boolean found = false;
-		for ( Class interFace : providerClass.getInterfaces() ) {
-			if ( AccountingProvider.class.equals( interFace ) ) {
-				found = true;
-				break;
-			}
-		}
-
-		if ( !found ) {
-			log.error( "Class (" + providerClass
-					+ ") does not implement the AccountingProvider interface." );
-			Reactor.stop();
-			return;
-		}
-
-		try {
-			provider = (AccountingProvider) providerClass.newInstance();
-			
-			if(provider instanceof AAAConfigurable)
-				((AAAConfigurable)provider).configure(configElements);
-
-			provider.init();
-
-		} catch ( Exception e ) {
-			log.error( "Error starting AccountingProvider: " + e );
-			Reactor.stop();
-			return;
-		}
-
-		log.info( "Using AccountingFilter " + " (" + className + ")" );
+		this.provider = (AccountingProvider)loadConfigInitProvider(className, AccountingProvider.class,
+				configElements);
 	}
 
 	@Override

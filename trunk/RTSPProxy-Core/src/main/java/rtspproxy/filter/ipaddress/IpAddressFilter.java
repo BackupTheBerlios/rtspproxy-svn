@@ -21,17 +21,12 @@ package rtspproxy.filter.ipaddress;
 import java.net.InetSocketAddress;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
 import org.dom4j.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import rtspproxy.Reactor;
-import rtspproxy.config.AAAConfigurable;
-import rtspproxy.config.Config;
 import rtspproxy.filter.FilterBase;
-import rtspproxy.filter.RtspFilters;
 
 /**
  * @author Matteo Merli
@@ -50,47 +45,8 @@ public class IpAddressFilter extends FilterBase
 	{
 		super(FilterNAME, className, "ipaddress");
 		
-		Class providerClass;
-		try {
-			providerClass = Class.forName( className );
-
-		} catch ( Throwable t ) {
-			log.debug("cant load IpAddressProvider class", t);
-			log.error( "Invalid IpAddressProvider class: " + className );
-
-			Reactor.stop();
-			return;
-		}
-
-		// Check if the class implements the IpAddressProvider interfaces
-		boolean found = false;
-		for ( Class interFace : providerClass.getInterfaces() ) {
-			if ( IpAddressProvider.class.equals( interFace ) ) {
-				found = true;
-				break;
-			}
-		}
-
-		if ( !found ) {
-			log.error( "Class (" + provider
-					+ ") does not implement the IpAddressProvider interface." );
-			Reactor.stop();
-			return;
-		}
-
-		try {
-			provider = (IpAddressProvider) providerClass.newInstance();
-			
-			if(provider instanceof AAAConfigurable)
-				((AAAConfigurable)provider).configure(configElements);
-			provider.init();
-		} catch ( Exception e ) {
-			log.error( "Error starting IpAddressProvider: " + e );
-			Reactor.stop();
-			return;
-		}
-
-		log.info( "Using IpAddressFilter (" + className + ")" );
+		this.provider = (IpAddressProvider)loadConfigInitProvider(className, IpAddressProvider.class,
+				configElements);
 	}
 
 	@Override

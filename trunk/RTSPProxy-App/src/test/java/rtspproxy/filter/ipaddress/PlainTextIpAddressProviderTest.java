@@ -20,7 +20,7 @@ package rtspproxy.filter.ipaddress;
 import java.io.StringReader;
 import java.net.InetAddress;
 
-import rtspproxy.filter.ipaddress.PlainTextIpAddressProvider;
+import rtspproxy.filter.ipaddress.SimpleIpAddressProvider;
 
 import junit.framework.TestCase;
 
@@ -40,7 +40,7 @@ public class PlainTextIpAddressProviderTest extends TestCase
 	public void test1() throws Exception
 	{
 		// prepare
-		PlainTextIpAddressProvider provider = new PlainTextIpAddressProvider();
+		SimpleIpAddressProvider provider = new SimpleIpAddressProvider();
 		StringBuilder rules = new StringBuilder();
 		rules.append( "Deny *" + CRLF );
 		rules.append( "Allow 127.0.0.1" + CRLF );
@@ -57,7 +57,7 @@ public class PlainTextIpAddressProviderTest extends TestCase
 	public void test2() throws Exception
 	{
 		// prepare
-		PlainTextIpAddressProvider provider = new PlainTextIpAddressProvider();
+		SimpleIpAddressProvider provider = new SimpleIpAddressProvider();
 		StringBuilder rules = new StringBuilder();
 		rules.append( "Allow *" + CRLF );
 		rules.append( "Deny 10.0.0.13" + CRLF );
