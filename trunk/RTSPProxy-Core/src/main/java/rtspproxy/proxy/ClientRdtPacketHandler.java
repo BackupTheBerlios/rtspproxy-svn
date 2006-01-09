@@ -29,6 +29,8 @@ import org.apache.mina.common.IoSession;
 import rtspproxy.lib.Exceptions;
 import rtspproxy.proxy.track.RdtTrack;
 import rtspproxy.proxy.track.Track;
+import rtspproxy.rdt.RdtPacket;
+import rtspproxy.rdt.RdtPacketDecoder;
 
 /**
  * Handles RDT packets from client and forward them to server. The RTSP session
@@ -52,6 +54,14 @@ public class ClientRdtPacketHandler extends IoHandlerAdapter
 		// RtcpPacket packet = new RtcpPacket( (ByteBuffer) buffer );
 		log.debug( "Received RDT packet from client" );
 
+		ByteBuffer receivedBuffer = (ByteBuffer) buffer;
+		byte[] bytes = new byte[receivedBuffer.limit()];
+		receivedBuffer.get( bytes );
+		
+		RdtPacket decPacket = RdtPacketDecoder.decode(bytes, 0, 0);
+		
+		log.debug("client received packet: " + decPacket);
+
 		RdtTrack track = (RdtTrack) Track.getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
 
 		if ( track == null ) {
@@ -63,9 +73,6 @@ public class ClientRdtPacketHandler extends IoHandlerAdapter
 			return;
 		}
 
-		ByteBuffer receivedBuffer = (ByteBuffer) buffer;
-		byte[] bytes = new byte[receivedBuffer.limit()];
-		receivedBuffer.get( bytes );
 		ByteBuffer rdtPacket = ByteBuffer.wrap( bytes );
 		track.forwardRdtToServer( rdtPacket );
 	}
