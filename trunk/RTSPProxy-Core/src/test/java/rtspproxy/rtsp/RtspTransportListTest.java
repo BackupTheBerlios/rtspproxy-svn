@@ -48,8 +48,8 @@ public class RtspTransportListTest extends TestCase
 
 	public void testToString()
 	{
-		String expected = "x-real-rdt/udp;client_port=6972;mode=play,"
-				+ "RTP/AVP/UDP;unicast;client_port=6972-6973;mode=play";
+		String expected = "x-real-rdt/udp;client_port=6972;mode=\"PLAY\","
+				+ "RTP/AVP/UDP;unicast;client_port=6972-6973;mode=\"PLAY\"";
 		assertEquals( expected, transportList.toString() );
 	}
 

@@ -142,6 +142,32 @@ public class Config extends Singleton implements Observer
 			"/rtspproxy/proxy/client/rdtPort" // xpathExpr
 			);
 
+	public static final BooleanParameter proxyTransportRtpEnable = new BooleanParameter(
+			"proxy.transport.rtp.enable", // name
+			true, // default value
+			false, // mutable
+			"Enables the UDP/AVP/RTP transport.",
+			"/rtspproxy/proxy/transport/rtp" // xpathExpr
+			);
+	
+
+	public static final BooleanParameter proxyTransportRdtEnable = new BooleanParameter(
+			"proxy.transport.rdt.enable", // name
+			true, // default value
+			false, // mutable
+			"Enables the x-udp-rdt transport.",
+			"/rtspproxy/proxy/transport/rdt" // xpathExpr
+			);	
+	
+
+	public static final BooleanParameter proxyLowerTransportSuppress = new BooleanParameter(
+			"proxy.transport.rtp.protocol.disable", // name
+			false, // default value
+			false, // mutable
+			"Enables the x-udp-rdt transport.",
+			"/rtspproxy/proxy/transport/hacks/lowerTransportSuppress" // xpathExpr
+			);	
+	
 	// /////////////////////////////////////////////////////////
 
 	// JMX

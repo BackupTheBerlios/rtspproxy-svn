@@ -18,6 +18,12 @@
 
 package rtspproxy.rtsp;
 
+import org.apache.commons.collections.functors.NonePredicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import rtspproxy.config.Config;
+
 /**
  * Parse the RTSP Transport header field. Reference Grammar:
  * 
@@ -56,6 +62,8 @@ package rtspproxy.rtsp;
 public class RtspTransport
 {
 
+	private static Logger logger = LoggerFactory.getLogger(RtspTransport.class);
+	
 	/** Transport Protocol */
 	public enum TransportProtocol {
 		None,
@@ -113,6 +121,22 @@ public class RtspTransport
 		None, unicast, multicast
 	}
 
+	/** mode */
+	public enum Mode {
+		None, PLAY, RECORD;
+		
+		public static Mode fromString ( String modeName ) {
+			if( "PLAY".equalsIgnoreCase( modeName ))
+				return PLAY;
+			else if( "RECORD".equalsIgnoreCase( modeName ))
+				return RECORD;
+			else {
+				logger.debug("unknown mode string passed (ignored): " + modeName);
+				return None;
+			}
+		}
+	}
+	
 	TransportProtocol transportProtocol = null;
 	Profile profile = null;
 	LowerTransport lowerTransport = null;
@@ -127,7 +151,7 @@ public class RtspTransport
 	int[] client_port = new int[2];
 	int[] server_port = new int[2];
 	String ssrc;
-	String mode;
+	Mode mode = Mode.None;
 	String source;
 
 	/**
@@ -152,7 +176,7 @@ public class RtspTransport
 		server_port[0] = 0;
 		server_port[1] = 0;
 		ssrc = null;
-		mode = null;
+		mode = Mode.None;
 		source = null;
 
 		parseTransport( transport );
@@ -218,7 +242,7 @@ public class RtspTransport
 														setSSRC( _getStrValue( tok ) );
 													else
 														if ( tok.startsWith( "mode" ) )
-															setMode( _getStrValue( tok ) );
+															setMode( Mode.fromString( _getStrValue( tok ) ) );
 														else
 															if ( tok.startsWith( "source" ) )
 																setSource( _getStrValue( tok ) );
@@ -258,7 +282,8 @@ public class RtspTransport
 			sb.append( transportProtocol );
 			if ( profile != Profile.None ) {
 				sb.append( "/" ).append( profile );
-				if ( lowerTransport != LowerTransport.None )
+				if ( !Config.proxyLowerTransportSuppress.getValue() 
+						&& lowerTransport != LowerTransport.None )
 					sb.append( "/" ).append( lowerTransport );
 			}
 			if ( deliveryType != DeliveryType.None )
@@ -293,8 +318,8 @@ public class RtspTransport
 			sb.append( ";ssrc=" ).append( ssrc );
 		if ( source != null )
 			sb.append( ";source=" ).append( source );
-		if ( mode != null )
-			sb.append( ";mode=" ).append( mode );
+		if ( mode != Mode.None )
+			sb.append( ";mode=\"" ).append( mode ) . append("\"");
 		return sb.toString();
 	}
 
@@ -309,12 +334,14 @@ public class RtspTransport
 		 * At now, the only transport supported by the server is
 		 * "RTP/AVP/UDP;unicast"
 		 */
-		if ( transportProtocol == TransportProtocol.RTP && profile == Profile.AVP
+		if ( Config.proxyTransportRtpEnable.getValue()
+				&& transportProtocol == TransportProtocol.RTP && profile == Profile.AVP
 				&& lowerTransport == LowerTransport.UDP
 				&& deliveryType == DeliveryType.unicast )
 			return true;
 		else
-			if ( transportProtocol == TransportProtocol.RDT
+			if ( Config.proxyTransportRdtEnable.getValue()
+					&& transportProtocol == TransportProtocol.RDT
 					&& lowerTransport == LowerTransport.UDP
 					&& deliveryType == DeliveryType.unicast )
 				return true;
@@ -453,16 +480,17 @@ public class RtspTransport
 	/**
 	 * @return Returns the mode.
 	 */
-	public String getMode()
+	public Mode getMode()
 	{
 		return mode;
 	}
 
 	/**
+	 * Set the mode. The 
 	 * @param mode
 	 *        The mode to set.
 	 */
-	public void setMode( String mode )
+	public void setMode( Mode mode )
 	{
 		this.mode = mode;
 	}
@@ -610,11 +638,17 @@ public class RtspTransport
 	 */
 	private static String _getStrValue( String str )
 	{
+		String val = null;
+		
 		String[] list = str.split( "=" );
 		if ( list.length != 2 )
 			return null;
 
-		return list[1];
+		val = list[1];
+		if(val.startsWith("\"") && val.endsWith("\""))
+			val = val.substring(1, val.length()-2);
+		
+		return val;
 	}
 
 	/**
