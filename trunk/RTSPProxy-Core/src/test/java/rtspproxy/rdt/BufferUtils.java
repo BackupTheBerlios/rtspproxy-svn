@@ -79,14 +79,16 @@ public class BufferUtils {
 	public static final boolean buffersEqual(ByteBuffer first, ByteBuffer second) {
 		boolean equal = false;
 		
-		System.out.println("first limit=" + first.limit() + ", second position=" + second.limit());
+		// System.out.println("first limit=" + first.limit() + ", second position=" + second.limit());
 		if(first.limit() == second.limit()) {
 			int i;
 			
 			for(i=0; i<first.limit(); ++i) {
 				if(first.get(i) != second.get(i)) {
+					/*
 					System.out.println("index " + i + ": expected=" + Integer.toHexString(first.get(i))
 							+ ": got=" + Integer.toHexString(second.get(i)));
+					*/
 					break;
 				}
 			}

@@ -123,9 +123,11 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
 			throws IOException
 	{
 		IoAcceptor acceptor = newAcceptor( service );
-		acceptor.setFilterChainBuilder( new IoFilterChainBuilderWrapper( service,
-				filterChainBuilder ) );
-		acceptor.bind( address, ioHandler );
+		
+		IoFilterChainBuilder builder = new IoFilterChainBuilderWrapper( service,
+				filterChainBuilder );
+		// acceptor.setFilterChainBuilder( builder );
+		acceptor.bind( address, ioHandler, builder );
 
 		services.put( service.getName(), service );
 

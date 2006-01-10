@@ -29,7 +29,7 @@ public class RdtPacketDecoder {
 	 * @param buffer the byte buffer to decode packet from
 	 */
 	public static RdtPacket decode(ByteBuffer buffer) {
-		byte[] data = new byte[buffer.position()];
+		byte[] data = new byte[buffer.limit()];
 
 		// copy buffer content into temp array
 		buffer.rewind();
@@ -149,6 +149,9 @@ public class RdtPacketDecoder {
 				if(payloadSize > 0)
 					ind = attachPayload(packet, data, ind, payloadSize);
 				break;
+			default:
+				logger.error("unknown control packet received, code=" + sequence 
+						+ ", full packet dump: " + formatByteArray(data));
 			}
 		} else {
 			logger.debug("decoding data packet");
@@ -244,5 +247,25 @@ public class RdtPacketDecoder {
 	
 	private static final int decodeInt(byte b3, byte b2, byte b1, byte b0) {
 		return ((b3 & 0xff) * 16777216) + ((b2 & 0xff) * 65536) + ((b1 & 0xff) * 256) + (b0 & 0xff);
+	}
+
+	private static final char[] digits = new char[] { 
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'a', 'b', 'c', 'd', 'e', 'f'
+	};
+	private static final String formatByteArray(byte[] data) {
+		StringBuffer buf = new StringBuffer();
+		
+		for(int i=0; i<data.length; i++) {
+			if((i % 16) == 0)
+				buf.append('\n');
+			
+			buf.append(digits[data[i] / 16]);
+			buf.append(digits[data[i] % 16]);
+			if((i % 16) != 0)
+				buf.append(' ');
+		}
+ 		
+		return buf.toString();
 	}
 }

@@ -18,13 +18,18 @@
 
 package rtspproxy;
 
+import java.net.SocketAddress;
+
+import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
+import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
 
 import rtspproxy.config.Config;
 import rtspproxy.config.Parameter;
 import rtspproxy.lib.Singleton;
 import rtspproxy.proxy.ServerRdtPacketHandler;
+import rtspproxy.rdt.RdtFilterChainBuilder;
 
 /**
  * ProxyService that manages the RDT packets incoming from servers.
@@ -36,6 +41,8 @@ public final class RdtServerService extends ProxyService
 	private IoHandler serverRdtPacketHandler = new ServerRdtPacketHandler();
 
 	private static final String NAME = "RdtServerService";
+
+	private RdtFilterChainBuilder filterChainBuilder = new RdtFilterChainBuilder();
 
 	public RdtServerService()
 	{
@@ -95,4 +102,12 @@ public final class RdtServerService extends ProxyService
 	{
 		return Config.proxyServerRdtPort;
 	}
+	/* (non-Javadoc)
+	 * @see rtspproxy.ProxyService#getFilterChainBuilder()
+	 */
+	@Override
+	public IoFilterChainBuilder getFilterChainBuilder() {
+		return this.filterChainBuilder;
+	}
+
 }

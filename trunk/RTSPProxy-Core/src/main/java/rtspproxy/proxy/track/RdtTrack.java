@@ -10,6 +10,7 @@ import org.apache.mina.common.IoSession;
 
 import rtspproxy.RdtClientService;
 import rtspproxy.RdtServerService;
+import rtspproxy.rdt.RdtPacket;
 
 public class RdtTrack extends Track
 {
@@ -49,7 +50,7 @@ public class RdtTrack extends Track
 	 * @param packet
 	 *            a buffer containing a RDT packet
 	 */
-	public void forwardRdtToClient( ByteBuffer packet )
+	public void forwardRdtToClient( RdtPacket packet )
 	{
 		// modify the SSRC for the client
 		// packet.setSsrc( proxySSRC );
@@ -70,7 +71,7 @@ public class RdtTrack extends Track
 	 * @param packet
 	 *            a RDT packet
 	 */
-	public void forwardRdtToServer( ByteBuffer packet )
+	public void forwardRdtToServer( RdtPacket packet )
 	{
 		if ( rdtServerSession == null || !rdtServerSession.isConnected() ) {
 			InetSocketAddress remoteAddress = new InetSocketAddress( serverAddress,
@@ -83,7 +84,7 @@ public class RdtTrack extends Track
 		// packet.reset();
 		// log.debug("Packet: " + packet );
 		// log.debug( "Written bytes1: " + rdtServerSession.getWrittenBytes() );
-		rdtServerSession.write( packet );
+		rdtServerSession.write( packet.toByteBuffer() );
 		// log.debug( "Written bytes2: " + rdtServerSession.getWrittenBytes() );
 	}
 

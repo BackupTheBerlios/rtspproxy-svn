@@ -20,17 +20,18 @@ package rtspproxy.proxy;
 
 import java.net.InetSocketAddress;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
+import org.apache.mina.common.TrafficMask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.lib.Exceptions;
 import rtspproxy.proxy.track.RdtTrack;
 import rtspproxy.proxy.track.Track;
+import rtspproxy.rdt.RdtFilterChainBuilder;
 import rtspproxy.rdt.RdtPacket;
-import rtspproxy.rdt.RdtPacketDecoder;
 
 /**
  * Handles RDT packets from client and forward them to server. The RTSP session
@@ -43,40 +44,57 @@ public class ClientRdtPacketHandler extends IoHandlerAdapter
 
 	private static Logger log = LoggerFactory.getLogger( ClientRdtPacketHandler.class );
 
+	/**
+	 * this sessionCreated method is an ugly hack. It suspends the session for a moment and
+	 * checks the filter chain if the protocol filter has already been applied to the 
+	 * session. If not, it assembles the filter chain. This should have been done by the acceptor
+	 * (which he does not do (in mina 0.9.0))
+	 */
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
+		TrafficMask mask = session.getTrafficMask();
+		
+		try {
+			session.setTrafficMask(TrafficMask.NONE);
+			
+			IoFilterChain chain = session.getFilterChain();
+			
+			if(!chain.contains(RdtFilterChainBuilder.rdtCODEC)) 
+				(new RdtFilterChainBuilder()).buildFilterChain(chain);
+		} finally {
+			session.setTrafficMask(mask);
+		}
 	}
 
 	@Override
 	public void messageReceived( IoSession session, Object buffer ) throws Exception
 	{
-		// RtcpPacket packet = new RtcpPacket( (ByteBuffer) buffer );
-		log.debug( "Received RDT packet from client" );
+		if(buffer instanceof RdtPacket) {
+			RdtPacket rdtPacket = (RdtPacket)buffer;
+			
+			log.debug( "Received RDT packet from client, packet=" + rdtPacket );
 
-		ByteBuffer receivedBuffer = (ByteBuffer) buffer;
-		byte[] bytes = new byte[receivedBuffer.limit()];
-		receivedBuffer.get( bytes );
-		
-		RdtPacket decPacket = RdtPacketDecoder.decode(bytes, 0, 0);
-		
-		log.debug("client received packet: " + decPacket);
+			RdtTrack track = (RdtTrack) Track.getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
 
-		RdtTrack track = (RdtTrack) Track.getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
+			if ( track == null ) {
+				// drop packet
+				log.debug( "Invalid address: "
+						+ (InetSocketAddress) session.getRemoteAddress()
+						+ " - Class: "
+						+ ( (InetSocketAddress) session.getRemoteAddress() ).getAddress().getClass() );
+				return;
+			}
 
-		if ( track == null ) {
-			// drop packet
-			log.debug( "Invalid address: "
-					+ (InetSocketAddress) session.getRemoteAddress()
-					+ " - Class: "
-					+ ( (InetSocketAddress) session.getRemoteAddress() ).getAddress().getClass() );
-			return;
+			track.forwardRdtToServer( rdtPacket );			
+		} else {
+			log.debug("invalid object passed: " + buffer.getClass().getName());
+			
+			throw new IllegalStateException("invalid packet on chain");
 		}
-
-		ByteBuffer rdtPacket = ByteBuffer.wrap( bytes );
-		track.forwardRdtToServer( rdtPacket );
+		
 	}
-
+	
 	@Override
 	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
