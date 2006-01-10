@@ -1,0 +1,5 @@
+40 05 9e 01 00 00
+5d b9 00 00 01 01 40 80 40 00 b8 7a 17 65 60 0e
+4b 1d e3 de f7 24 7d e7 de f7 91 cc 1e f7 bc 8e
+db de f7 bd ef 23 ef 7b dd bd ef 7b c2 fb de ed
+cb b7 bd b9 0f 7b de f7 bd ef 78

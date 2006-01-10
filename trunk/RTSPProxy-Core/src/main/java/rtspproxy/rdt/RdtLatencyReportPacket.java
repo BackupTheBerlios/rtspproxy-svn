@@ -49,11 +49,12 @@ public class RdtLatencyReportPacket extends RdtControlPacket {
 	
 	@Override
 	protected ByteBuffer buildHeader() {
-		ByteBuffer buf = ByteBuffer.allocate(3, true);
+		ByteBuffer buf = ByteBuffer.allocate(3);
 		byte marker = 0;
 		
+		buf.setAutoExpand(true);
 		if(isLengthIncluded())
-			marker |= (1<<7);
+			marker |= (1<<7) | (1<<1); // bit 1 is needed because it appears in the trace
 		buf.put(marker);
 		buf.put(getType().toByteArray());
 		
@@ -63,6 +64,7 @@ public class RdtLatencyReportPacket extends RdtControlPacket {
 			buf.put(encodeShort((short)9));
 		}
 		buf.put(encodeInt(this.serverTimeout));
+		buf.limit(buf.position());
 		
 		return buf;
 	}

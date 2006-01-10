@@ -117,7 +117,7 @@ public class RdtStreamEndPacket extends RdtPacket {
 
 	@Override
 	protected ByteBuffer buildHeader() {
-		ByteBuffer buf = ByteBuffer.allocate(11, true);
+		ByteBuffer buf = ByteBuffer.allocate(11);
 		byte marker = 0;
 		
 		if(isNeedReliable())
@@ -134,6 +134,7 @@ public class RdtStreamEndPacket extends RdtPacket {
 		buf.put(encodeShort(this.streamEndSequenceNumber));
 		buf.put(encodeInt(this.timestamp));
 		buf.put(encodeShort(this.totalReliable));
+		buf.limit(buf.position());
 		
 		return buf;
 	}

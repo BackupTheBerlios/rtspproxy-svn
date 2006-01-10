@@ -67,7 +67,7 @@ public class RdtRttResponsePacket extends RdtControlPacket {
 
 	@Override
 	protected ByteBuffer buildHeader() {
-		ByteBuffer buf = ByteBuffer.allocate(11, true);
+		ByteBuffer buf = ByteBuffer.allocate(11);
 		byte marker = 0;
 		
 		buf.put(marker);
@@ -75,6 +75,7 @@ public class RdtRttResponsePacket extends RdtControlPacket {
 		
 		buf.put(encodeInt(this.roundtripTimestampSeconds));
 		buf.put(encodeInt(this.roundtripTimestampMicroseconds));
+		buf.limit(buf.position());
 		
 		return buf;
 	}

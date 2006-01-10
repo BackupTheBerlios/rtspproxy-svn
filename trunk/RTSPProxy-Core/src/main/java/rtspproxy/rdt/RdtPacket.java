@@ -125,15 +125,17 @@ public abstract class RdtPacket {
 	 * encode packet as byte buffer
 	 */
 	public ByteBuffer toByteBuffer() {
-		ByteBuffer buf = ByteBuffer.allocate(128, true);
+		ByteBuffer buf = ByteBuffer.allocate(128);
 
-		buf.put(buildHeader());
+		buf.setAutoExpand(true);
+		buf.put(buildHeader().rewind());
 		if(this.payload != null)
 			buf.put(this.payload);
 		if(this.subPacket != null)
 			buf.put(this.subPacket.toByteBuffer());
-
-		return buf;
+		buf.limit(buf.position());
+		
+		return buf.rewind();
 	}
 
 	

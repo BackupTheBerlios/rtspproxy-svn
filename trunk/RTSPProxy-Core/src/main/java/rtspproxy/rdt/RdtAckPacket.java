@@ -34,9 +34,10 @@ public class RdtAckPacket extends RdtControlPacket {
 
 	@Override
 	protected ByteBuffer buildHeader() {
-		ByteBuffer buf = ByteBuffer.allocate(3, true);
+		ByteBuffer buf = ByteBuffer.allocate(3);
 		byte marker = 0;
-		
+
+		buf.setAutoExpand(true);
 		if(isLengthIncluded())
 			marker |= (1<<7);
 		if(this.lostHigh)
@@ -49,6 +50,7 @@ public class RdtAckPacket extends RdtControlPacket {
 			// TODO find a cleaner way.
 			buf.put(encodeShort((short)5));
 		}
+		buf.limit(buf.position());
 		
 		return buf;
 	}

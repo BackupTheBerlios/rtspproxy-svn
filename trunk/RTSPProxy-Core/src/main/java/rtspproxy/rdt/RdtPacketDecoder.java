@@ -29,9 +29,10 @@ public class RdtPacketDecoder {
 	 * @param buffer the byte buffer to decode packet from
 	 */
 	public static RdtPacket decode(ByteBuffer buffer) {
-		byte[] data = new byte[buffer.limit()];
+		byte[] data = new byte[buffer.position()];
 
 		// copy buffer content into temp array
+		buffer.rewind();
 		buffer.get(data);
 
 		return decode(data, 0, 0);
@@ -48,6 +49,7 @@ public class RdtPacketDecoder {
 		short sequence;
 		boolean lengthIncluded = false;
 		short packetLength = -1;
+		int payloadSize = -1;
 
 		if(depth > 1) {
 			logger.error("detected packet-decoding recursion overrun, aborting");
@@ -62,7 +64,7 @@ public class RdtPacketDecoder {
 		// process sequence / type field
 		seqHi = data[ind++];
 		seqLo = data[ind++];
-		sequence = (short)(seqHi << 8 | seqLo);
+		sequence = decodeShort(seqHi, seqLo);
 		
 		if(seqHi < 0 ) {
 			logger.debug("decoding control packet");
@@ -76,39 +78,53 @@ public class RdtPacketDecoder {
 			switch(type) {
 			case RttRequest:
 				// process packet length (if included)
-				if(lengthIncluded)
-					packetLength = (short)((data[ind++] << 8) | data[ind++]);
+				if(lengthIncluded) {
+					packetLength = decodeShort(data, ind);
+					ind += 2;
+				}
 				
 				packet = new RdtRttRequestPacket();
 				break;
 			case RttResponse:
 				// process packet length (if included)
-				if(lengthIncluded)
-					packetLength = (short)((data[ind++] << 8) | data[ind++]);
+				if(lengthIncluded) {
+					packetLength = decodeShort(data, ind);
+					ind += 2;
+				}
 				
-				int roundtripTimestampSeconds = ((data[ind++] << 24) | (data[ind++] << 16) 
-						| (data[ind++] << 8) | data[ind++]);
-				int roundtripTimestampMicroeconds = ((data[ind++] << 24) | (data[ind++] << 16) 
-						| (data[ind++] << 8) | data[ind++]);
+				int roundtripTimestampSeconds = decodeInt(data, ind);
+				int roundtripTimestampMicroeconds = decodeInt(data, ind+4);
 				
+				ind += 8;
 				packet = new RdtRttResponsePacket(roundtripTimestampSeconds, roundtripTimestampMicroeconds);
+				
+				payloadSize = (lengthIncluded ? packetLength : (data.length - ind));
+				
+				if(payloadSize > 0)
+					ind = attachPayload(packet, data, ind, payloadSize);
+				
 				break;
 			case LatencyReport:
 				// process packet length (if included)
-				if(lengthIncluded)
-					packetLength = (short)((data[ind++] << 8) | data[ind++]);
+				if(lengthIncluded) {
+					packetLength = decodeShort(data, ind);
+					ind += 2;
+				}
 				
-				int serverTimeout = ((data[ind++] << 24) | (data[ind++] << 16) | (data[ind++] << 8) | data[ind++]);
+				int serverTimeout = decodeInt(data, ind);
 				
+				ind += 4;
 				packet = new RdtLatencyReportPacket(serverTimeout);
 				break;
 			case Ack:
 				// process packet length (if included)
-				if(lengthIncluded)
-					packetLength = (short)((data[ind++] << 8) | data[ind++]);
+				if(lengthIncluded) {
+					packetLength = decodeShort(data, ind);
+					ind += 2;
+				}
 				
 				boolean lostHigh = ((markerByte & (1<<6)) > 0);
-				int payloadSize = (lengthIncluded ? packetLength : (data.length - ind));
+				payloadSize = (lengthIncluded ? packetLength : (data.length - ind));
 
 				packet = new RdtAckPacket(lostHigh);
 				if(payloadSize > 0)
@@ -119,10 +135,19 @@ public class RdtPacketDecoder {
 				// in the stream end packet, the length-included serves as need reliable field
 				boolean packetSent = ((markerByte & (1<<1)) > 0);
 				boolean extFlag = ((markerByte & (1<<0)) > 0);
-				short streamEndSequenceNumber = (short)((data[ind++] << 8) | data[ind++]);
-				int timeout = ((data[ind++] << 24) | (data[ind++] << 16) | (data[ind++] << 8) | data[ind++]);
-				short totalReliable = (short)((data[ind++] << 8) | data[ind++]);
+				short streamEndSequenceNumber = decodeShort(data, ind);
+				int timeout = decodeInt(data, ind+2);
+				short totalReliable = decodeShort(data, ind+6);
 				
+				ind += 8;
+				
+				// length included servers as need reliable (speical case)
+				packet = new RdtStreamEndPacket(lengthIncluded, streamId, packetSent, extFlag, 
+						streamEndSequenceNumber, timeout, totalReliable);
+				
+				payloadSize = (data.length - ind);
+				if(payloadSize > 0)
+					ind = attachPayload(packet, data, ind, payloadSize);
 				break;
 			}
 		} else {
@@ -130,8 +155,10 @@ public class RdtPacketDecoder {
 			
 			// data packet
 			// process packet length (if included)
-			if(lengthIncluded)
-				packetLength = (short)((data[ind++] << 8) | data[ind++]);
+			if(lengthIncluded) {
+				packetLength = decodeShort(data, ind);
+				ind += 2;
+			}
 			
 			// process marker byte
 			boolean needReliable = ((markerByte & (1<<6)) > 0);
@@ -149,7 +176,8 @@ public class RdtPacketDecoder {
 			// process timestamp
 			if(lengthIncluded)
 				packetLength -= 4;
-			int timestamp = ((data[ind++] << 24) | (data[ind++] << 16) | (data[ind++] << 8) | data[ind++]);
+			int timestamp = decodeInt(data, ind);
+			ind += 4;
 			
 			// process total reliable count
 			if(lengthIncluded)
@@ -158,14 +186,15 @@ public class RdtPacketDecoder {
 			packet = new RdtDataPacket(needReliable, isReliable, streamId,
 					sequence, backToBack, slowData, asmRule, timestamp);
 			if(needReliable) {
-				short totalReliable = (short)((data[ind++] << 8) | data[ind++]);
+				short totalReliable = decodeShort(data, ind);
 
+				ind += 2;
 				((RdtDataPacket)packet).setTotalReliable(totalReliable);
-				packetLength -= 2;
+				if(lengthIncluded)
+					packetLength -= 2;
 			}
 
-			int payloadSize = (lengthIncluded ? packetLength : (data.length - ind));
-			
+			payloadSize = (lengthIncluded ? packetLength : (data.length - ind));
 			if(payloadSize > 0)
 				ind = attachPayload(packet, data, ind, payloadSize);
 		}
@@ -193,5 +222,27 @@ public class RdtPacketDecoder {
 		packet.setPayload(buf);
 		
 		return (ind + size);
+	}
+	
+	/**
+	 * decode a short from a byte array
+	 */
+	private static final short decodeShort(byte[] bytes, int ind) {
+		return decodeShort(bytes[ind], bytes[ind+1]);
+	}
+
+	private static final short decodeShort(byte hi, byte lo) {
+		return (short)((hi & 0xff) * 256 + (lo & 0xff));
+	}
+	
+	/**
+	 * decode an int 
+	 */
+	private static final int decodeInt(byte[] bytes, int ind) {
+		return decodeInt(bytes[ind], bytes[ind+1], bytes[ind+2], bytes[ind+3]);
+	}
+	
+	private static final int decodeInt(byte b3, byte b2, byte b1, byte b0) {
+		return ((b3 & 0xff) * 16777216) + ((b2 & 0xff) * 65536) + ((b1 & 0xff) * 256) + (b0 & 0xff);
 	}
 }

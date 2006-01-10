@@ -142,9 +142,10 @@ public class RdtDataPacket extends RdtPacket {
 
 	@Override
 	protected ByteBuffer buildHeader() {
-		ByteBuffer buf = ByteBuffer.allocate(8, true);
+		ByteBuffer buf = ByteBuffer.allocate(8);
 		byte marker = 0, control = 0;
 		
+		buf.setAutoExpand(true);
 		if(isLengthIncluded())
 			marker |= (1<<7);
 		if(isNeedReliable())
@@ -154,7 +155,7 @@ public class RdtDataPacket extends RdtPacket {
 			marker |= (1<<0);		
 		buf.put(marker);		
 
-		buf.put(getType().toByteArray());
+		buf.put(encodeShort(this.sequence));
 
 		if(isLengthIncluded()) {
 			short length = 8;
@@ -176,6 +177,8 @@ public class RdtDataPacket extends RdtPacket {
 
 		if(isNeedReliable())
 			buf.put(encodeShort(this.totalReliable));
+		
+		buf.limit(buf.position());
 		
 		return buf;
 	}

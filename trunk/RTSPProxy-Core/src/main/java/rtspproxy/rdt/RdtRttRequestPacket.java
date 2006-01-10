@@ -30,11 +30,12 @@ public class RdtRttRequestPacket extends RdtControlPacket {
 
 	@Override
 	protected ByteBuffer buildHeader() {
-		ByteBuffer buf = ByteBuffer.allocate(3, true);
+		ByteBuffer buf = ByteBuffer.allocate(3, false);
 		byte marker = 0;
 		
 		buf.put(marker);
 		buf.put(getType().toByteArray());
+		buf.limit(buf.position());
 		
 		return buf;
 	}
