@@ -18,7 +18,6 @@
 
 package rtspproxy.rtsp;
 
-import org.apache.commons.collections.functors.NonePredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

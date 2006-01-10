@@ -5,10 +5,7 @@ package rtspproxy.rdt;
 
 import java.util.HashMap;
 
-import org.apache.commons.collections.functors.NonePredicate;
 import org.apache.mina.common.ByteBuffer;
-
-import rtspproxy.rtp.RtpPacket;
 
 /**
  * Base class of specific RDT packet types.
