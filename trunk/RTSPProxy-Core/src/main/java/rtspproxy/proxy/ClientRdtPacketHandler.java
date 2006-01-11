@@ -53,6 +53,9 @@ public class ClientRdtPacketHandler extends IoHandlerAdapter
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
+		/*
+		log.debug("new client-side RDT session created");
+
 		TrafficMask mask = session.getTrafficMask();
 		
 		try {
@@ -60,11 +63,14 @@ public class ClientRdtPacketHandler extends IoHandlerAdapter
 			
 			IoFilterChain chain = session.getFilterChain();
 			
-			if(!chain.contains(RdtFilterChainBuilder.rdtCODEC)) 
+			if(!chain.contains(RdtFilterChainBuilder.rdtCODEC)) {
+				log.debug("hot-patching filter chain");
 				(new RdtFilterChainBuilder()).buildFilterChain(chain);
+			}
 		} finally {
 			session.setTrafficMask(mask);
 		}
+		*/
 	}
 
 	@Override

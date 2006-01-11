@@ -20,6 +20,8 @@ public class RdtFilterChainBuilder implements IoFilterChainBuilder {
 	// filter name fields
 	public static final String rdtCODEC = "rdtProtocolCodec";
 	
+	// shared protocol codec filter
+	private ProtocolCodecFilter codecFilter =  new ProtocolCodecFilter(codecFactory);
 	/**
 	 * 
 	 */
@@ -31,7 +33,7 @@ public class RdtFilterChainBuilder implements IoFilterChainBuilder {
 	 */
 	public void buildFilterChain(IoFilterChain chain) throws Exception {
 		
-		chain.addLast(rdtCODEC, new ProtocolCodecFilter(codecFactory));
+		chain.addLast(rdtCODEC, codecFilter);
 	}
 
 }

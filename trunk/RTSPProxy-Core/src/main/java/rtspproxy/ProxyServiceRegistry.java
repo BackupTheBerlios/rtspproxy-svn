@@ -37,12 +37,12 @@ import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
 import org.apache.mina.filter.ThreadPoolFilter;
-import org.apache.mina.transport.socket.nio.DatagramAcceptor;
 import org.apache.mina.transport.socket.nio.SocketAcceptor;
 
 import rtspproxy.config.Config;
 import rtspproxy.config.Parameter;
 import rtspproxy.lib.Singleton;
+import rtspproxy.transport.socket.nio.DatagramAcceptor;
 
 /**
  * Custom implementation of the ServiceRegistry interface. Creates an acceptor

@@ -13,11 +13,14 @@
 
 package rtspproxy.proxy;
 
+import java.util.HashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
+import rtspproxy.filter.tracking.RdtSessionToken;
 import rtspproxy.lib.Exceptions;
 import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspMessage;
@@ -176,14 +179,15 @@ public class ServerSide extends IoHandlerAdapter
 		proxyHandler.passToClient( response );
 	}
 
-	public void onResponseSetup( ProxyHandler proxyHandler, RtspResponse response )
+	public void onResponseSetup( ProxyHandler proxyHandler, RtspResponse response, 
+			HashMap<String, Object> passAlongAttrs )
 	{
 		log.debug( "RESPONSE SETUP" );
 		if ( response.getCode() != RtspCode.OK )
 			// Report the error to the client
 			proxyHandler.passToClient( response );
 		else
-			proxyHandler.passSetupResponseToClient( response );
+			proxyHandler.passSetupResponseToClient( response, passAlongAttrs );
 	}
 
 	public void onResponseTeardown( ProxyHandler proxyHandler, RtspResponse response )
@@ -277,7 +281,7 @@ public class ServerSide extends IoHandlerAdapter
 						onResponseSetParam( proxyHandler, response );
 						break;
 					case SETUP:
-						onResponseSetup( proxyHandler, response );
+						onResponseSetup( proxyHandler, response, buildPassAlongAttrs(session) );
 						break;
 					case TEARDOWN:
 						onResponseTeardown( proxyHandler, response );
@@ -289,5 +293,17 @@ public class ServerSide extends IoHandlerAdapter
 			default:
 				break;
 		}
+	}
+	
+	private HashMap<String, Object> buildPassAlongAttrs(IoSession session) {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		
+		if(session.containsAttribute(RdtSessionToken.SessionAttribute)) {
+			log.debug("passing session attribute " + RdtSessionToken.SessionAttribute);
+			map.put(RdtSessionToken.SessionAttribute, 
+					session.getAttribute(RdtSessionToken.SessionAttribute));
+		}
+		
+		return map;
 	}
 }

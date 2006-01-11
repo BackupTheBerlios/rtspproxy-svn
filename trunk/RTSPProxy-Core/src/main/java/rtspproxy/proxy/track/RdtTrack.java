@@ -84,7 +84,7 @@ public class RdtTrack extends Track
 		// packet.reset();
 		// log.debug("Packet: " + packet );
 		// log.debug( "Written bytes1: " + rdtServerSession.getWrittenBytes() );
-		rdtServerSession.write( packet.toByteBuffer() );
+		rdtServerSession.write( packet );
 		// log.debug( "Written bytes2: " + rdtServerSession.getWrittenBytes() );
 	}
 

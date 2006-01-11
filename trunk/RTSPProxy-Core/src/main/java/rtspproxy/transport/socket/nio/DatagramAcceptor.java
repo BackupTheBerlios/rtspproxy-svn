@@ -20,7 +20,7 @@ package rtspproxy.transport.socket.nio;
 
 import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.support.DelegatedIoAcceptor;
-import org.apache.mina.transport.socket.nio.support.DatagramAcceptorDelegate;
+import rtspproxy.transport.socket.nio.support.DatagramAcceptorDelegate;
 
 /**
  * {@link IoAcceptor} for datagram transport (UDP/IP).

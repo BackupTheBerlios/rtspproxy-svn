@@ -35,6 +35,9 @@ import rtspproxy.filter.accounting.AccountingFilter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
 import rtspproxy.filter.rewrite.UrlRewritingFilter;
+import rtspproxy.filter.tracking.RdtSessionClientTrackingFilter;
+import rtspproxy.filter.tracking.RdtSessionServerTrackingFilter;
+import rtspproxy.filter.tracking.RdtSessionTrackingFilter;
 import rtspproxy.lib.Side;
 import rtspproxy.rtsp.RtspDecoder;
 import rtspproxy.rtsp.RtspEncoder;
@@ -70,8 +73,12 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 
 	public static final String rtspCodecNAME = "rtspCodec";
 
-	public static final String rewriteFilterNAME = "rewriteFilter";
-
+	private static final RdtSessionClientTrackingFilter rdtClientTrackingFilter = 
+		new RdtSessionClientTrackingFilter();
+	
+	private static final RdtSessionServerTrackingFilter rdtServerTrackingFilter = 
+		new RdtSessionServerTrackingFilter();
+	
 	/**
 	 * IP Address filter.
 	 * <p>
@@ -178,5 +185,16 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 			chain.addAfter( rtspCodecNAME, urlRewritingFilter.getChainName(), urlRewritingFilter );
 			
 		}
+	}
+
+	protected void addRdtSessionTrackingFilter( IoFilterChain chain, Side side )
+	{
+		RdtSessionTrackingFilter filter = null;
+		if(side == Side.Client)
+			filter = rdtClientTrackingFilter;
+		else
+			filter = rdtServerTrackingFilter;
+		
+		chain.addAfter(rtspCodecNAME, filter.getChainName(), filter);
 	}
 }

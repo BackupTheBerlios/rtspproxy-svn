@@ -25,6 +25,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.channels.UnresolvedAddressException;
+import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -279,7 +280,8 @@ public class ProxyHandler
 	 * @param response
 	 *            Setup response message
 	 */
-	public void passSetupResponseToClient( RtspResponse response )
+	public void passSetupResponseToClient( RtspResponse response, 
+			HashMap<String, Object> passAlongAttrs )
 	{
 		// If there isn't yet a proxySession, create a new one
 		ProxySession proxySession = ProxySession.getByServerSessionID( response
@@ -296,6 +298,12 @@ public class ProxyHandler
 			proxySession.setServerSessionId( response.getHeader( "Session" ) );
 		}
 
+		// enter assed along attributes into session
+		for(String attr : passAlongAttrs.keySet()) {
+			log.debug("passing attribute " + attr + " into client session");
+			clientSession.setAttribute(attr, passAlongAttrs.get(attr));
+		}
+		
 		// Modify transport parameters for the client.
 		RtspTransportList rtspTransportList = new RtspTransportList( response
 				.getHeader( "Transport" ) );
@@ -354,9 +362,10 @@ public class ProxyHandler
 		} else if ( transport.getTransportProtocol() == TransportProtocol.RDT ) {
 
 			// Create a new Track object
+			/*
 			RdtTrack track = proxySession.addRdtTrack( (String) clientSession
 					.getAttribute( setupUrlATTR ) );
-
+					*/
 			// Setting client and server info on the track
 			InetAddress serverAddress = null;
 			if ( transport.getSource() != null ) {
@@ -370,7 +379,7 @@ public class ProxyHandler
 						.getAddress();
 			}
 			int[] serverPorts = transport.getServerPort();
-			track.setServerAddress( serverAddress, serverPorts[0] );
+			// track.setServerAddress( serverAddress, serverPorts[0] );
 
 			InetAddress clientAddress = null;
 			try {
@@ -382,7 +391,7 @@ public class ProxyHandler
 			}
 			int clientRdtPort = ((Integer) clientSession.getAttribute( clientRdtPortATTR ))
 					.intValue();
-			track.setClientAddress( clientAddress, clientRdtPort );
+			// track.setClientAddress( clientAddress, clientRdtPort );
 
 			if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
 				log.debug( "Transport is TCP based." );

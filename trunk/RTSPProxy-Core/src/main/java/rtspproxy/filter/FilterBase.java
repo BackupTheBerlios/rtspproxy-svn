@@ -42,12 +42,23 @@ public class FilterBase extends IoFilterAdapter {
 	// MBean name assigned by JMX interface
 	private ObjectName mbeanName;
 	
+	// chain name of filter
+	private String chainName;
+	
 	/**
 	 * 
 	 */
 	public FilterBase(String filterName, String className, String typeName) {
 		this.filterName = filterName;
 		this.className = className;
+		this.typeName = typeName;
+	}
+
+	/**
+	 * 
+	 */
+	public FilterBase(String filterName, String typeName) {
+		this.filterName = filterName;
 		this.typeName = typeName;
 	}
 
@@ -63,7 +74,7 @@ public class FilterBase extends IoFilterAdapter {
 	 */
 	public final void suspend() {
 		this.running = false;
-		logger.info("filter " + this.typeName + "/" + this.className + " suspended");
+		logger.info(getChainName() + " suspended");
 	}
 	
 	/**
@@ -71,7 +82,7 @@ public class FilterBase extends IoFilterAdapter {
 	 */
 	public final void resume() {
 		this.running = true;
-		logger.info("filter " + this.typeName + "/" + this.className + " resumed");
+		logger.info(getChainName() + " resumed");
 	}
 	
 	/**
@@ -130,7 +141,20 @@ public class FilterBase extends IoFilterAdapter {
 	 * get the chain name for the filter. 
 	 */
 	public String getChainName() {
-		return this.filterName +  "/" + this.typeName + "/" + this.className;
+		
+		if (this.chainName == null) {
+			StringBuffer buf = new StringBuffer(this.filterName);
+
+			buf.append("/");
+			buf.append(this.typeName);
+			if (this.className != null) {
+				buf.append("/");
+				buf.append(this.className);
+			}
+
+			this.chainName = buf.toString();
+		}
+		return this.chainName;
 	}
 	
 	/**
