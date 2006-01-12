@@ -6,6 +6,7 @@ package rtspproxy.filter.rewrite;
 import org.apache.log4j.Logger;
 
 import java.net.MalformedURLException;
+import java.net.SocketAddress;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.dom4j.Element;
 
 import rtspproxy.config.AAAConfigurable;
 import rtspproxy.filter.GenericProviderAdapter;
+import rtspproxy.rtsp.RtspRequest;
 
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
@@ -36,7 +38,7 @@ public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 	/* (non-Javadoc)
 	 * @see rtspproxy.filter.rewrite.UrlRewritingProvider#rewriteRequestUrl(java.net.URL)
 	 */
-	public URL rewriteRequestUrl(URL request) {
+	public URL rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client) {
 		URL rewritten = null;
 		String req = request.toString();
 		
