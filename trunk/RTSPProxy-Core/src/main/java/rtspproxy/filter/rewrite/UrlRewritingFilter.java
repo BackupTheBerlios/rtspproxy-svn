@@ -54,9 +54,9 @@ public abstract class UrlRewritingFilter extends FilterBase {
 	/**
 	 * process a request message
 	 */
-	protected void processRequest(RtspRequest req) {
+	protected void processRequest(IoSession session, RtspRequest req) {
 		if (req.getUrl() != null) {
-			URL rewritten = this.provider.rewriteRequestUrl(req.getUrl());
+			URL rewritten = this.provider.rewriteRequestUrl(req.getUrl(), req.getVerb(), session.getRemoteAddress());
 
 			if (rewritten != null) {
 				logger.debug("changed request URL from '" + req.getUrl()

@@ -17,9 +17,11 @@
  */
 package rtspproxy.filter.rewrite;
 
+import java.net.SocketAddress;
 import java.net.URL;
 
 import rtspproxy.filter.GenericProvider;
+import rtspproxy.rtsp.RtspRequest;
 
 /**
  * This filter is used to rewrite the requested URL before passing it
@@ -32,7 +34,7 @@ public interface UrlRewritingProvider extends GenericProvider {
 	 * rewrite the request URL.
 	 * @return a replacement URL or null if the URL is not to be modified.
 	 */
-	public URL rewriteRequestUrl(URL request);
+	public URL rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client);
 
 	/**
 	 * rewrite an URL in a response header.

@@ -46,7 +46,7 @@ public class ClientUrlRewritingFilter extends UrlRewritingFilter {
 				RtspMessage rtspMessage = (RtspMessage) message;
 
 				if (rtspMessage.getType() == RtspMessage.Type.TypeRequest)
-					processRequest((RtspRequest)rtspMessage);
+					processRequest(session, (RtspRequest)rtspMessage);
 			} else {
 					logger.error("Expecting a RtspMessage. Received a "
 						+ message.getClass().getName());
