@@ -11,6 +11,7 @@ import org.apache.mina.common.IoFilter.NextFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rtspproxy.proxy.ProxyHandler;
 import rtspproxy.proxy.track.RdtTrack;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspTransport;
@@ -41,6 +42,8 @@ public class RdtSessionClientTrackingFilter extends RdtSessionTrackingFilter {
 	@Override
 	public void messageSent(NextFilter nextFilter, IoSession session, Object message) throws Exception {
 		handleMessage(session, message);
+		
+		logger.debug("sending response to client: " + message);
 		
 		nextFilter.messageSent(session, message);
 	}
@@ -75,34 +78,34 @@ public class RdtSessionClientTrackingFilter extends RdtSessionTrackingFilter {
 	protected void handleTransportRdtUdpUnicast(IoSession session, RtspTransport transport) {
 		logger.debug("handling client-side RDT/UDP/unicast header, header=" + transport);
 		
-		if(session.containsAttribute(RdtSessionToken.SessionAttribute)) {
-			RdtSessionToken token = (RdtSessionToken)session.getAttribute(RdtSessionToken.SessionAttribute);
+		try {
+			if(ProxyHandler.containsSharedSessionAttribute(session, RdtSessionToken.SessionAttribute)) {
+				RdtSessionToken token = (RdtSessionToken)ProxyHandler.getSharedSessionAttribute(session, 
+						RdtSessionToken.SessionAttribute);
 
-			logger.debug("have session token, server_addr=" + token.getRemoteServer() + ", server_port="
-					+ token.getRemotePort() + ", client_addr=" + session.getRemoteAddress() + 
-					", client_port=" + transport.getClientPort()[0]);
-			
-			// now we can create and initialise 
-			URL url = (URL)session.getAttribute(SessionAttribute);
-			
-			InetSocketAddress serverAddr = 
-				new InetSocketAddress(((InetSocketAddress)token.getRemoteServer()).getAddress(), token.getRemotePort());
-			
-			RdtTrack track;
-			if((track = (RdtTrack)RdtTrack.getByServerAddress(serverAddr)) ==  null) {
-				logger.debug("creating new RdtTrack");
+				logger.debug("have session token, server_addr=" + token.getRemoteServer() + ", server_port="
+						+ token.getRemotePort() + ", client_addr=" + session.getRemoteAddress() + 
+						", client_port=" + transport.getClientPort()[0]);
 				
-				track = new RdtTrack(url.toString());
-			
-				track.setClientAddress(((InetSocketAddress)session.getRemoteAddress()).getAddress(), 
-						transport.getClientPort()[0]);
-				track.setServerAddress(serverAddr.getAddress(), serverAddr.getPort());
-			} /*else {
-				logger.debug("patching client parameter into existing track");
-
-				track.setClientAddress(((InetSocketAddress)session.getRemoteAddress()).getAddress(), 
-						transport.getClientPort()[0]);
-			} */
+				// now we can create and initialise 
+				URL url = (URL)session.getAttribute(SessionAttribute);
+				
+				InetSocketAddress serverAddr = 
+					new InetSocketAddress(((InetSocketAddress)token.getRemoteServer()).getAddress(), token.getRemotePort());
+				
+				RdtTrack track;
+				if((track = (RdtTrack)RdtTrack.getByServerAddress(serverAddr)) ==  null) {
+					logger.debug("creating new RdtTrack");
+					
+					track = new RdtTrack(url.toString());
+				
+					track.setClientAddress(((InetSocketAddress)session.getRemoteAddress()).getAddress(), 
+							transport.getClientPort()[0]);
+					track.setServerAddress(serverAddr.getAddress(), serverAddr.getPort());
+				}
+			}
+		} catch (Throwable t) {
+			logger.error("runtime exception in RDP session handling code", t);
 		}
 	}
 }

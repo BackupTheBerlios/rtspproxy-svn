@@ -76,6 +76,9 @@ public abstract class RdtPacket {
 		}
 	};
 	
+	// id field
+	private int id = IdDispenser.nextId();
+	
 	// type field
 	private Type type = Type.None;
 	
@@ -187,7 +190,7 @@ public abstract class RdtPacket {
 	public final String toString() {
 		StringBuffer buf = new StringBuffer();
 
-		buf.append("packet[type=" + type);
+		buf.append("packet[id=" + id +" type=" + type);
 		buf.append(" needReliable=" + this.needReliable);
 		buf.append(" streamId=" + this.streamId);
 		toStringHelper(buf);
@@ -261,4 +264,22 @@ public abstract class RdtPacket {
 		return buf;
 	}
 	
+	/**
+	 * Simple ID counter
+	 */
+	private static class IdDispenser {
+		private int curId = 0;
+		
+		private static IdDispenser instance = new IdDispenser();
+		
+		private IdDispenser() {}
+		
+		public static final int nextId() {
+			return instance.getNextId();
+		}
+		
+		private synchronized int getNextId() {
+			return curId++;
+		}
+	}
 }

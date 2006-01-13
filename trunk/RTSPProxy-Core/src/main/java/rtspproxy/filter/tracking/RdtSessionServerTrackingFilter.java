@@ -7,6 +7,7 @@ import org.apache.mina.common.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rtspproxy.proxy.ProxyHandler;
 import rtspproxy.rtsp.RtspTransport;
 
 /**
@@ -15,7 +16,7 @@ import rtspproxy.rtsp.RtspTransport;
  */
 public class RdtSessionServerTrackingFilter extends RdtSessionTrackingFilter {
 
-	private static Logger logger = LoggerFactory.getLogger(RdtSessionClientTrackingFilter.class);
+	private static Logger logger = LoggerFactory.getLogger(RdtSessionServerTrackingFilter.class);
 	
 	/**
 	 * @param typeName
@@ -38,7 +39,8 @@ public class RdtSessionServerTrackingFilter extends RdtSessionTrackingFilter {
 	protected void handleTransportRdtUdpUnicast(IoSession session, RtspTransport transport) {
 		logger.debug("handling server-side RDT/UDP/unicast header, header=" + transport);
 		
-		session.setAttribute(RdtSessionToken.SessionAttribute, new RdtSessionToken(session.getRemoteAddress(),
+		ProxyHandler.setSharedSessionAttribute(session, RdtSessionToken.SessionAttribute, 
+				new RdtSessionToken(session.getRemoteAddress(),
 				transport.getServerPort()[0]));
 	}
 

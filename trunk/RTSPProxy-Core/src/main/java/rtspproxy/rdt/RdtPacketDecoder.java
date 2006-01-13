@@ -65,6 +65,7 @@ public class RdtPacketDecoder {
 		seqHi = data[ind++];
 		seqLo = data[ind++];
 		sequence = decodeShort(seqHi, seqLo);
+		logger.debug("decoded sequence: " + Integer.toHexString(sequence));
 		
 		if(seqHi < 0 ) {
 			logger.debug("decoding control packet");

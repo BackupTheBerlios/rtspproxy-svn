@@ -7,6 +7,8 @@ import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 
+import rtspproxy.ProxyServiceRegistry;
+
 /**
  * Builds filter chain operating on RDT connection.
  * 
@@ -32,7 +34,6 @@ public class RdtFilterChainBuilder implements IoFilterChainBuilder {
 	 * @see org.apache.mina.common.IoFilterChainBuilder#buildFilterChain(org.apache.mina.common.IoFilterChain)
 	 */
 	public void buildFilterChain(IoFilterChain chain) throws Exception {
-		
 		chain.addLast(rdtCODEC, codecFilter);
 	}
 

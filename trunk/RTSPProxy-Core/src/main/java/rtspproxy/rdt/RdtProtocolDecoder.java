@@ -33,7 +33,7 @@ public class RdtProtocolDecoder implements ProtocolDecoder {
 		RdtPacket rdtPacket = RdtPacketDecoder.decode(buffer);
 	
 		if(logger.isDebugEnabled())
-			logger.debug("received RDT packet: " + rdtPacket);
+			logger.debug("received RDT packet: " + rdtPacket + " from client " + ioSession.getRemoteAddress());
 
 		if(rdtPacket == null)
 			throw new IllegalStateException("RDT network packet cannot be decoded");

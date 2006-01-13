@@ -58,7 +58,7 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
 	public static final String threadPoolFilterNAME = "threadPoolFilter";
 
 	/** Thread pool instance that will be added to all acceptors. */
-	private final ThreadPoolFilter threadPoolFilter = new ThreadPoolFilter();
+	private final ThreadPoolFilter threadPoolFilter = new ThreadPoolFilter("sharedThreadPoolFilter");
 
 	/** All the services, mapped by name. */
 	private final ConcurrentMap<String, ProxyService> services = new ConcurrentHashMap<String, ProxyService>();
@@ -273,11 +273,17 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
 	}
 
 	/**
+	 * @param service 
+	 * @param service 
 	 * @return the shared thread pool filter instance
 	 */
-	public IoFilter getThreadPoolFilterInstance()
+	public IoFilter getThreadPoolFilterInstance(ProxyService service)
 	{
-		return threadPoolFilter;
+		ThreadPoolFilter filter = service.getThreadPoolFilter();
+
+		if(filter == null)
+			filter = threadPoolFilter;
+		return filter;
 	}
 
 	/**
@@ -312,9 +318,11 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
 		{
 			chain.getSession().setAttribute( ProxyService.SERVICE, service );
 
-			IoFilter threadPoolFilter = ProxyServiceRegistry.getInstance()
-					.getThreadPoolFilterInstance();
-			chain.addFirst( threadPoolFilterNAME, threadPoolFilter );
+			if(service.wantThreadPoolFilter()) {
+				IoFilter threadPoolFilter = ProxyServiceRegistry.getInstance()
+				.getThreadPoolFilterInstance(service);
+				chain.addFirst( threadPoolFilterNAME, threadPoolFilter );
+			}
 			originalBuilder.buildFilterChain( chain );
 		}
 	}

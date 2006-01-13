@@ -31,10 +31,10 @@ public class RdtProtocolEncoder implements ProtocolEncoder {
 		RdtPacket rdtPacket = (RdtPacket)packet;
 
 		if(logger.isDebugEnabled())
-			logger.debug("sending RDP packet: " + rdtPacket);
+			logger.debug("sending RDP packet: " + rdtPacket + " to client " + ioSession.getRemoteAddress());
 		
 		out.write(rdtPacket.toByteBuffer());
-		out.flush();
+		// out.flush();
 	}
 
 	/* (non-Javadoc)

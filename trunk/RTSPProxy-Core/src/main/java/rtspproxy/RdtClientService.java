@@ -24,6 +24,7 @@ import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
+import org.apache.mina.filter.ThreadPoolFilter;
 
 import rtspproxy.config.Config;
 import rtspproxy.config.Parameter;
@@ -111,6 +112,24 @@ public final class RdtClientService extends ProxyService
 	@Override
 	public IoFilterChainBuilder getFilterChainBuilder() {
 		return this.filterChainBuilder;
+	}
+
+	/* (non-Javadoc)
+	 * @see rtspproxy.ProxyService#getThreadPoolFilter()
+	 */
+	@Override
+	public ThreadPoolFilter getThreadPoolFilter() {
+		ThreadPoolFilter filter = new ThreadPoolFilter("rdtClientThreadPoolFilter");
+		
+		filter.setMaximumPoolSize(5);
+		return filter;
+	}
+
+	/**
+	 * flag if the service wants to use a ThreadPoolFilter at all
+	 */
+	public boolean wantThreadPoolFilter() {
+		return false;
 	}
 
 }

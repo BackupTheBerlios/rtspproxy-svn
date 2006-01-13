@@ -32,6 +32,7 @@ import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
+import org.apache.mina.filter.ThreadPoolFilter;
 
 import rtspproxy.config.Parameter;
 import rtspproxy.lib.Exceptions;
@@ -265,5 +266,21 @@ public abstract class ProxyService extends Singleton implements Observer
 			Exceptions.logStackTrace( e );
 			throw new RuntimeException( e );
 		}
+	}
+
+	/**
+	 * service may provide their own ThreadPoolFilter instances.
+	 * @return a ThreadPoolFilter instance or null if the service wants to use the shared instance.
+	 * 
+	 */
+	public ThreadPoolFilter getThreadPoolFilter() {
+		return null;
+	}
+	
+	/**
+	 * flag if the service wants to use a ThreadPoolFilter at all
+	 */
+	public boolean wantThreadPoolFilter() {
+		return true;
 	}
 }

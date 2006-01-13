@@ -75,6 +75,10 @@ public class ProxyHandler
 
 	private IoSession serverSession = null;
 
+	private HashMap<String, Object> sharedSessionObjects = new HashMap<String, Object>();
+	
+	private static final String sharedSessionAttribute = "__SharedSessionArttributes";
+	
 	/**
 	 * Creates a new ProxyHandler from a client side protocol session.
 	 * 
@@ -83,6 +87,7 @@ public class ProxyHandler
 	public ProxyHandler( IoSession clientSession )
 	{
 		this.clientSession = clientSession;
+		this.clientSession.setAttribute(sharedSessionAttribute, sharedSessionObjects);
 	}
 
 	public void passToServer( RtspMessage message )
@@ -280,8 +285,7 @@ public class ProxyHandler
 	 * @param response
 	 *            Setup response message
 	 */
-	public void passSetupResponseToClient( RtspResponse response, 
-			HashMap<String, Object> passAlongAttrs )
+	public void passSetupResponseToClient( RtspResponse response )
 	{
 		// If there isn't yet a proxySession, create a new one
 		ProxySession proxySession = ProxySession.getByServerSessionID( response
@@ -296,12 +300,6 @@ public class ProxyHandler
 
 		if ( proxySession.getServerSessionId() == null ) {
 			proxySession.setServerSessionId( response.getHeader( "Session" ) );
-		}
-
-		// enter assed along attributes into session
-		for(String attr : passAlongAttrs.keySet()) {
-			log.debug("passing attribute " + attr + " into client session");
-			clientSession.setAttribute(attr, passAlongAttrs.get(attr));
 		}
 		
 		// Modify transport parameters for the client.
@@ -468,9 +466,45 @@ public class ProxyHandler
 		// Save current ProxyHandler into the ProtocolSession
 		serverSession.setAttribute( ProxyHandler.ATTR, this );
 
+		serverSession.setAttribute(sharedSessionAttribute, sharedSessionObjects);
+		
 		log.debug( "Server session: " + serverSession.getAttributeKeys() );
 	}
 
+	/**
+	 * set an object in the shared objects map
+	 */
+	public static void setSharedSessionAttribute(IoSession session, String name, Object value) {
+		HashMap<String, Object> map = (HashMap<String, Object>)session.getAttribute(sharedSessionAttribute);
+		
+		synchronized (map) {
+			map.put(name, value);
+		}
+	}
+	
+	public static Object getSharedSessionAttribute(IoSession session, String name) {
+		Object v = null;
+		HashMap<String, Object> map = (HashMap<String, Object>)session.getAttribute(sharedSessionAttribute);
+		
+		synchronized (map) {
+			v = map.get(name);
+		}
+		
+		return v;
+	}
+	
+	public static final boolean containsSharedSessionAttribute(IoSession session, String name) {
+		boolean v = false;
+		HashMap<String, Object> map = (HashMap<String, Object>)session.getAttribute(sharedSessionAttribute);
+		
+		synchronized (map) {
+			v = map.containsKey(name);
+		}
+		
+		return v;
+		
+	}
+	
 	/**
 	 * Closes both sides of communication.
 	 */

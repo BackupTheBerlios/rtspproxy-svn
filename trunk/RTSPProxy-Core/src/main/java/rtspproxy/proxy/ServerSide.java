@@ -179,15 +179,14 @@ public class ServerSide extends IoHandlerAdapter
 		proxyHandler.passToClient( response );
 	}
 
-	public void onResponseSetup( ProxyHandler proxyHandler, RtspResponse response, 
-			HashMap<String, Object> passAlongAttrs )
+	public void onResponseSetup( ProxyHandler proxyHandler, RtspResponse response )
 	{
 		log.debug( "RESPONSE SETUP" );
 		if ( response.getCode() != RtspCode.OK )
 			// Report the error to the client
 			proxyHandler.passToClient( response );
 		else
-			proxyHandler.passSetupResponseToClient( response, passAlongAttrs );
+			proxyHandler.passSetupResponseToClient( response );
 	}
 
 	public void onResponseTeardown( ProxyHandler proxyHandler, RtspResponse response )
@@ -281,7 +280,7 @@ public class ServerSide extends IoHandlerAdapter
 						onResponseSetParam( proxyHandler, response );
 						break;
 					case SETUP:
-						onResponseSetup( proxyHandler, response, buildPassAlongAttrs(session) );
+						onResponseSetup( proxyHandler, response );
 						break;
 					case TEARDOWN:
 						onResponseTeardown( proxyHandler, response );
@@ -293,17 +292,5 @@ public class ServerSide extends IoHandlerAdapter
 			default:
 				break;
 		}
-	}
-	
-	private HashMap<String, Object> buildPassAlongAttrs(IoSession session) {
-		HashMap<String, Object> map = new HashMap<String, Object>();
-		
-		if(session.containsAttribute(RdtSessionToken.SessionAttribute)) {
-			log.debug("passing session attribute " + RdtSessionToken.SessionAttribute);
-			map.put(RdtSessionToken.SessionAttribute, 
-					session.getAttribute(RdtSessionToken.SessionAttribute));
-		}
-		
-		return map;
 	}
 }
