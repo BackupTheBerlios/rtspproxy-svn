@@ -261,8 +261,8 @@ public class RdtPacketDecoder {
 			if((i % 16) == 0)
 				buf.append('\n');
 			
-			buf.append(digits[data[i] / 16]);
-			buf.append(digits[data[i] % 16]);
+			buf.append(digits[(data[i] & 0xff) / 16]);
+			buf.append(digits[(data[i] & 0xff) % 16]);
 			if((i % 16) != 0)
 				buf.append(' ');
 		}
