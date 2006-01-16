@@ -35,14 +35,14 @@ public class RdtPacketDecoder {
 		buffer.rewind();
 		buffer.get(data);
 
-		return decode(data, 0, 0);
+		return decode(data, 0);
 	}
 
 	/**
 	 * decode packet
 	 * @param buffer the byte buffer to decode packet from
 	 */
-	public static RdtPacket decode(byte[] data, int ind, int depth) {
+	public static RdtPacket decode(byte[] data, int ind) {
 		RdtPacket packet = null;
 		byte markerByte;
 		byte seqLo, seqHi;
@@ -51,11 +51,8 @@ public class RdtPacketDecoder {
 		short packetLength = -1;
 		int payloadSize = -1;
 
-		if(depth > 1) {
-			logger.error("detected packet-decoding recursion overrun, aborting");
-			
-			return null;
-		}
+		if(logger.isDebugEnabled()) 
+			logger.debug("decoding packet data: " + formatByteArray(data));
 		
 		// process marker byte
 		markerByte = data[ind++];
@@ -67,7 +64,7 @@ public class RdtPacketDecoder {
 		sequence = decodeShort(seqHi, seqLo);
 		logger.debug("decoded sequence: " + Integer.toHexString(sequence));
 		
-		if(seqHi < 0 ) {
+		if((seqHi & 0xff) == 0xff ) {
 			logger.debug("decoding control packet");
 
 			// extract streamid from marker byte
@@ -80,7 +77,7 @@ public class RdtPacketDecoder {
 			case RttRequest:
 				// process packet length (if included)
 				if(lengthIncluded) {
-					packetLength = decodeShort(data, ind);
+					packetLength = (short)(decodeShort(data, ind) - 5);
 					ind += 2;
 				}
 				
@@ -89,7 +86,7 @@ public class RdtPacketDecoder {
 			case RttResponse:
 				// process packet length (if included)
 				if(lengthIncluded) {
-					packetLength = decodeShort(data, ind);
+					packetLength = (short)(decodeShort(data, ind) - 5);
 					ind += 2;
 				}
 				
@@ -108,19 +105,20 @@ public class RdtPacketDecoder {
 			case LatencyReport:
 				// process packet length (if included)
 				if(lengthIncluded) {
-					packetLength = decodeShort(data, ind);
+					packetLength = (short)(decodeShort(data, ind) - 5);
 					ind += 2;
 				}
 				
 				int serverTimeout = decodeInt(data, ind);
-				
 				ind += 4;
+				if(lengthIncluded)
+					packetLength -= 4;
 				packet = new RdtLatencyReportPacket(serverTimeout);
 				break;
 			case Ack:
 				// process packet length (if included)
 				if(lengthIncluded) {
-					packetLength = decodeShort(data, ind);
+					packetLength = (short)(decodeShort(data, ind) -  5);
 					ind += 2;
 				}
 				
@@ -160,7 +158,7 @@ public class RdtPacketDecoder {
 			// data packet
 			// process packet length (if included)
 			if(lengthIncluded) {
-				packetLength = decodeShort(data, ind);
+				packetLength = (short)(decodeShort(data, ind) - 5);
 				ind += 2;
 			}
 			
@@ -184,18 +182,19 @@ public class RdtPacketDecoder {
 			ind += 4;
 			
 			// process total reliable count
+			/*
 			if(lengthIncluded)
 				packetLength -= 2;
-
+				*/
 			packet = new RdtDataPacket(needReliable, isReliable, streamId,
 					sequence, backToBack, slowData, asmRule, timestamp);
 			if(needReliable) {
 				short totalReliable = decodeShort(data, ind);
 
 				ind += 2;
-				((RdtDataPacket)packet).setTotalReliable(totalReliable);
 				if(lengthIncluded)
 					packetLength -= 2;
+				((RdtDataPacket)packet).setTotalReliable(totalReliable);
 			}
 
 			payloadSize = (lengthIncluded ? packetLength : (data.length - ind));
@@ -207,7 +206,7 @@ public class RdtPacketDecoder {
 			// handle attached subpacket
 			logger.debug("handling attached sub-packet");
 			
-			packet.setSubPacket(decode(data, ind, depth+1));
+			packet.setSubPacket(decode(data, ind));
 		}
 		
 		if(logger.isDebugEnabled())
