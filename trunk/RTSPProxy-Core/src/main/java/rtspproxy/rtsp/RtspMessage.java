@@ -189,6 +189,15 @@ public abstract class RtspMessage
 	 * @param other
 	 *            buffer with content to be appended
 	 */
+	public void appendToBuffer( String other )
+	{
+		this.buffer.append( other );
+	}
+
+	/**
+	 * @param other
+	 *            buffer with content to be appended
+	 */
 	public void appendToBuffer( CharBuffer other )
 	{
 		this.buffer.append( other );

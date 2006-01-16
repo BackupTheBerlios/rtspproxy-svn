@@ -32,6 +32,9 @@ public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 	// map with url from-->to prefix mapping (used in rewriting request URL)
 	private HashMap<String, String> forwardMappings = new HashMap<String, String>();
 	
+	// map with url from-->to prefix mapping (used in rewriting request URL)
+	private HashMap<URL, URL> optionsForwardMappings = new HashMap<URL, URL>();
+	
 	// map with url to-->from prefix mapping (used in rewriting response URL)
 	private HashMap<String, String> reverseMappings = new HashMap<String, String>();
 	
@@ -42,7 +45,17 @@ public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 		URL rewritten = null;
 		String req = request.toString();
 		
-		logger.debug("checking request URL: " + req);
+		logger.debug("checking request URL: " + req + ", verb=" + verb);
+		
+		if(verb == RtspRequest.Verb.OPTIONS) {
+			logger.debug("handling OPTIONS request");
+			
+			if((rewritten = this.optionsForwardMappings.get(request)) != null) {
+				logger.debug("found special OPTIONS rewrite URL: " + rewritten);
+				
+				return rewritten;
+			}
+		}
 		for(String prefix : this.forwardMappings.keySet()) {
 			if(req.startsWith(prefix)) {
 				logger.debug("found prefix match on " + prefix);
@@ -105,6 +118,26 @@ public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 
 				this.forwardMappings.put(from, to);
 				this.reverseMappings.put(to, from);
+			} else if(el.getName().equals("map-options")) {
+				Element fromEl = el.element("from");
+				Element toEl = el.element("to");
+				
+				if(fromEl == null || toEl == null)
+					throw new IllegalArgumentException("no from or to element in mapping configuration");
+				
+				String from = fromEl.getTextTrim();
+				String to = toEl.getTextTrim();
+				
+				if(from == null || from.length() == 0 || to == null || to.length() == 0)
+					throw new IllegalArgumentException("invalid from or to element in mapping configuration");
+				
+				URL fromUrl = new URL(from);
+				URL toUrl = new URL(to);
+				
+				this.optionsForwardMappings.put(new URL(fromUrl.getProtocol(), fromUrl.getHost(), 
+						fromUrl.getPort(), "/"),
+						new URL(toUrl.getProtocol(), toUrl.getHost(), 
+								toUrl.getPort(), "/"));
 			}
 		}
 	}

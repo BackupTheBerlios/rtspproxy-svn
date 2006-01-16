@@ -89,7 +89,7 @@ public class RtspDecoder implements ProtocolDecoder
 		BufferedReader reader = null;
 
 		reader = new BufferedReader(new InputStreamReader( buffer.asInputStream(),
-				asciiCharset ), 256 );
+				asciiCharset ), 2048 );
 
 		// Retrieve status from session
 		ReadState state = (ReadState) session.getAttribute( readStateATTR );
@@ -106,7 +106,7 @@ public class RtspDecoder implements ProtocolDecoder
 					break;
 					*/
 
-				reader.mark(256);
+				reader.mark(2048);
 				String line = reader.readLine();
 				if ( line == null ) {
 					// there's no more data in the buffer
@@ -125,6 +125,7 @@ public class RtspDecoder implements ProtocolDecoder
 					if(rtspMessage != null) {
 						log.debug("seen emtpy line, switching to Body");
 						state = ReadState.Body;
+						reader.mark(64);
 					} else {
 						log.debug("seen emtpy line, switching to Sync");
 						state = ReadState.Sync;						
@@ -230,6 +231,13 @@ public class RtspDecoder implements ProtocolDecoder
 						bufferContent.flip();
 						rtspMessage.appendToBuffer(bufferContent);
 						
+						// this is an ugly hack to avoid content underruns produced by bogus servers
+						if( rtspMessage.getBufferSize() == (bufferLen - 2))
+							rtspMessage.appendToBuffer("\r\n");
+						if( rtspMessage.getBufferSize() == (bufferLen - 1))
+							rtspMessage.appendToBuffer("\n");
+						
+						// terminate message here
 						if (rtspMessage.getBufferSize() >= bufferLen) {
 							// The RTSP message parsing is completed
 							state = ReadState.Dispatch;
