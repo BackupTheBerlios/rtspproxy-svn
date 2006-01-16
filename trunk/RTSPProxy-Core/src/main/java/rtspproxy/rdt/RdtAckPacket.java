@@ -48,7 +48,7 @@ public class RdtAckPacket extends RdtControlPacket {
 		if(isLengthIncluded()) {
 			// add 2 bytes for length to packet size of 3
 			// TODO find a cleaner way.
-			buf.put(encodeShort((short)5));
+			buf.put(encodeShort(calculatePacketLength((short)5)));
 		}
 		buf.limit(buf.position());
 		

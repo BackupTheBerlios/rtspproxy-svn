@@ -25,7 +25,7 @@ public class RdtStreamEndPacket extends RdtPacket {
 	 */
 	public RdtStreamEndPacket(boolean needReliable, byte streamId, boolean packetSent, boolean extFlag,
 			short streamEndSequenceNumber, int timestamp, short totalReliable) {
-		super(Type.StreamEnd, needReliable, streamId);
+		super(Type.StreamEnd, false, needReliable, streamId);
 		this.packetSent = packetSent;
 		this.extFlag = extFlag;
 		this.streamEndSequenceNumber = streamEndSequenceNumber;

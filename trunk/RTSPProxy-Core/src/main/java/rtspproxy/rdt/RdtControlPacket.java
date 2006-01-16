@@ -18,8 +18,6 @@ public abstract class RdtControlPacket extends RdtPacket {
 	 * @param streamId
 	 */
 	public RdtControlPacket(Type type, byte streamId) {
-		super(type, false, streamId);
+		super(type, false, false, streamId);
 	}
-
-
 }

@@ -110,23 +110,4 @@ public final class RdtServerService extends ProxyService
 	public IoFilterChainBuilder getFilterChainBuilder() {
 		return this.filterChainBuilder;
 	}
-
-	/* (non-Javadoc)
-	 * @see rtspproxy.ProxyService#getThreadPoolFilter()
-	 */
-	@Override
-	public ThreadPoolFilter getThreadPoolFilter() {
-		ThreadPoolFilter filter = new ThreadPoolFilter("rdtServerThreadPoolFilter");
-		
-		filter.setMaximumPoolSize(5);
-		return filter;
-	}
-
-	/**
-	 * flag if the service wants to use a ThreadPoolFilter at all
-	 */
-	public boolean wantThreadPoolFilter() {
-		return false;
-	}
-
 }

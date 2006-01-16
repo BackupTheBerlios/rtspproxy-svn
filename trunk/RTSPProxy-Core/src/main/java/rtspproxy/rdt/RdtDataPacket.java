@@ -19,9 +19,9 @@ public class RdtDataPacket extends RdtPacket {
 	private short totalReliable;
 	private short sequence;
 
-	public RdtDataPacket(boolean needReliable, boolean reliable, byte streamId, short sequence, boolean backToBack, 
-			boolean slowData, byte asmRule, int timestamp) {
-		super(Type.Data, needReliable, streamId);
+	public RdtDataPacket(boolean lengthRequired, boolean needReliable, boolean reliable, byte streamId, short sequence,
+			boolean backToBack,	boolean slowData, byte asmRule, int timestamp) {
+		super(Type.Data, lengthRequired, needReliable, streamId);
 		
 		this.reliable = reliable;
 		this.sequence = sequence;
@@ -158,12 +158,12 @@ public class RdtDataPacket extends RdtPacket {
 		buf.put(encodeShort(this.sequence));
 
 		if(isLengthIncluded()) {
-			short length = 8;
+			short length = 10;
 			
 			if(isNeedReliable())
 				length += 2;
 			
-			buf.put(encodeShort(length));
+			buf.put(encodeShort(calculatePacketLength(length)));
 		}
 		
 		if(this.backToBack)

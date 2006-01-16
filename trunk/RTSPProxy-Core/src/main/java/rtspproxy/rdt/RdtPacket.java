@@ -87,6 +87,9 @@ public abstract class RdtPacket {
 	
 	// need reliable flag
 	private boolean needReliable = false;
+	
+	// length required flag
+	private boolean lengthRequired;
 
 	// stream id
 	private byte streamId = -1;
@@ -97,10 +100,11 @@ public abstract class RdtPacket {
 	/**
 	 * constructor
 	 */
-	protected RdtPacket(Type type, boolean needReliable, byte streamId) {
+	protected RdtPacket(Type type, boolean lengthRequired, boolean needReliable, byte streamId) {
 		this.type = type;
 		this.needReliable = needReliable;
 		this.streamId = streamId;
+		this.lengthRequired = lengthRequired;
 	}
 	
 	/**
@@ -191,6 +195,7 @@ public abstract class RdtPacket {
 		StringBuffer buf = new StringBuffer();
 
 		buf.append("packet[id=" + id +" type=" + type);
+		buf.append(" lengthRequired=" + this.lengthRequired);
 		buf.append(" needReliable=" + this.needReliable);
 		buf.append(" streamId=" + this.streamId);
 		toStringHelper(buf);
@@ -235,7 +240,7 @@ public abstract class RdtPacket {
 	 * query if encoded packet should contain length field included
 	 */
 	protected boolean isLengthIncluded() {
-		return (this.subPacket != null);
+		return (this.lengthRequired || this.subPacket != null);
 	}
 	
 	/**
@@ -262,6 +267,18 @@ public abstract class RdtPacket {
 		buf[3] = (byte)(v & 0xff);
 		
 		return buf;
+	}
+	
+	/**
+	 * calculate the total packet length (including payload length, if payload is included)
+	 */
+	protected short calculatePacketLength(short hdrLength) {
+		short length = hdrLength;
+		
+		if(this.payload != null)
+			length += (short)payload.length;
+		
+		return length;
 	}
 	
 	/**

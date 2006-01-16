@@ -51,8 +51,10 @@ public class RdtPacketDecoder {
 		short packetLength = -1;
 		int payloadSize = -1;
 
+		/*
 		if(logger.isDebugEnabled()) 
 			logger.debug("decoding packet data: " + formatByteArray(data));
+		*/
 		
 		// process marker byte
 		markerByte = data[ind++];
@@ -186,7 +188,7 @@ public class RdtPacketDecoder {
 			if(lengthIncluded)
 				packetLength -= 2;
 				*/
-			packet = new RdtDataPacket(needReliable, isReliable, streamId,
+			packet = new RdtDataPacket(lengthIncluded, needReliable, isReliable, streamId,
 					sequence, backToBack, slowData, asmRule, timestamp);
 			if(needReliable) {
 				short totalReliable = decodeShort(data, ind);

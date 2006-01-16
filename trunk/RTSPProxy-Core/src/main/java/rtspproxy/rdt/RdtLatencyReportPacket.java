@@ -61,7 +61,7 @@ public class RdtLatencyReportPacket extends RdtControlPacket {
 		if(isLengthIncluded()) {
 			// add 2 bytes for length to packet size of 3
 			// TODO find a cleaner way.
-			buf.put(encodeShort((short)9));
+			buf.put(encodeShort(calculatePacketLength((short)9)));
 		}
 		buf.put(encodeInt(this.serverTimeout));
 		buf.limit(buf.position());
