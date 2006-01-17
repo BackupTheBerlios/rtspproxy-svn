@@ -39,6 +39,8 @@ public class ClientUrlRewritingFilter extends UrlRewritingFilter {
 	@Override
 	public void messageReceived(NextFilter nextFilter, IoSession session,
 			Object message) throws Exception {
+		boolean passOn = true;
+		
 		logger.debug("Received (pre-rewriting) message:\n" + message);
 
 		if (isRunning()) {
@@ -46,7 +48,7 @@ public class ClientUrlRewritingFilter extends UrlRewritingFilter {
 				RtspMessage rtspMessage = (RtspMessage) message;
 
 				if (rtspMessage.getType() == RtspMessage.Type.TypeRequest)
-					processRequest(session, (RtspRequest)rtspMessage);
+					passOn = processRequest(session, (RtspRequest)rtspMessage);
 			} else {
 					logger.error("Expecting a RtspMessage. Received a "
 						+ message.getClass().getName());
@@ -54,7 +56,8 @@ public class ClientUrlRewritingFilter extends UrlRewritingFilter {
 			logger.debug("Sent (post-rewriting) message:\n" + message);
 
 		}
-		nextFilter.messageReceived(session, message);
+		if(passOn)
+			nextFilter.messageReceived(session, message);
 	}
 
 

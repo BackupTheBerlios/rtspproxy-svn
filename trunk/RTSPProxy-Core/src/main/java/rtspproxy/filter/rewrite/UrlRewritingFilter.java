@@ -53,18 +53,37 @@ public abstract class UrlRewritingFilter extends FilterBase {
 	
 	/**
 	 * process a request message
+	 * @return true if the caller should pass the message on, false if the message should not be
+	 * passed on
 	 */
-	protected void processRequest(IoSession session, RtspRequest req) {
+	protected boolean processRequest(IoSession session, RtspRequest req) {
+		boolean passOn = true;
+		
 		if (req.getUrl() != null) {
-			URL rewritten = this.provider.rewriteRequestUrl(req.getUrl(), req.getVerb(), session.getRemoteAddress());
+			UrlRewritingResult result = this.provider.rewriteRequestUrl(req.getUrl(), req.getVerb(), 
+					session.getRemoteAddress()); 
+			
+			if(result != null) {
+				URL rewritten = result.getRewrittenUrl();
 
-			if (rewritten != null) {
-				logger.debug("changed request URL from '" + req.getUrl()
+				if (rewritten != null) {
+					logger.debug("changed request URL from '" + req.getUrl()
 						+ "' to '" + rewritten + "'");
 
-				req.setUrl(rewritten);
+					req.setUrl(rewritten);
+				} else if(result.getResponse() != null) {
+					RtspResponse resp = result.getResponse();
+					logger.debug("dropped  request, return response: " + resp);
+
+					resp.setCommonHeaders();
+					resp.setSequenceNumber(req.getSequenceNumber());
+					session.write(resp);
+					passOn = false;
+				}
 			}
 		}
+		
+		return passOn;
 	}
 	
 	/**

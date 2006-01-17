@@ -32,9 +32,10 @@ import rtspproxy.rtsp.RtspRequest;
 public interface UrlRewritingProvider extends GenericProvider {
 	/**
 	 * rewrite the request URL.
-	 * @return a replacement URL or null if the URL is not to be modified.
+	 * @return a result object which can contain a modified result URL or a response message
+	 * sent back to the client. If null is returned, the URL is passed on without modification.
 	 */
-	public URL rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client);
+	public UrlRewritingResult rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client);
 
 	/**
 	 * rewrite an URL in a response header.
