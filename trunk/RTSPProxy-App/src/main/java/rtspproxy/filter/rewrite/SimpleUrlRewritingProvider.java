@@ -41,7 +41,8 @@ public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 	/* (non-Javadoc)
 	 * @see rtspproxy.filter.rewrite.UrlRewritingProvider#rewriteRequestUrl(java.net.URL)
 	 */
-	public URL rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client) {
+	public UrlRewritingResult rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client) {
+		UrlRewritingResult result = null;
 		URL rewritten = null;
 		String req = request.toString();
 		
@@ -53,7 +54,7 @@ public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 			if((rewritten = this.optionsForwardMappings.get(request)) != null) {
 				logger.debug("found special OPTIONS rewrite URL: " + rewritten);
 				
-				return rewritten;
+				return new UrlRewritingResult(rewritten);
 			}
 		}
 		for(String prefix : this.forwardMappings.keySet()) {
@@ -69,7 +70,10 @@ public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 		}
 		logger.debug("rewritten URL: " + rewritten);
 		
-		return rewritten;
+		if(rewritten != null)
+			result = new UrlRewritingResult(rewritten);
+		
+		return result;
 	}
 
 	/* (non-Javadoc)
