@@ -73,10 +73,11 @@ public abstract class UrlRewritingFilter extends FilterBase {
 					req.setUrl(rewritten);
 				} else if(result.getResponse() != null) {
 					RtspResponse resp = result.getResponse();
-					logger.debug("dropped  request, return response: " + resp);
 
 					resp.setCommonHeaders();
 					resp.setSequenceNumber(req.getSequenceNumber());
+					logger.debug("dropped  request, return response: " + resp);
+
 					session.write(resp);
 					passOn = false;
 				}

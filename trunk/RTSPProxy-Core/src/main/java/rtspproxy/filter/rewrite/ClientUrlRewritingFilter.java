@@ -53,11 +53,13 @@ public class ClientUrlRewritingFilter extends UrlRewritingFilter {
 					logger.error("Expecting a RtspMessage. Received a "
 						+ message.getClass().getName());
 			}
-			logger.debug("Sent (post-rewriting) message:\n" + message);
 
 		}
-		if(passOn)
+		if(passOn) {
+			logger.debug("Sent (post-rewriting) message:\n" + message);
+
 			nextFilter.messageReceived(session, message);
+		}
 	}
 
 

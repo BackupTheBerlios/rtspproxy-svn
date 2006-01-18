@@ -231,11 +231,15 @@ public abstract class RtspMessage
 	}
 
 	/**
+	 * Set the sequence number. As a by-product it also sets the CSeq header field to this
+	 * value.
+	 * 
 	 * @param sequenceNumber
 	 *            The sequenceNumber to set.
 	 */
 	public void setSequenceNumber( int sequenceNumber )
 	{
 		this.sequenceNumber = sequenceNumber;
+		this.headers.put("CSeq", String.valueOf(this.sequenceNumber));
 	}
 }
