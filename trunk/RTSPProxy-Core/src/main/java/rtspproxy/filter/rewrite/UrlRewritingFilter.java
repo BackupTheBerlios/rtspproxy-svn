@@ -61,7 +61,7 @@ public abstract class UrlRewritingFilter extends FilterBase {
 		
 		if (req.getUrl() != null) {
 			UrlRewritingResult result = this.provider.rewriteRequestUrl(req.getUrl(), req.getVerb(), 
-					session.getRemoteAddress()); 
+					session.getRemoteAddress(), req.getHeaders()); 
 			
 			if(result != null) {
 				URL rewritten = result.getRewrittenUrl();

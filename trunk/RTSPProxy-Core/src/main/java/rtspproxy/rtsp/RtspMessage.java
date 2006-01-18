@@ -19,6 +19,8 @@
 package rtspproxy.rtsp;
 
 import java.nio.CharBuffer;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -148,6 +150,17 @@ public abstract class RtspMessage
 	}
 
 	/**
+	 * get a map of all headers set in the request
+	 * @return an unmodifiable map of all header fields in this request. 
+	 */
+	public Map<String, String> getHeaders() {
+		if(this.headers != null)
+			return Collections.unmodifiableMap(this.headers);
+		else
+			return Collections.unmodifiableMap(new HashMap<String, String>());
+	}
+	
+	/**
 	 * @return the number of headers owned by the message
 	 */
 	public int getHeadersCount()
@@ -223,10 +236,22 @@ public abstract class RtspMessage
 	public static final String CRLF = "\r\n";
 
 	/**
-	 * @return Returns the sequenceNumber.
+	 * get the sequence number. If the sequence has not been set, the value from the 
+	 * <b>CSeq</b> header is scaned (if the header is set)
+	 * @return Returns the sequenceNumber. Returns 0 if the sequence number has not been set and the
+	 * <b>CSeq</b> header is not available.
 	 */
 	public int getSequenceNumber()
 	{
+		if(this.sequenceNumber == 0) {
+			try {
+				if(this.headers.containsKey("CSeq"))
+					this.sequenceNumber = Integer.parseInt(this.headers.get("CSeq"));
+			} catch(Exception e) {
+				
+			}
+		}
+			
 		return sequenceNumber;
 	}
 

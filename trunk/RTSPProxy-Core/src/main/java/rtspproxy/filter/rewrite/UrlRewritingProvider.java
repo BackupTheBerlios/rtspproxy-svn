@@ -19,6 +19,7 @@ package rtspproxy.filter.rewrite;
 
 import java.net.SocketAddress;
 import java.net.URL;
+import java.util.Map;
 
 import rtspproxy.filter.GenericProvider;
 import rtspproxy.rtsp.RtspRequest;
@@ -35,7 +36,8 @@ public interface UrlRewritingProvider extends GenericProvider {
 	 * @return a result object which can contain a modified result URL or a response message
 	 * sent back to the client. If null is returned, the URL is passed on without modification.
 	 */
-	public UrlRewritingResult rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client);
+	public UrlRewritingResult rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client,
+			Map<String, String> requestHeaders);
 
 	/**
 	 * rewrite an URL in a response header.
