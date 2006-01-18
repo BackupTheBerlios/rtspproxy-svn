@@ -10,6 +10,7 @@ import java.net.SocketAddress;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.dom4j.Element;
 
@@ -23,6 +24,7 @@ import rtspproxy.rtsp.RtspRequest;
  */
 public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 		implements UrlRewritingProvider, AAAConfigurable {
+	
 	/**
 	 * Logger for this class
 	 */
@@ -41,7 +43,8 @@ public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 	/* (non-Javadoc)
 	 * @see rtspproxy.filter.rewrite.UrlRewritingProvider#rewriteRequestUrl(java.net.URL)
 	 */
-	public UrlRewritingResult rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client) {
+	public UrlRewritingResult rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client,
+			Map<String, String> requestHeaders) {
 		UrlRewritingResult result = null;
 		URL rewritten = null;
 		String req = request.toString();
