@@ -21,6 +21,7 @@ package rtspproxy.jmx;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
@@ -48,7 +49,12 @@ import rtspproxy.RtpServerService;
 import rtspproxy.RtspService;
 import rtspproxy.config.Config;
 import rtspproxy.filter.FilterBase;
+import rtspproxy.jmx.mbeans.Filter;
+import rtspproxy.jmx.mbeans.Info;
+import rtspproxy.jmx.mbeans.ProxySessionFacade;
+import rtspproxy.jmx.mbeans.Service;
 import rtspproxy.lib.Singleton;
+import rtspproxy.proxy.ProxySession;
 
 /**
  * Entry point class for all the JMX interface.
@@ -60,7 +66,11 @@ public class JmxAgent extends Singleton
 
 	private static Logger log = LoggerFactory.getLogger( JmxAgent.class );
 
-	static final String DOMAIN = "RtspProxy";
+	public static final String DOMAIN = "RtspProxy";
+	public static final String SERVICES_DOMAIN = "RtspProxy.Services";
+	public static final String FILTERS_DOMAIN = "RtspProxy.Filters";
+	public static final String RTSP_SESSION_DOMAIN = "RtspProxy.Sessions.RTSP";
+	public static final String PROXY_SESSION_DOMAIN = "RtspProxy.Sessions.Proxy";
 
 	private MBeanServer mbeanServer = null;
 
@@ -98,7 +108,7 @@ public class JmxAgent extends Singleton
 					RtpClientService.getInstance(), RtpServerService.getInstance() };
 			ObjectName objectName;
 			for ( ProxyService proxyService : proxyServices ) {
-				objectName = ObjectName.getInstance( DOMAIN + ":name="
+				objectName = ObjectName.getInstance( SERVICES_DOMAIN + ":name="
 						+ proxyService.getName() );
 				mbeanServer.registerMBean( new Service( proxyService ), objectName );
 			}
@@ -201,6 +211,8 @@ public class JmxAgent extends Singleton
 			
 			mbeanServer.registerMBean(mbean, mbean.getName());
 			filter.setMbeanName(mbean.getName());
+			if(filter instanceof JmxManageable)
+				((JmxManageable)filter).setMBeanServer(mbeanServer);
 		} catch(Exception e) {
 			log.error( "failed to register filter MBean: filter=" + filter, e );			
 		}
@@ -256,5 +268,55 @@ public class JmxAgent extends Singleton
 			
 			this.m_logger = LoggerFactory.getLogger(arg0);
 		}		
+	}
+
+	/**
+	 * @return Returns the mbeanServer.
+	 */
+	public MBeanServer getMbeanServer() {
+		return mbeanServer;
+	}
+	
+	/**
+	 * register a proxy session
+	 * 
+	 */
+	public void registerProxySession(ProxySession session) {
+		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		if ( !enabled )
+			return;
+
+		try {
+			ProxySessionFacade mbean = new ProxySessionFacade(session);
+			ObjectName name = mbean.buildName();
+		
+			mbeanServer.registerMBean(mbean, name);
+			session.setObjectName(name);
+		} catch(Exception e) {
+			log.error( "failed to register proxy session MBean: session=" + session, e );
+		}
+	}
+	
+	/**
+	 * unregister a proxy session
+	 */
+	public void unregisterProxySession(ProxySession session) {
+		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		if ( !enabled )
+			return;
+
+		try {
+			ObjectName name = session.getObjectName();
+		
+			if(name != null) {
+				mbeanServer.unregisterMBean(name);
+				session.setObjectName(null);
+			}
+		} catch(InstanceNotFoundException infe) {
+			log.debug("internal problem: MBean not found, name=" + session.getObjectName(), infe);
+		} catch(Exception e) {
+			log.error( "failed to register proxy session MBean: session=" + session, e );
+		}
+		
 	}
 }

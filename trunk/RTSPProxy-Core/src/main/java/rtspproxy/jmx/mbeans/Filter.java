@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rtspproxy.jmx;
+package rtspproxy.jmx.mbeans;
 
 import javax.management.MBeanException;
 import javax.management.MalformedObjectNameException;
@@ -10,6 +10,7 @@ import javax.management.ObjectName;
 import java.util.Hashtable;
 
 import rtspproxy.filter.FilterBase;
+import rtspproxy.jmx.JmxAgent;
 
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
@@ -28,7 +29,7 @@ public class Filter implements FilterMBean {
 	 * @throws MalformedObjectNameException 
 	 * 
 	 */
-	Filter(FilterBase filter) throws MalformedObjectNameException, NullPointerException {
+	public Filter(FilterBase filter) throws MalformedObjectNameException, NullPointerException {
 		this.filter = filter;
 		
 		// build the MBean name
@@ -39,7 +40,7 @@ public class Filter implements FilterMBean {
 		keys.put("classname", filter.getClassName());
 		keys.put("id", Long.toHexString(System.identityHashCode(filter)));
 		
-		this.name = new ObjectName(JmxAgent.DOMAIN, keys);
+		this.name = new ObjectName(JmxAgent.FILTERS_DOMAIN, keys);
 	}
 
 	/* (non-Javadoc)

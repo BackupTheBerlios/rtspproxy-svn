@@ -16,31 +16,35 @@
  * 
  */
 
-package rtspproxy.jmx;
+package rtspproxy.jmx.mbeans;
 
-import javax.management.MBeanException;
+import java.util.Date;
 
 /**
+ * MBean interface for exposing basic proxy informations.
+ * 
  * @author Matteo Merli
  */
-public interface ServiceMBean
+public interface InfoMBean
 {
-	/* Attributes */
 
-	public String getNetworkInterface();
-
-	public int getPort();
-
-	public void setPort( int port ) throws MBeanException;
-
-	public boolean isRunning();
-
-	/* Actions */
-
-	public void start() throws MBeanException;
-
-	public void stop() throws MBeanException;
-
-	public void restart() throws MBeanException;
-
+	/** 
+	 * @return the name of the application
+	 */
+	public String getName();
+	public String getVersion();
+	public Date getStartDate();
+	
+	public String getOSInfo();
+	public String getJVMInfo();
+	
+	public double getFreeMemoryMB();
+	public double getTotalMemoryMB();
+	
+	public int getActiveThreadsNumber();
+	
+	// Actions
+	
+	public void runGarbageCollector();
+	
 }

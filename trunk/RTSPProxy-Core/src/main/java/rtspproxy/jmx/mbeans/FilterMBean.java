@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rtspproxy.jmx;
+package rtspproxy.jmx.mbeans;
 
 import javax.management.MBeanException;
 import javax.management.ObjectName;

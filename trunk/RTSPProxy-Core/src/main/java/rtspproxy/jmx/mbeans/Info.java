@@ -15,7 +15,7 @@
  * $URL$
  * 
  */
-package rtspproxy.jmx;
+package rtspproxy.jmx.mbeans;
 
 import java.util.Date;
 

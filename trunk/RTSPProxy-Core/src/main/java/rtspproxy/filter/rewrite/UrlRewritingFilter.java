@@ -7,6 +7,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
 import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
@@ -16,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rtspproxy.filter.FilterBase;
+import rtspproxy.jmx.JmxManageable;
+import rtspproxy.jmx.JmxManageable2;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
@@ -24,7 +29,7 @@ import rtspproxy.rtsp.RtspResponse;
  * @author bieniekr
  * 
  */
-public abstract class UrlRewritingFilter extends FilterBase {
+public abstract class UrlRewritingFilter extends FilterBase implements JmxManageable {
 	/**
 	 * Logger for this class
 	 */
@@ -125,5 +130,26 @@ public abstract class UrlRewritingFilter extends FilterBase {
 				logger.error("failed to parse " + headerName + " header", mue);
 			}
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see rtspproxy.jmx.JmxManageable#setMBeanServer(javax.management.MBeanServer)
+	 */
+	public void setMBeanServer(MBeanServer mbeanServer) {
+		if(this.provider instanceof JmxManageable)
+			((JmxManageable)this.provider).setMBeanServer(mbeanServer);
+	}
+
+	/* (non-Javadoc)
+	 * @see rtspproxy.filter.FilterBase#getDetailMBean()
+	 */
+	@Override
+	public ObjectName getDetailMBean() {
+		ObjectName name = null;
+		
+		if(this.provider instanceof JmxManageable2)
+			name = ((JmxManageable2)this.provider).getMBean();
+		
+		return name;
 	}
 }

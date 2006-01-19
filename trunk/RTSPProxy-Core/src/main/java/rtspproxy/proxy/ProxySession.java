@@ -22,9 +22,12 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.management.ObjectName;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rtspproxy.jmx.JmxAgent;
 import rtspproxy.lib.number.UnsignedLong;
 import rtspproxy.proxy.track.RdtTrack;
 import rtspproxy.proxy.track.RtpTrack;
@@ -93,12 +96,31 @@ public class ProxySession
 	private String serverSessionId = null;
 
 	/** Tells whether the proxySession has already been closed. */
-	private boolean isClosed = false;
+	private boolean closedFlag = false;
 
 	/**
 	 * Collection of Track associated with this ProxySession.
 	 */
 	private Map<String, Track> trackList = new ConcurrentHashMap<String, Track>();
+
+	/**
+	 * object name of proxy session
+	 */
+	private ObjectName objectName;
+	
+	/**
+	 * @return Returns the objectName.
+	 */
+	public ObjectName getObjectName() {
+		return objectName;
+	}
+
+	/**
+	 * @param objectName The objectName to set.
+	 */
+	public void setObjectName(ObjectName objectName) {
+		this.objectName = objectName;
+	}
 
 	/**
 	 * Construct a new ProxySession. The session ID that will be used when
@@ -175,6 +197,7 @@ public class ProxySession
 	{
 		this.clientSessionId = clientSessionId;
 		clientSessionIds.put( clientSessionId, this );
+		makeManaged();
 	}
 
 	/**
@@ -188,14 +211,24 @@ public class ProxySession
 		this.serverSessionId = serverSessionId;
 		if ( serverSessionId != null )
 			serverSessionIds.put( serverSessionId, this );
+		makeManaged();
 	}
 
+	/**
+	 * check if both client and server session id's are set and register proxy session 
+	 * facade MBean
+	 */
+	private void makeManaged() {
+		if(this.clientSessionId != null && this.serverSessionId != null)
+			JmxAgent.getInstance().registerProxySession(this);
+	}
+	
 	/**
 	 * Closes the entire proxy session and frees all associated resources.
 	 */
 	public synchronized void close()
 	{
-		if ( isClosed )
+		if ( closedFlag )
 			return;
 
 		log.debug( "TrackList: " + trackList );
@@ -205,7 +238,7 @@ public class ProxySession
 			entry.getValue().close();
 		}
 
-		isClosed = true;
+		closedFlag = true;
 		log.debug( "Closed proxySession: " + clientSessionId );
 
 		String s = "";
@@ -223,6 +256,9 @@ public class ProxySession
 			clientSessionIds.remove( clientSessionId );
 		if ( serverSessionId != null )
 			serverSessionIds.remove( serverSessionId );
+		
+		// unregister session facade in MBean server
+		JmxAgent.getInstance().unregisterProxySession(this);
 	}
 
 	// ///////////////////
@@ -251,6 +287,13 @@ public class ProxySession
 			}
 			// try with another id
 		}
+	}
+
+	/**
+	 * @return Returns the closedFlag.
+	 */
+	public boolean isClosed() {
+		return closedFlag;
 	}
 
 }
