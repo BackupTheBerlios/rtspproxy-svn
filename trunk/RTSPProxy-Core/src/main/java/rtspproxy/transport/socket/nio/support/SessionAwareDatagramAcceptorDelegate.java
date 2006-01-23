@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.HashMap;
 
+import org.apache.mina.common.DefaultIoFilterChainBuilder;
 import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
@@ -37,22 +38,22 @@ import rtspproxy.transport.socket.nio.DatagramAcceptor;
 public class SessionAwareDatagramAcceptorDelegate extends BaseIoAcceptor implements
 		IoAcceptor {
 
-	private IoAcceptor wrapper;
-
+	private DatagramAcceptor acceptor;
 	private HashMap<SocketAddress, HandlerInfo> acceptors = new HashMap<SocketAddress, HandlerInfo>();
-
+	private StatefulDatagramSessionManager sessionManager = new StatefulDatagramSessionManager();
+	
 	/**
 	 * create an instance
 	 */
-	public SessionAwareDatagramAcceptorDelegate(IoAcceptor wrapper) {
-		this.wrapper = wrapper;
+	public SessionAwareDatagramAcceptorDelegate() {
 	}
 
 	public void bind(SocketAddress addr, IoHandler handler,
 			IoFilterChainBuilder chainBuilder) throws IOException {
-		DatagramAcceptor acceptor = new DatagramAcceptor();
-		SessionAwareDatagramHandler sessionHandler = new SessionAwareDatagramHandler(addr, handler, chainBuilder);
+		SessionAwareDatagramHandler sessionHandler = new SessionAwareDatagramHandler(addr, handler, chainBuilder,
+				sessionManager);
 		
+		acceptor = new DatagramAcceptor();
 		acceptor.bind(addr, sessionHandler, null);
 		synchronized (acceptors) {
 			acceptors.put(addr, new HandlerInfo(acceptor, sessionHandler));
@@ -65,7 +66,7 @@ public class SessionAwareDatagramAcceptorDelegate extends BaseIoAcceptor impleme
 			
 			if(info != null) {
 				info.acceptor.unbind(addr);
-				info.handler.unbind();
+				this.sessionManager.closeSessions(addr, info.handler);
 				acceptors.remove(addr);
 			}
 		}
@@ -83,19 +84,33 @@ public class SessionAwareDatagramAcceptorDelegate extends BaseIoAcceptor impleme
 
 	@Override
 	public IoFilterChainBuilder getFilterChainBuilder() {
-		// TODO Auto-generated method stub
-		return super.getFilterChainBuilder();
+		return this.sessionManager.getFilterChainBuilder();
 	}
 
 	@Override
 	public void setFilterChainBuilder(IoFilterChainBuilder builder) {
-		// TODO Auto-generated method stub
-		super.setFilterChainBuilder(builder);
+		this.sessionManager.setFilterChainBuilder(builder);
 	}
 
 	@Override
-	public IoSession newSession(SocketAddress arg0, SocketAddress arg1) {
-		// TODO Auto-generated method stub
-		return super.newSession(arg0, arg1);
+	public IoSession newSession(SocketAddress remoteAddress, SocketAddress localAddress) {
+		if(remoteAddress == null)
+			throw new IllegalArgumentException("null remote address not allowed");
+		
+		synchronized (this.acceptors) {
+			HandlerInfo info = this.acceptors.get(localAddress);
+			if(info == null)
+				throw new IllegalArgumentException("not bound yet: " + localAddress);
+
+			try {
+				return this.sessionManager.newSession(localAddress, remoteAddress, info.handler.getWrappedHandler(), 
+						info.handler.getFilterChainBuilder());
+			} catch(IllegalArgumentException iae) {
+				throw iae;
+			} catch(Exception e) {
+				// TODO the original exception should be thrown but interface is too narrow.
+				throw new IllegalArgumentException("cant create session", e);
+			}
+		}
 	}
 }

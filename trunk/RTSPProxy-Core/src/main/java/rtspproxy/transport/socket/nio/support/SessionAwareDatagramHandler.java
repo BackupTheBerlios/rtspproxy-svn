@@ -21,6 +21,7 @@ package rtspproxy.transport.socket.nio.support;
 import java.net.SocketAddress;
 import java.util.HashMap;
 
+import org.apache.mina.common.ExceptionMonitor;
 import org.apache.mina.common.IdleStatus;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
@@ -32,33 +33,34 @@ class SessionAwareDatagramHandler extends IoHandlerAdapter implements IoHandler 
 	private SocketAddress localAddress;
 	private IoHandler wrapped;
 	private IoFilterChainBuilder chainBuilder;
-	
-	private StatefulDatagramSessionImpl defaultSession;
-	private HashMap<SocketAddress, StatefulDatagramSessionImpl> sessions = 
-		new HashMap<SocketAddress, StatefulDatagramSessionImpl>();
+	private StatefulDatagramSessionManager sessionManager;
 	
 	/**
 	 * create an instance
+	 * @param sessionManager 
 	 */
 	SessionAwareDatagramHandler(SocketAddress localAddress, IoHandler wrapped, 
-			IoFilterChainBuilder chainBuilder) {
+			IoFilterChainBuilder chainBuilder, StatefulDatagramSessionManager sessionManager) {
 		this.localAddress = localAddress;
 		this.wrapped = wrapped;
 		this.chainBuilder = chainBuilder;
+		this.sessionManager = sessionManager;
 	}
 	
-	public void exceptionCaught(IoSession session, Throwable t) {
-		StatefulDatagramSessionImpl relay = getRelaySession(session.getRemoteAddress());
+	public void exceptionCaught(IoSession session, Throwable t) throws Exception {
+		StatefulDatagramSessionImpl relay = this.sessionManager.getSession(localAddress, session.getRemoteAddress(),
+				this.wrapped, this.chainBuilder);
 		
 		relay.setDownsideSession(session);
-		relay.fireExceptionCaught(relay, t);
+		this.wrapped.exceptionCaught(relay, t);
 	}
 
 	public void messageReceived(IoSession session, Object message) throws Exception {
-		StatefulDatagramSessionImpl relay = getRelaySession(session.getRemoteAddress());
+		StatefulDatagramSessionImpl relay = this.sessionManager.getSession(localAddress, session.getRemoteAddress(),
+				this.wrapped, this.chainBuilder);
 		
 		relay.setDownsideSession(session);
-		relay.fireMessageReceived(relay, message);
+		this.wrapped.messageReceived(relay, message);
 	}
 
 	public void messageSent(IoSession session, Object message) throws Exception {
@@ -67,49 +69,11 @@ class SessionAwareDatagramHandler extends IoHandlerAdapter implements IoHandler 
 		relay.getDownsideSession().write(message);
 	}
 
-	/**
-	 * handle the acceptor unbind operation. Do this by closing all open sessions.
-	 */
-	public void unbind() {
-		// TODO Auto-generated method stub
-		
+	IoFilterChainBuilder getFilterChainBuilder() {
+		return this.chainBuilder;
 	}
 
-	/**
-	 * get a session for a remote peer. If there is no session for the remote peer,
-	 * a fresh one gets created and lifecycle methods are called.
-	 * @param addr the remotem peer address. If null, the default session is used.
-	 */
-	private StatefulDatagramSessionImpl getRelaySession(SocketAddress addr) {
-		StatefulDatagramSessionImpl session = null;
-		
-		if(addr == null) {
-			session = this.defaultSession;
-			
-			if(session == null) {
-				session = createSession(addr);
-				
-				this.defaultSession = session;
-			}
-		} else {
-			session = this.sessions.get(addr);
-			
-			if(session == null) {
-				session = createSession(addr);
-				
-				this.sessions.put(addr, session);
-			}
-		}
-		
-		return session;
-	}
-	
-	/**
-	 * create a session for a remote peer. Lifecycle methods are fired accordingly
-	 */
-	private StatefulDatagramSessionImpl createSession(SocketAddress addr) {
-		StatefulDatagramSessionImpl session = null;
-		
-		return session;
+	IoHandler getWrappedHandler() {
+		return this.wrapped;
 	}
 }

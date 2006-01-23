@@ -16,21 +16,27 @@
  *   limitations under the License.
  *
  */
-package rtspproxy.transport.socket.nio;
+package rtspproxy.transport.socket.nio.support;
 
-import org.apache.mina.common.support.DelegatedIoAcceptor;
+import org.apache.mina.common.CloseFuture;
+import org.apache.mina.common.IoFilterChain;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.common.IoFilter.WriteRequest;
+import org.apache.mina.common.support.AbstractIoFilterChain;
 
-import rtspproxy.transport.socket.nio.support.SessionAwareDatagramAcceptorDelegate;
+class StatefulDatagramSessionFilterChain extends AbstractIoFilterChain
+		implements IoFilterChain {
 
-/**
- * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
- *
- */
-public class SessionAwareDatagramAcceptor extends DelegatedIoAcceptor {
-	/**
-	 * create an instance
-	 */
-	public SessionAwareDatagramAcceptor() {
-		init( new SessionAwareDatagramAcceptorDelegate() );
+	StatefulDatagramSessionFilterChain(IoSession session) {
+		super(session);
 	}
+
+	@Override
+	protected void doWrite(IoSession session, WriteRequest writeReq) throws Exception {
+	}
+
+	@Override
+	protected void doClose(IoSession session, CloseFuture closeFuture) throws Exception {
+	}
+
 }

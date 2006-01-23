@@ -35,15 +35,21 @@ class StatefulDatagramSessionImpl extends BaseIoSession implements
 	private SocketAddress localAddr;
 	private SocketAddress remoteAddr;
 	private IoHandler handler;
+	private StatefulDatagramSessionManager sessionManager;
 	private IoSession downsideSession;
+	private StatefulDatagramSessionFilterChain filterChain;
 	
 	/**
 	 * only constructable from within this package
 	 */
-	StatefulDatagramSessionImpl(IoHandler handler, SocketAddress localAddr, SocketAddress remoteAddr) {
+	StatefulDatagramSessionImpl(IoHandler handler, SocketAddress localAddr, SocketAddress remoteAddr,
+			StatefulDatagramSessionManager sessionManager) {
 		this.handler = handler;
 		this.localAddr = localAddr;
 		this.remoteAddr = remoteAddr;
+		this.sessionManager = sessionManager;
+		
+		this.filterChain = new StatefulDatagramSessionFilterChain(this);
 	}
 	
 	@Override
@@ -53,18 +59,15 @@ class StatefulDatagramSessionImpl extends BaseIoSession implements
 	}
 
 	public IoSessionManager getManager() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.sessionManager;
 	}
 
 	public IoHandler getHandler() {
-		// TODO Auto-generated method stub
-		return null;
+		return handler;
 	}
 
 	public IoFilterChain getFilterChain() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.filterChain;
 	}
 
 	public TransportType getTransportType() {
@@ -81,8 +84,7 @@ class StatefulDatagramSessionImpl extends BaseIoSession implements
 	}
 
 	public int getScheduledWriteRequests() {
-		// TODO Auto-generated method stub
-		return 0;
+		return this.getDownsideSession().getScheduledWriteRequests();
 	}
 
 	public void setSessionTimeout(int timeout) {
@@ -93,16 +95,6 @@ class StatefulDatagramSessionImpl extends BaseIoSession implements
 	public int getSessionTimeout() {
 		// TODO Auto-generated method stub
 		return 0;
-	}
-
-	public void fireExceptionCaught(StatefulDatagramSessionImpl relay, Throwable t) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void fireMessageReceived(StatefulDatagramSessionImpl relay, Object message) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	IoSession getDownsideSession() {
