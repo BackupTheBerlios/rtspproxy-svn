@@ -360,10 +360,8 @@ public class ProxyHandler
 		} else if ( transport.getTransportProtocol() == TransportProtocol.RDT ) {
 
 			// Create a new Track object
-			/*
 			RdtTrack track = proxySession.addRdtTrack( (String) clientSession
 					.getAttribute( setupUrlATTR ) );
-					*/
 			// Setting client and server info on the track
 			InetAddress serverAddress = null;
 			if ( transport.getSource() != null ) {
@@ -377,7 +375,7 @@ public class ProxyHandler
 						.getAddress();
 			}
 			int[] serverPorts = transport.getServerPort();
-			// track.setServerAddress( serverAddress, serverPorts[0] );
+			track.setServerAddress( serverAddress, serverPorts[0] );
 
 			InetAddress clientAddress = null;
 			try {
@@ -389,7 +387,7 @@ public class ProxyHandler
 			}
 			int clientRdtPort = ((Integer) clientSession.getAttribute( clientRdtPortATTR ))
 					.intValue();
-			// track.setClientAddress( clientAddress, clientRdtPort );
+			track.setClientAddress( clientAddress, clientRdtPort );
 
 			if ( transport.getLowerTransport() == RtspTransport.LowerTransport.TCP ) {
 				log.debug( "Transport is TCP based." );

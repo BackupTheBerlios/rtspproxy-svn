@@ -1,4 +1,4 @@
-/**
+/*
  *   @(#) $Id: DatagramAcceptor.java 355016 2005-12-08 07:00:30Z trustin $
  *
  *   Copyright 2004 The Apache Software Foundation
@@ -21,25 +21,10 @@ package rtspproxy.transport.socket.nio;
 import java.net.SocketAddress;
 
 import org.apache.mina.common.IoSession;
-import org.apache.mina.common.support.DelegatedIoAcceptor;
 
-import rtspproxy.transport.socket.nio.support.SessionAwareDatagramAcceptorDelegate;
-
-/**
- * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
- *
- */
-public class SessionAwareDatagramAcceptor extends DelegatedIoAcceptor implements ConnectionlessSessionTracker  {
-	
-	private SessionAwareDatagramAcceptorDelegate delegate = new SessionAwareDatagramAcceptorDelegate();
-	/**
-	 * create an instance
-	 */
-	public SessionAwareDatagramAcceptor() {
-		init( this.delegate );
-	}
-
-	public IoSession getSession(SocketAddress localAddress, SocketAddress remoteAddress) {
-		return this.delegate.getSession(localAddress, remoteAddress);
-	}
+public interface ConnectionlessSessionTracker {
+    /** 
+     * @return null if no session is found 
+     */ 
+    IoSession getSession( SocketAddress localAddress, SocketAddress remoteAddress ); 
 }

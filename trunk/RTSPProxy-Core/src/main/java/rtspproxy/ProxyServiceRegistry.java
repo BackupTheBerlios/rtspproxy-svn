@@ -43,6 +43,7 @@ import rtspproxy.config.Config;
 import rtspproxy.config.Parameter;
 import rtspproxy.lib.Singleton;
 import rtspproxy.transport.socket.nio.DatagramAcceptor;
+import rtspproxy.transport.socket.nio.SessionAwareDatagramAcceptor;
 
 /**
  * Custom implementation of the ServiceRegistry interface. Creates an acceptor

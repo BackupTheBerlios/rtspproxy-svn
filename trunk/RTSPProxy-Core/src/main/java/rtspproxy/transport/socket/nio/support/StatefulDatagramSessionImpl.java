@@ -20,24 +20,44 @@ package rtspproxy.transport.socket.nio.support;
 
 import java.net.SocketAddress;
 
+import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.common.ByteBufferProxy;
+import org.apache.mina.common.CloseFuture;
 import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.IoSessionManager;
 import org.apache.mina.common.TransportType;
+import org.apache.mina.common.IoFilter.WriteRequest;
 import org.apache.mina.common.support.BaseIoSession;
+import org.apache.mina.util.ByteBufferUtil;
 
 import rtspproxy.transport.socket.nio.StatefulDatagramSession;
 
 class StatefulDatagramSessionImpl extends BaseIoSession implements
 		StatefulDatagramSession {
+	
+	private static class DecoupledByteBuffer extends ByteBufferProxy {
+
+		protected DecoupledByteBuffer(ByteBuffer buffer) {
+			super(buffer);
+		}
+
+		@Override
+		public void acquire() {
+		}
+
+		@Override
+		public void release() {
+		}
+	}
 
 	private SocketAddress localAddr;
 	private SocketAddress remoteAddr;
 	private IoHandler handler;
 	private StatefulDatagramSessionManager sessionManager;
-	private IoSession downsideSession;
 	private StatefulDatagramSessionFilterChain filterChain;
+	private SessionAwareDatagramAcceptorDelegate delegate;
 	
 	/**
 	 * only constructable from within this package
@@ -48,6 +68,7 @@ class StatefulDatagramSessionImpl extends BaseIoSession implements
 		this.localAddr = localAddr;
 		this.remoteAddr = remoteAddr;
 		this.sessionManager = sessionManager;
+		this.delegate = sessionManager.getDelegate();
 		
 		this.filterChain = new StatefulDatagramSessionFilterChain(this);
 	}
@@ -71,20 +92,19 @@ class StatefulDatagramSessionImpl extends BaseIoSession implements
 	}
 
 	public TransportType getTransportType() {
-		// TODO Auto-generated method stub
-		return null;
+		return TransportType.DATAGRAM;
 	}
 
 	public SocketAddress getRemoteAddress() {
-		return this.localAddr;
-	}
-
-	public SocketAddress getLocalAddress() {
 		return this.remoteAddr;
 	}
 
+	public SocketAddress getLocalAddress() {
+		return this.localAddr;
+	}
+
 	public int getScheduledWriteRequests() {
-		return this.getDownsideSession().getScheduledWriteRequests();
+		return 0;
 	}
 
 	public void setSessionTimeout(int timeout) {
@@ -97,12 +117,35 @@ class StatefulDatagramSessionImpl extends BaseIoSession implements
 		return 0;
 	}
 
-	IoSession getDownsideSession() {
-		return downsideSession;
+	SessionAwareDatagramAcceptorDelegate getDelegate() {
+		return delegate;
 	}
 
-	void setDownsideSession(IoSession downsideSession) {
-		this.downsideSession = downsideSession;
+	public void doClose(CloseFuture closeFuture) {
+		this.sessionManager.closeSession(this, handler);
+		
+		closeFuture.setClosed();
 	}
 
+	void fireExceptionCaught(Throwable t) throws Exception {
+		this.filterChain.exceptionCaught(this, t);
+	}
+
+	void fireMessageReceived(Object message) {
+		ByteBufferProxy proxy = new DecoupledByteBuffer((ByteBuffer)message);
+		
+		this.filterChain.messageReceived(this, proxy);
+	}
+
+	@Override
+	protected void write0(WriteRequest wrReq) {
+		this.filterChain.filterWrite(this, wrReq);
+	}
+
+	@Override
+	protected void close0(CloseFuture arg0) {
+		this.sessionManager.closeSession(this, this.handler);
+		
+		super.close0(arg0);
+	}
 }

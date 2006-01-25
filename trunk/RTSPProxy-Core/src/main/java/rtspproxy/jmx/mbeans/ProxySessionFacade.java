@@ -52,7 +52,13 @@ public class ProxySessionFacade implements ProxySessionFacadeMBean {
 		Hashtable<String, String> parts = new Hashtable<String, String>();
 		
 		parts.put("clientID", this.session.getClientSessionId());
-		parts.put("serverID", this.session.getServerSessionId());
+		
+		String serverID = this.session.getServerSessionId();
+		int ind = serverID.indexOf(';');
+		
+		if(ind > 0)
+			serverID = serverID.substring(0, ind);
+		parts.put("serverID", serverID);
 		
 		return ObjectName.getInstance(JmxAgent.PROXY_SESSION_DOMAIN, parts);
 	}

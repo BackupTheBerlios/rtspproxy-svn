@@ -105,7 +105,14 @@ public class RdtTrack extends Track
 		this.clientAddress = clientAddress;
 		this.clientRdtPort = rdtPort;
 
-		clientAddressMap.put( new InetSocketAddress( clientAddress, rdtPort ), this );
+		InetSocketAddress clientAddr = new InetSocketAddress( clientAddress, rdtPort );
+
+		/*
+		log.debug( "Creating RDT server session to: " + clientAddr );
+		rdtClientSession = RdtClientService.getInstance().newSession( clientAddr );
+		*/
+		
+		clientAddressMap.put( clientAddr , this );
 	}
 
 	/**
@@ -121,7 +128,15 @@ public class RdtTrack extends Track
 		this.serverAddress = serverAddress;
 		this.serverRdtPort = rdtPort;
 
-		serverAddressMap.put( new InetSocketAddress( serverAddress, rdtPort ), this );
+		InetSocketAddress remoteAddress = new InetSocketAddress( serverAddress,
+				serverRdtPort );
+		
+		/*
+		log.debug( "Creating RDT server session to: " + remoteAddress );
+		rdtServerSession = RdtServerService.getInstance().newSession( remoteAddress );
+		*/
+		
+		serverAddressMap.put( remoteAddress, this );
 	}
 
 	public synchronized void close()
@@ -129,6 +144,7 @@ public class RdtTrack extends Track
 		serverAddressMap.remove( new InetSocketAddress( serverAddress, serverRdtPort ) );
 		clientAddressMap.remove( new InetSocketAddress( clientAddress, clientRdtPort ) );
 
+		
 		log.debug( "Closed track " + url );
 	}
 }

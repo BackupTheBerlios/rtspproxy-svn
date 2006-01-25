@@ -25,10 +25,15 @@ import java.util.HashMap;
 import org.apache.mina.common.DefaultIoFilterChainBuilder;
 import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoFilterChainBuilder;
+import org.apache.mina.common.IoFuture;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
+import org.apache.mina.common.WriteFuture;
+import org.apache.mina.common.IoFilter.WriteRequest;
 import org.apache.mina.common.support.BaseIoAcceptor;
+import org.apache.mina.transport.socket.nio.DatagramSession;
 
+import rtspproxy.transport.socket.nio.ConnectionlessSessionTracker;
 import rtspproxy.transport.socket.nio.DatagramAcceptor;
 
 /**
@@ -36,12 +41,41 @@ import rtspproxy.transport.socket.nio.DatagramAcceptor;
  * 
  */
 public class SessionAwareDatagramAcceptorDelegate extends BaseIoAcceptor implements
-		IoAcceptor {
+		IoAcceptor, ConnectionlessSessionTracker {
+
+	
+	private static class HandlerInfo {
+		private DatagramAcceptor acceptor;
+		private SessionAwareDatagramHandler handler;
+		
+		private HandlerInfo(DatagramAcceptor acceptor, SessionAwareDatagramHandler handler) {
+			this.acceptor = acceptor;
+			this.handler = handler;
+		}
+	}
+
+	private class WriteCallback implements IoFuture.Callback {
+
+		private WriteFuture notify;
+		private DatagramSession session;
+		
+		private WriteCallback(WriteFuture notify, DatagramSession session) {
+			this.notify = notify;
+			this.session = session;
+		}
+		
+		public void operationComplete(IoFuture future) {
+			notify.setWritten(true);
+			session.close();
+		}
+
+	}
 
 	private DatagramAcceptor acceptor;
 	private HashMap<SocketAddress, HandlerInfo> acceptors = new HashMap<SocketAddress, HandlerInfo>();
-	private StatefulDatagramSessionManager sessionManager = new StatefulDatagramSessionManager();
-	
+	private StatefulDatagramSessionManager sessionManager;
+	private SessionAwareDatagramHandler sessionHandler;
+
 	/**
 	 * create an instance
 	 */
@@ -50,11 +84,12 @@ public class SessionAwareDatagramAcceptorDelegate extends BaseIoAcceptor impleme
 
 	public void bind(SocketAddress addr, IoHandler handler,
 			IoFilterChainBuilder chainBuilder) throws IOException {
-		SessionAwareDatagramHandler sessionHandler = new SessionAwareDatagramHandler(addr, handler, chainBuilder,
+		this.sessionManager = new StatefulDatagramSessionManager(this);
+		this.sessionHandler = new SessionAwareDatagramHandler(addr, handler, chainBuilder,
 				sessionManager);
 		
-		acceptor = new DatagramAcceptor();
-		acceptor.bind(addr, sessionHandler, null);
+		this.acceptor = new DatagramAcceptor();
+		this.acceptor.bind(addr, sessionHandler, null);
 		synchronized (acceptors) {
 			acceptors.put(addr, new HandlerInfo(acceptor, sessionHandler));
 		}
@@ -72,16 +107,11 @@ public class SessionAwareDatagramAcceptorDelegate extends BaseIoAcceptor impleme
 		}
 	}
 
-	private static class HandlerInfo {
-		private DatagramAcceptor acceptor;
-		private SessionAwareDatagramHandler handler;
-		
-		private HandlerInfo(DatagramAcceptor acceptor, SessionAwareDatagramHandler handler) {
-			this.acceptor = acceptor;
-			this.handler = handler;
-		}
-	}
 
+	public IoSession getSession(SocketAddress localAddress, SocketAddress remoteAddress) {
+		return this.sessionManager.getSession(localAddress,remoteAddress);
+	}
+	
 	@Override
 	public IoFilterChainBuilder getFilterChainBuilder() {
 		return this.sessionManager.getFilterChainBuilder();
@@ -113,4 +143,29 @@ public class SessionAwareDatagramAcceptorDelegate extends BaseIoAcceptor impleme
 			}
 		}
 	}
+	
+	/**
+	 * write a message to the underlying datagram acceptor
+	 */
+	void doWrite(StatefulDatagramSessionImpl session, WriteRequest req) throws Exception {
+		DatagramSession dSession = (DatagramSession)this.acceptor.newSession(session.getRemoteAddress(), session.getLocalAddress());
+		WriteFuture future;
+		
+		dSession.setReuseAddress(true);
+		dSession.setWriteTimeout(session.getWriteTimeout());
+		future = dSession.write(req.getMessage());
+		
+		/*
+		if(!future.isWritten()) {
+			future.setCallback(new WriteCallback(req.getFuture(), dSession));
+			if(session.getWriteTimeout() > 0)
+				future.join(session.getWriteTimeout());
+			else
+				future.join();
+		} else {
+			req.getFuture().setWritten(true);
+			dSession.close();
+		}
+		*/
+	}	
 }

@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
-import rtspproxy.filter.tracking.RdtSessionToken;
 import rtspproxy.lib.Exceptions;
 import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspMessage;

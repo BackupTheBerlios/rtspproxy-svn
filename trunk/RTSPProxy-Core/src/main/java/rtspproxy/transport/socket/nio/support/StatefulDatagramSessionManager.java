@@ -32,8 +32,10 @@ public class StatefulDatagramSessionManager extends BaseIoSessionManager
 		implements IoSessionManager {
 
 	private HashMap<SocketAddress, LocalSessionsHolder> sessions = new HashMap<SocketAddress, LocalSessionsHolder>();
+	private SessionAwareDatagramAcceptorDelegate delegate;
 	
-	StatefulDatagramSessionManager() {
+	StatefulDatagramSessionManager(SessionAwareDatagramAcceptorDelegate delegate) {
+		this.delegate = delegate;
 	}
 
 	/**
@@ -57,6 +59,28 @@ public class StatefulDatagramSessionManager extends BaseIoSessionManager
 		}
 	}
 
+	/**
+	 * obtain a session for a (local, remote) address pair.
+	 * @param localAddr the local address
+	 * @param remoteAddr the remote address
+	 * @return the session or null no such session exists.
+	 * @exception Exception session creation or initialization failed
+	 */
+	StatefulDatagramSessionImpl getSession(SocketAddress localAddr, SocketAddress remoteAddr) {
+		StatefulDatagramSessionImpl session = null;
+		
+		synchronized (sessions) {
+			LocalSessionsHolder holder = this.sessions.get(localAddr);
+			
+			if(holder != null)
+				session = holder.getSession(remoteAddr);
+		}
+		
+		return session;
+	}
+
+	
+	
 	/**
 	 * obtain a new session for a (local, remote) address pair.
 	 * @param localAddr the local address
@@ -84,6 +108,19 @@ public class StatefulDatagramSessionManager extends BaseIoSessionManager
 			
 			if(holder != null)
 				holder.closeSessions(handler);
+		}
+	}
+
+	SessionAwareDatagramAcceptorDelegate getDelegate() {
+		return delegate;
+	}
+
+	public void closeSession(StatefulDatagramSessionImpl impl, IoHandler handler) {
+		synchronized (this.sessions) {
+			LocalSessionsHolder holder = this.sessions.get(impl.getLocalAddress());
+			
+			if(holder != null)
+				holder.closeSession(impl, handler);
 		}
 	}
 
@@ -122,6 +159,23 @@ public class StatefulDatagramSessionManager extends BaseIoSessionManager
 					}
 				}
 			}
+			this.sessions.clear();
+		}
+
+		public void closeSession(StatefulDatagramSessionImpl impl, IoHandler handler) {
+			if(this.sessions.containsKey(impl.getRemoteAddress())) {
+				try {
+					handler.sessionClosed(impl);
+				} catch(Exception e) {
+					try {
+						handler.exceptionCaught(impl, e);
+					} catch(Throwable t) {
+						getExceptionMonitor().exceptionCaught(t);
+					}
+				}
+				this.sessions.remove(impl.getRemoteAddress());
+			} else 
+				throw new IllegalStateException("session not managed");
 		}
 
 		private StatefulDatagramSessionImpl getSession(SocketAddress remoteAddr, IoHandler handler, 
@@ -145,6 +199,17 @@ public class StatefulDatagramSessionManager extends BaseIoSessionManager
 			return session;
 		}
 
+		private StatefulDatagramSessionImpl getSession(SocketAddress remoteAddr) {
+			StatefulDatagramSessionImpl session = null;
+			
+			if(remoteAddr != null) {
+				session = this.sessions.get(remoteAddr);
+			}
+			
+			return session;
+		}
+
+
 		private StatefulDatagramSessionImpl createSession(SocketAddress remoteAddr, IoHandler handler, 
 				IoFilterChainBuilder chainBuilder) throws Exception {
 			StatefulDatagramSessionImpl session = new StatefulDatagramSessionImpl(handler, this.localAddr, remoteAddr,
@@ -161,4 +226,5 @@ public class StatefulDatagramSessionManager extends BaseIoSessionManager
 			return session;
 		}
 	}
+
 }

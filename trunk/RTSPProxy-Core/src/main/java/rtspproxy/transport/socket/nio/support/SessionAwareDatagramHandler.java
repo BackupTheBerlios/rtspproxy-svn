@@ -50,23 +50,17 @@ class SessionAwareDatagramHandler extends IoHandlerAdapter implements IoHandler 
 	public void exceptionCaught(IoSession session, Throwable t) throws Exception {
 		StatefulDatagramSessionImpl relay = this.sessionManager.getSession(localAddress, session.getRemoteAddress(),
 				this.wrapped, this.chainBuilder);
-		
-		relay.setDownsideSession(session);
-		this.wrapped.exceptionCaught(relay, t);
+
+		relay.fireExceptionCaught(t);
+		// this.wrapped.exceptionCaught(relay, t);
 	}
 
 	public void messageReceived(IoSession session, Object message) throws Exception {
 		StatefulDatagramSessionImpl relay = this.sessionManager.getSession(localAddress, session.getRemoteAddress(),
 				this.wrapped, this.chainBuilder);
 		
-		relay.setDownsideSession(session);
-		this.wrapped.messageReceived(relay, message);
-	}
-
-	public void messageSent(IoSession session, Object message) throws Exception {
-		StatefulDatagramSessionImpl relay = (StatefulDatagramSessionImpl)session;
-		
-		relay.getDownsideSession().write(message);
+		relay.fireMessageReceived(message);
+		// this.wrapped.messageReceived(relay, message);
 	}
 
 	IoFilterChainBuilder getFilterChainBuilder() {

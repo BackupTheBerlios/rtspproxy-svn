@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
@@ -38,6 +39,7 @@ import rtspproxy.config.Parameter;
 import rtspproxy.lib.Exceptions;
 import rtspproxy.lib.NetworkInterface;
 import rtspproxy.lib.Singleton;
+import rtspproxy.transport.socket.nio.ConnectionlessSessionTracker;
 
 /**
  * ProxyService is the base abstract class for all the "Services" that can be
@@ -233,10 +235,18 @@ public abstract class ProxyService extends Singleton implements Observer
 	 *            the address of the remote host to connect to.
 	 * @return the newly created IoSession
 	 */
-	public IoSession newSession( SocketAddress remoteAddress )
+	public synchronized IoSession newSession( SocketAddress remoteAddress )
 	{
-		return Reactor.getRegistry().getAcceptor( this ).newSession( remoteAddress,
-				socketAddress );
+		IoSession session = null;
+		IoAcceptor acceptor = Reactor.getRegistry().getAcceptor( this );
+		
+		if(acceptor instanceof ConnectionlessSessionTracker)
+			session = ((ConnectionlessSessionTracker)acceptor).getSession(socketAddress, remoteAddress);
+		
+		if(session == null) 
+		 session = acceptor.newSession( remoteAddress, socketAddress );
+		
+		return session;
 	}
 
 	/**

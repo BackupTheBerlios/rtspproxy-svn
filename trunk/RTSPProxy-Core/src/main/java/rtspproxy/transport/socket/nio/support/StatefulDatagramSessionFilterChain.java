@@ -26,17 +26,23 @@ import org.apache.mina.common.support.AbstractIoFilterChain;
 
 class StatefulDatagramSessionFilterChain extends AbstractIoFilterChain
 		implements IoFilterChain {
-
-	StatefulDatagramSessionFilterChain(IoSession session) {
+	
+	StatefulDatagramSessionFilterChain(StatefulDatagramSessionImpl session) {
 		super(session);
 	}
 
 	@Override
 	protected void doWrite(IoSession session, WriteRequest writeReq) throws Exception {
+		StatefulDatagramSessionImpl ssession = (StatefulDatagramSessionImpl)session;
+		
+		ssession.getDelegate().doWrite(ssession, writeReq);
 	}
 
 	@Override
 	protected void doClose(IoSession session, CloseFuture closeFuture) throws Exception {
+		StatefulDatagramSessionImpl ssession = (StatefulDatagramSessionImpl)session;
+		
+		ssession.doClose(closeFuture);
 	}
 
 }
