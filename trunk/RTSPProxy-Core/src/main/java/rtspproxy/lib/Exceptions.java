@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 public class Exceptions
 {
 
-	private static Logger log = LoggerFactory.getLogger("");
+	private static Logger log = LoggerFactory.getLogger("rtspproxy");
 
 	private final static String CRLF = "\r\n";
 

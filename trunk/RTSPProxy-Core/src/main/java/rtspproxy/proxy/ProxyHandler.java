@@ -216,6 +216,24 @@ public class ProxyHandler
 				return;
 			}
 		}
+		
+		if(serverSession == null) {
+			/**
+			 * A mobile handset client may start the RTSP dialogue directly with a 
+			 * SETUP request if it has discovered the streaming media characteristics
+			 * through any other mechanism.
+			 * --> Make sure a server-side session exists in this case.
+			 */
+			try {
+				connectServerSide( request.getUrl() );
+			} catch ( IOException e ) {
+				log.error( "I/O exception", e );
+				// closeAll();
+			} finally {
+				if ( serverSession == null )
+					return;
+			}
+		}
 		serverSession.setAttribute( RtspMessage.lastRequestVerbATTR, request.getVerb() );
 
 		log.debug( "Client Transport:" + request.getHeader( "Transport" ) );

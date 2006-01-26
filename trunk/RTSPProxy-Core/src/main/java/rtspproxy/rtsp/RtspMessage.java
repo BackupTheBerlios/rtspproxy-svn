@@ -175,9 +175,21 @@ public abstract class RtspMessage
 	{
 		String proxy = Config.getProxySignature();
 		if ( getHeader( "Server" ) != null )
-			setHeader( "Via", proxy );
-		else
 			setHeader( "Server", proxy );
+		
+		String via = getHeader("Via");
+		StringBuffer newVia = new StringBuffer();
+		
+		if(via != null) {
+			newVia.append(", ");
+		}
+		newVia.append("RTSP/1.0 ");
+		newVia.append(Config.proxyClientInterface.getStringValue());
+		if(!Config.proxyServerInterface.getStringValue().equals(Config.proxyClientInterface.getStringValue())) {
+			newVia.append(", RTSP/1.0 ");
+			newVia.append(Config.proxyServerInterface.getStringValue());
+		}
+		setHeader("Via", newVia.toString());
 	}
 
 	/**
