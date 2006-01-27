@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.transport.socket.nio.SocketConnector;
+import org.apache.mina.transport.socket.nio.SocketSession;
 
 import rtspproxy.RdtClientService;
 import rtspproxy.RdtServerService;
@@ -39,6 +40,7 @@ import rtspproxy.RtcpClientService;
 import rtspproxy.RtcpServerService;
 import rtspproxy.RtpClientService;
 import rtspproxy.RtpServerService;
+import rtspproxy.config.Config;
 import rtspproxy.filter.RtspServerFilters;
 import rtspproxy.proxy.track.RdtTrack;
 import rtspproxy.proxy.track.RtpTrack;
@@ -469,6 +471,8 @@ public class ProxyHandler
 			future.join();
 			serverSession = future.getSession();
 
+			if(Config.proxyRtspKeepAlive.getValue())
+				((SocketSession)serverSession).setKeepAlive(true);
 		} catch ( UnresolvedAddressException e ) {
 			log.warn( "Destination unreachable: " + host + ":" + port );
 			sendResponse( clientSession, RtspResponse

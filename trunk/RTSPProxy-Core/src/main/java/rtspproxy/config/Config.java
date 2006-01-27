@@ -167,7 +167,31 @@ public class Config extends Singleton implements Observer
 			"Enables the x-udp-rdt transport.",
 			"/rtspproxy/proxy/transport/hacks/lowerTransportSuppress" // xpathExpr
 			);	
-	
+
+	public static final BooleanParameter proxyRtspTransportSsrcDisable = new BooleanParameter(
+			"proxy.transport.rtsp.transport.ssrc.disable", // name
+			false, // default value
+			false, // mutable
+			"disable the output of the SSRC transport attribute",
+			"/rtspproxy/proxy/transport/hacks/rtspTransportSsrcDisable" // xpathExpr
+			);	
+
+	public static final BooleanParameter proxyRtspTransportSourceDisable = new BooleanParameter(
+			"proxy.transport.rtsp.transport.source.disable", // name
+			false, // default value
+			false, // mutable
+			"disable the output of the SOURCE transport attribute",
+			"/rtspproxy/proxy/transport/hacks/rtspTransportSourceDisable" // xpathExpr
+			);	
+
+	public static final BooleanParameter proxyRtspKeepAlive = new BooleanParameter(
+			"proxy.transport.rtsp.keepAlive.enable", // name
+			false, // default value
+			false, // mutable
+			"Enable keep-alive on RTSP connections to remote servers.",
+			"/rtspproxy/proxy/transport/hacks/rtspKeepAlive" // xpathExpr
+			);
+
 	// /////////////////////////////////////////////////////////
 
 	// JMX
@@ -257,6 +281,8 @@ public class Config extends Singleton implements Observer
 	// filter configurations from XML
 	private static List<AAAConfig> urlRewritingFilters = new ArrayList<AAAConfig>();
 
+	private static List<AAAConfig> controlFilters = new ArrayList<AAAConfig>();
+	
 	static void addAuthenticationFilter(AAAConfig config) {
 		authenticationFilters.add(config);
 	}
@@ -272,7 +298,11 @@ public class Config extends Singleton implements Observer
 	static void addUrlRewritingFilter(AAAConfig config) {
 		urlRewritingFilters.add(config);
 	}
-	
+
+	public static void addControlFilter(AAAConfig aaa) {
+		controlFilters.add(aaa);
+	}
+
 	public static List<AAAConfig> getAuthenticationFilters() {
 		return Collections.unmodifiableList(authenticationFilters);
 	}
@@ -289,6 +319,10 @@ public class Config extends Singleton implements Observer
 		return Collections.unmodifiableList(urlRewritingFilters);
 	}
 	
+	public static List<AAAConfig> getControlFilters() {
+		return Collections.unmodifiableList(controlFilters);
+	}
+ 	
 	// /////////////////////////////////////////////////////////
 
 	public Config()

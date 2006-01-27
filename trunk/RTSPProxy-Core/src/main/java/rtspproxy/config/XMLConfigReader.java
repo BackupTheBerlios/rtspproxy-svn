@@ -128,7 +128,12 @@ public class XMLConfigReader {
 			} else if(name.equals("accounting")) {
 				Config.addAccountingFilter(aaa);				
 			} else if(name.equals("rewriting")) {
-				Config.addUrlRewritingFilter(aaa);				
+				Config.addUrlRewritingFilter(aaa);
+			} else if(name.equals("control")) {
+				if(side == Side.Client || side == Side.Server) 
+					Config.addControlFilter(aaa);
+				else
+					throw new IllegalArgumentException("control filters can be only applied to either client or server side, not both");
 			} else
 				throw new IllegalArgumentException("invalid AAA element given, name=" + name);
 		}

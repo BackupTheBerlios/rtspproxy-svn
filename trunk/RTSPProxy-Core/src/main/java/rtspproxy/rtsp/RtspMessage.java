@@ -174,13 +174,14 @@ public abstract class RtspMessage
 	public void setCommonHeaders()
 	{
 		String proxy = Config.getProxySignature();
-		if ( getHeader( "Server" ) != null )
+		if ( getHeader( "Server" ) == null )
 			setHeader( "Server", proxy );
 		
 		String via = getHeader("Via");
 		StringBuffer newVia = new StringBuffer();
 		
-		if(via != null) {
+		if(via != null && via.length() > 0) {
+			newVia.append(via);
 			newVia.append(", ");
 		}
 		newVia.append("RTSP/1.0 ");

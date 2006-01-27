@@ -15,6 +15,9 @@ import rtspproxy.config.AAAConfig;
 import rtspproxy.config.Config;
 import rtspproxy.filter.accounting.AccountingFilter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
+import rtspproxy.filter.control.ClientControlFilter;
+import rtspproxy.filter.control.ControlFilter;
+import rtspproxy.filter.control.ServerControlFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
 import rtspproxy.filter.rewrite.ClientUrlRewritingFilter;
 import rtspproxy.filter.rewrite.ServerUrlRewritingFilter;
@@ -52,6 +55,12 @@ public class FilterRegistry extends Singleton {
 	
 	// server side rewriting filters
 	private LinkedList<UrlRewritingFilter> serverUrlRewritingFilters = new LinkedList<UrlRewritingFilter>();
+	
+	// client side control traffic filters
+	private LinkedList<ClientControlFilter> clientControlFilters = new LinkedList<ClientControlFilter>();
+	
+	// client side control traffic filters
+	private LinkedList<ServerControlFilter> serverControlFilters = new LinkedList<ServerControlFilter>();
 	
 	/**
 	 * 
@@ -142,8 +151,26 @@ public class FilterRegistry extends Singleton {
 				this.serverUrlRewritingFilters.add(urlRewritingFilter);
 			}
 
+			for(AAAConfig filterConfig : Config.getControlFilters()) {
+				if(filterConfig.getSide() == Side.Client) {
+					ClientControlFilter filter = new ClientControlFilter(filterConfig.getImplClass(),
+							filterConfig.getConfigElements());
+					
+					filter.setSide(Side.Client);
+					registerFilterMBean(filter);
+					this.clientControlFilters.add(filter);
+				} else {
+					ServerControlFilter filter = new ServerControlFilter(filterConfig.getImplClass(),
+							filterConfig.getConfigElements());
+					
+					filter.setSide(Side.Client);
+					registerFilterMBean(filter);
+					this.serverControlFilters.add(filter);
+				}
+			}
+			
 		} catch (Throwable t) {
-			logger.error("failed to populate filter registry", t);
+			logger.error("failed to populate filter registry", t);	
 			
 			Reactor.stop();
 			System.exit(-1);
@@ -198,6 +225,20 @@ public class FilterRegistry extends Singleton {
 
 	public List<UrlRewritingFilter> getServerUrlRewritingFilters() {
 		return Collections.unmodifiableList(serverUrlRewritingFilters);
+	}
+
+	/**
+	 * @return Returns the clientControlFilters.
+	 */
+	public List<ClientControlFilter> getClientControlFilters() {
+		return Collections.unmodifiableList(clientControlFilters);
+	}
+
+	/**
+	 * @return Returns the serverControlFilters.
+	 */
+	public List<ServerControlFilter> getServerControlFilters() {
+		return Collections.unmodifiableList(serverControlFilters);
 	}
 	
 }

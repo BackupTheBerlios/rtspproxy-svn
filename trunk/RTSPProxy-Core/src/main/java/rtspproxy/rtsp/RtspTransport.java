@@ -313,10 +313,14 @@ public class RtspTransport
 			if ( server_port[1] > 0 )
 				sb.append( "-" ).append( server_port[1] );
 		}
-		if ( ssrc != null )
-			sb.append( ";ssrc=" ).append( ssrc );
-		if ( source != null )
-			sb.append( ";source=" ).append( source );
+		
+		if(!Config.proxyRtspTransportSsrcDisable.getValue())
+			if ( ssrc != null )
+				sb.append( ";ssrc=" ).append( ssrc );
+		if(!Config.proxyRtspTransportSourceDisable.getValue())
+			if ( source != null )
+				sb.append( ";source=" ).append( source );
+		
 		if ( mode != Mode.None )
 			sb.append( ";mode=\"" ).append( mode ) . append("\"");
 		return sb.toString();

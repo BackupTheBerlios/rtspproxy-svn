@@ -31,6 +31,9 @@ import org.apache.mina.filter.codec.ProtocolEncoder;
 import rtspproxy.ProxyServiceRegistry;
 import rtspproxy.filter.accounting.AccountingFilter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
+import rtspproxy.filter.control.ClientControlFilter;
+import rtspproxy.filter.control.ControlFilter;
+import rtspproxy.filter.control.ServerControlFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
 import rtspproxy.filter.rewrite.UrlRewritingFilter;
 import rtspproxy.lib.Side;
@@ -176,4 +179,19 @@ public abstract class RtspFilters implements IoFilterChainBuilder
 		}
 	}
 
+	protected void addControlFilter ( IoFilterChain chain, Side side) {
+		if(side == Side.Client) {
+			List<ClientControlFilter> filters = FilterRegistry.getInstance().getClientControlFilters();
+
+			for(ControlFilter controlFilter : filters) {
+				chain.addAfter( rtspCodecNAME, controlFilter.getChainName(), controlFilter);
+			}
+		} else {
+			List<ServerControlFilter> filters = FilterRegistry.getInstance().getServerControlFilters();
+		
+			for(ControlFilter controlFilter : filters) {
+				chain.addAfter( rtspCodecNAME, controlFilter.getChainName(), controlFilter);
+			}
+		}
+	}
 }
