@@ -191,6 +191,13 @@ public class Config extends Singleton implements Observer
 			"Enable keep-alive on RTSP connections to remote servers.",
 			"/rtspproxy/proxy/transport/hacks/rtspKeepAlive" // xpathExpr
 			);
+	public static final BooleanParameter proxyRtspAllowBrokenHeaders = new BooleanParameter(
+			"proxy.transport.rtsp.broken.headers.enable", // name
+			false, // default value
+			false, // mutable
+			"Allow certain work-arounds for clients generating non-conformant RTSP protocol traffic.",
+			"/rtspproxy/proxy/transport/hacks/rtspAllowBrokenHeaders" // xpathExpr
+			);
 
 	// /////////////////////////////////////////////////////////
 

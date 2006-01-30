@@ -30,6 +30,7 @@ import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 
+import rtspproxy.config.Config;
 import rtspproxy.lib.Exceptions;
 
 /**
@@ -71,6 +72,7 @@ public class RtspDecoder implements ProtocolDecoder
 	private static final Pattern rtspRequestPattern = Pattern.compile( "([A-Z_]+) ([^ ]+) RTSP/1.0" );
 	private static final Pattern rtspResponsePattern = Pattern.compile( "RTSP/1.0 ([0-9]+) .+" );
 	private static final Pattern rtspHeaderPattern = Pattern.compile( "([a-zA-Z\\-]+[0-9]?):\\s?(.*)" );
+	private static final Pattern spaceRtspHeaderPattern = Pattern.compile( "([a-zA-Z\\-]+[0-9]?)\\s?:\\s?(.*)" );
 
 	private static final Charset asciiCharset = Charset.forName( "US-ASCII" );
 
@@ -198,11 +200,22 @@ public class RtspDecoder implements ProtocolDecoder
 					log.debug("Header line: " + line);
 					Matcher m = rtspHeaderPattern.matcher(line);
 
-					if (!m.matches())
-						throw new ProtocolDecoderException(
-								"RTSP header not valid");
-
-					rtspMessage.setHeader(m.group(1), m.group(2));
+					if (!m.matches()) {
+						if(Config.proxyRtspAllowBrokenHeaders.getValue()) {
+							Matcher m2 = spaceRtspHeaderPattern.matcher(line);
+							
+							if(!m2.matches()) {
+								throw new ProtocolDecoderException(
+										"RTSP header not valid, line=" + line);								
+							} else
+								rtspMessage.setHeader(m2.group(1), m2.group(2));
+						} else {
+							throw new ProtocolDecoderException(
+							"RTSP header not valid, line=" + line);
+						}
+					} else
+						rtspMessage.setHeader(m.group(1), m.group(2));
+					
 					break;
 				case Body:
 					int bufferLen = Integer.parseInt(rtspMessage.getHeader(
