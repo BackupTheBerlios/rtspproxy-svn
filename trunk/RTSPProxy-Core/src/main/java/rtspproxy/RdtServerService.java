@@ -79,6 +79,12 @@ public final class RdtServerService extends ProxyService
 	}
 
 	@Override
+	public String getNetworkAddress()
+	{
+		return Config.proxyServerAddress.getValue();
+	}
+
+	@Override
 	public int getBindPort()
 	{
 		return Config.proxyServerRdtPort.getValue();

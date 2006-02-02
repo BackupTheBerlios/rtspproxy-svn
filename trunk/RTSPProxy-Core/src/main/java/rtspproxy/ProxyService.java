@@ -81,33 +81,43 @@ public abstract class ProxyService extends Singleton implements Observer
 			return;
 		}
 
-		String netInterface = getNetworkInterface();
 		int port = getBindPort();
 
 		try {
+			if (getNetworkAddress() != null) {
+				socketAddress = new InetSocketAddress(getNetworkAddress(), port);
+				log.debug("binding to specific address: " + socketAddress);
 
-			Set<InetAddress> addressSet = NetworkInterface.getAddresses( netInterface );
+				Reactor.getRegistry().bind(this, getIoHandler(),
+						socketAddress, getFilterChainBuilder());				
+			} else {
+				String netInterface = getNetworkInterface();
 
-			for ( InetAddress inetAddress : addressSet ) {
-				// Bind to all addresses
+				Set<InetAddress> addressSet = NetworkInterface.getInterfaceAddresses(netInterface);
 
-				socketAddress = new InetSocketAddress( inetAddress, port );
+				for (InetAddress inetAddress : addressSet) {
+					// Bind to all addresses
 
-				Reactor.getRegistry().bind( this, getIoHandler(), socketAddress,
-						getFilterChainBuilder() );
+					log.debug("binding to address from set: " + socketAddress);
+					socketAddress = new InetSocketAddress(inetAddress, port);
+
+					Reactor.getRegistry().bind(this, getIoHandler(),
+							socketAddress, getFilterChainBuilder());
+
+				}
+
+				// Choose a bind address
+				InetAddress inetAddress = NetworkInterface
+						.getBindAddress(addressSet);
+				socketAddress = new InetSocketAddress(inetAddress, port);
 
 			}
-
-			// Choose a bind address
-			InetAddress inetAddress = NetworkInterface.getBindAddress( addressSet );
-			socketAddress = new InetSocketAddress( inetAddress, port );
-
-			log.info( getName() + " Started - Listening on: " + socketAddress );
-
-		} catch ( IOException e ) {
-			log.error( "Can't start " + getName(), e );
+		} catch (IOException e) {
+			log.error("Can't start " + getName(), e);
 			throw e;
 		}
+		log.info( getName() + " Started - Listening on: " + socketAddress );
+
 
 		isRunning = true;
 	}
@@ -181,10 +191,19 @@ public abstract class ProxyService extends Singleton implements Observer
 	public abstract String getName();
 
 	/**
+	 * Get the network interface to bind to. This is only used if there is no more specific
+	 * IP address configured.
 	 * @return the network interface to bind this service on, as it appears in
 	 *         the configuratio registry (Config).
 	 */
 	public abstract String getNetworkInterface();
+
+	/**
+	 * @return the network address to bind this service on, as it appears in
+	 *         the configuratio registry (Config). If null, the network interface
+	 *         configuration parameter is used.
+	 */
+	public abstract String getNetworkAddress();
 
 	/**
 	 * @return the port to bind on, as it appear in the configuration registry.

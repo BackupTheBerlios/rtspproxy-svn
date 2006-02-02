@@ -72,6 +72,12 @@ public final class RtcpServerService extends ProxyService
 	}
 
 	@Override
+	public String getNetworkAddress()
+	{
+		return Config.proxyServerAddress.getValue();
+	}
+
+	@Override
 	public int getBindPort()
 	{
 		return Config.proxyServerRtcpPort.getValue();

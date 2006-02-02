@@ -81,6 +81,47 @@ public class NetworkInterface
 		return addresses;
 	}
 
+	/**
+	 * Return all the addresses associated with the given interface. If the
+	 * supplied interface name is null, all the addresses from all interfaces
+	 * will be returned.
+	 * 
+	 * @param interfaceName
+	 * @return a set of InetAddress
+	 */
+	public static Set<InetAddress> getInterfaceAddresses( String interfaceName )
+	{
+		Set<InetAddress> addresses = new HashSet<InetAddress>();
+
+		if ( interfaceName != null ) {
+			try {
+				// InetAddress address = InetAddress.getByName( interfaceName );
+				java.net.NetworkInterface networkInterface = java.net.NetworkInterface.getByName(interfaceName);
+				addresses.addAll( getAddresses( networkInterface ) );
+
+			} catch ( Exception e ) {
+				log.error( "Cannot register network interface: " + interfaceName, e );
+				return null;
+			}
+		} else {
+			// Add all addresses from all interfaces
+
+			Enumeration<java.net.NetworkInterface> interfaces;
+			try {
+				interfaces = java.net.NetworkInterface.getNetworkInterfaces();
+			} catch ( SocketException se ) {
+				log.error( "Cannot get the interfaces list." );
+				return null;
+			}
+
+			while ( interfaces.hasMoreElements() ) {
+				addresses.addAll( getAddresses( interfaces.nextElement() ) );
+			}
+		}
+
+		return addresses;
+	}
+
 	private static Set<InetAddress> getAddresses(
 			java.net.NetworkInterface networkInterface )
 	{

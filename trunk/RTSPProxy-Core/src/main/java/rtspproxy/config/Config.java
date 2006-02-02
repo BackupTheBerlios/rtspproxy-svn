@@ -82,6 +82,22 @@ public class Config extends Singleton implements Observer
 			"/rtspproxy/proxy/server/interface" // pathExpr
 			);
 
+	public static final StringParameter proxyClientAddress = new StringParameter(
+			"proxy.client.address", // name
+			null, // default value
+			false, // mutable
+			"Specify a network address." ,
+			"/rtspproxy/proxy/client/address" // xpathExpr
+			);
+
+	public static final StringParameter proxyServerAddress = new StringParameter(
+			"proxy.server.address", // name
+			null, // default value
+			false, // mutable
+			"Specify a network address.",
+			"/rtspproxy/proxy/server/address" // pathExpr
+			);
+
 	public static final IntegerParameter proxyServerRtpPort = new IntegerParameter(
 			"proxy.server.rtp.port", // name
 			new Integer( 0 ), // min value
@@ -217,7 +233,7 @@ public class Config extends Singleton implements Observer
 			false, // mutable
 			"Host to bind the management services. Default is localhost, and the services "
 					+ "will only be reachable from local machine.",
-			"/rtspproxy/jmx/interface" // xpathExpr
+			"/rtspproxy/jmx/address" // xpathExpr
 			 );
 
 	public static final StringParameter proxyManagementUser = new StringParameter(
