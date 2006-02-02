@@ -6,13 +6,15 @@
       <rtpPort>6970</rtpPort>
       <rtcpPort>6971</rtcpPort>
       <rdtPort>6972</rdtPort>
-      <interface>10.0.0.24</interface>
+      <address>10.0.0.24</address>
+      <!-- interface>eth0</interface -->
     </server>
     <client>
       <rtpPort>6970</rtpPort>
       <rtcpPort>6971</rtcpPort>
       <rdtPort>6972</rdtPort>
-      <interface>10.0.0.23</interface>
+      <address>10.0.0.23</address>
+      <!-- interface>eth1</interface -->
     </client>
 	<transport>
 		<rtp>true</rtp>
@@ -24,7 +26,7 @@
   </proxy>
   <jmx>
     <manageable>true</manageable>
-    <interface>10.0.0.22</interface>
+    <address>10.0.0.22</address>
     <user>admin</user>
     <password>admin123</password>
     <web>
