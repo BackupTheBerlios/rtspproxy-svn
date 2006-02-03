@@ -177,20 +177,27 @@ public abstract class RtspMessage
 		if ( getHeader( "Server" ) == null )
 			setHeader( "Server", proxy );
 		
-		String via = getHeader("Via");
-		StringBuffer newVia = new StringBuffer();
-		
-		if(via != null && via.length() > 0) {
-			newVia.append(via);
-			newVia.append(", ");
+		if(Config.proxyClientAddress.getStringValue() != null) {
+			String via = getHeader("Via");
+			StringBuffer newVia = new StringBuffer();
+			
+			if(via != null && via.length() > 0) {
+				newVia.append(via);
+				newVia.append(", ");
+			}
+			newVia.append("RTSP/1.0 ");
+			
+			String clientAddr  = Config.proxyClientAddress.getStringValue();
+			String serverAddr = Config.proxyServerAddress.getStringValue();
+			
+			newVia.append(clientAddr);
+			if(serverAddr != null && !serverAddr.equals(clientAddr)) {
+				newVia.append(", RTSP/1.0 ");
+				newVia.append(serverAddr);
+			}
+			
+			setHeader("Via", newVia.toString());
 		}
-		newVia.append("RTSP/1.0 ");
-		newVia.append(Config.proxyClientInterface.getStringValue());
-		if(!Config.proxyServerInterface.getStringValue().equals(Config.proxyClientInterface.getStringValue())) {
-			newVia.append(", RTSP/1.0 ");
-			newVia.append(Config.proxyServerInterface.getStringValue());
-		}
-		setHeader("Via", newVia.toString());
 	}
 
 	/**
