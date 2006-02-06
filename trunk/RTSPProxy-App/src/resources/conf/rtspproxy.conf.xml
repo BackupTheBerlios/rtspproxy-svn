@@ -8,6 +8,9 @@
       <rdtPort>6972</rdtPort>
       <address>10.0.0.24</address>
       <!-- interface>eth0</interface -->
+      <rtpMinPort>9000</rtpMinPort>
+      <rtpMaxPort>9100</rtpMaxPort>
+	  <rtpUsePortrange>false</rtpUsePortrange>
     </server>
     <client>
       <rtpPort>6970</rtpPort>
