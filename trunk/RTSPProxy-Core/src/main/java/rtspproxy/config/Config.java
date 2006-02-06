@@ -118,6 +118,34 @@ public class Config extends Singleton implements Observer
 			"/rtspproxy/proxy/server/rtcpPort" // xpathExpr
 			);
 
+	public static final IntegerParameter proxyServerRtpMinPort = new IntegerParameter(
+			"proxy.server.rtp.port.min", // name
+			new Integer( 0 ), // min value
+			new Integer( 65536 ), // max value
+			new Integer( 9000 ), // default value
+			true, // mutable
+			"Port to listen for RTP packets arriving from servers.",
+			"/rtspproxy/proxy/server/rtpMinPort" // xpathExpr
+			);
+
+	public static final IntegerParameter proxyServerRtpMaxPort = new IntegerParameter(
+			"proxy.server.rtp.port.max", // name
+			new Integer( 0 ), // min value
+			new Integer( 65536 ), // max value
+			new Integer( 9100 ), // default value
+			true, // mutable
+			"Port to listen for RTP packets arriving from servers.",
+			"/rtspproxy/proxy/server/rtpMaxPort" // xpathExpr
+			);
+	
+	public static final BooleanParameter proxyServerRtpMultiplePorts = new BooleanParameter(
+			"proxy.server.rtp.multiport.enable", // name
+			false, // default value
+			false, // mutable
+			"Enables the RTP/RTCP multiport handling.",
+			"/rtspproxy/proxy/server/rtpUsePortrange" // xpathExpr
+			);
+	
 	public static final IntegerParameter proxyClientRtpPort = new IntegerParameter(
 			"proxy.client.rtp.port", // name
 			new Integer( 0 ), // min value

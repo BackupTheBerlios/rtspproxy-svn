@@ -50,6 +50,8 @@ public class ServerRtpPacketHandler extends IoHandlerAdapter
 		RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
 		RtpTrack track = RtpTrack.getByServerSSRC( packet.getSsrc() );
 
+		log.debug("recevied server RTP packet, SSRC=" + packet.getSsrc() + ", CSRC=" + packet.getCsrc()
+				+ ", server=" + session.getRemoteAddress(), ", local=" + session.getLocalAddress());
 		if ( track == null ) {
 			track = (RtpTrack)Track.getByServerAddress( (InetSocketAddress) session.getRemoteAddress() );
 

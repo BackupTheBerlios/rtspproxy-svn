@@ -214,6 +214,8 @@ public class RtpTrack extends Track
 					new InetSocketAddress( clientAddress, clientRtpPort ) );
 		}
 
+		log.debug("forwarding RTP packet, SSRC=" + packet.getSsrc() + ", CSRC=" + packet.getCsrc()
+				+ ", client=" + rtpClientSession.getRemoteAddress());
 		rtpClientSession.write( packet.toByteBuffer() );
 	}
 

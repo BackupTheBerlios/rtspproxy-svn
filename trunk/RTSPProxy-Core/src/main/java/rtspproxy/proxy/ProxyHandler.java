@@ -274,6 +274,11 @@ public class ProxyHandler
 					
 					int proxyRtpPort = RtpServerService.getInstance().getPort();
 					int proxyRtcpPort = RtcpServerService.getInstance().getPort();
+					
+					if(Config.proxyServerRtpMultiplePorts.getValue()) {
+						log.debug("using RTP port range");
+						
+					}
 					transport.setClientPort( new int[] { proxyRtpPort, proxyRtcpPort } );
 
 				} else if ( transport.getTransportProtocol() == TransportProtocol.RDT ) {
