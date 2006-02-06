@@ -37,11 +37,16 @@ public interface UrlRewritingProvider extends GenericProvider {
 	 * sent back to the client. If null is returned, the URL is passed on without modification.
 	 */
 	public UrlRewritingResult rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client,
-			Map<String, String> requestHeaders);
+			Map<String, String> requestHeaders, Map<String, Object> sessionAttributes);
 
 	/**
 	 * rewrite an URL in a response header.
 	 * @return a replacement URL or null if the URL is not to be modified.
 	 */
 	public URL rewriteResponseHeaderUrl(URL request);
+	
+	/**
+	 * get a list of session attributes the filter wants to get exposed from the session
+	 */
+	public String[] getWantedSessionAttributes();
 }

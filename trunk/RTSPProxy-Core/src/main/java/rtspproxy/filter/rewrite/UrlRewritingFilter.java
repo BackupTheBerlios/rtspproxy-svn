@@ -5,6 +5,7 @@ package rtspproxy.filter.rewrite;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.management.MBeanServer;
@@ -40,6 +41,9 @@ public abstract class UrlRewritingFilter extends FilterBase implements JmxManage
 	// the filter instance
 	protected UrlRewritingProvider provider;
 
+	// list of exposed session attributes
+	private String[] exposedAttributes;
+	
 	/**
 	 * construct the IoFilter around the filter class denoted by the clazz name
 	 * parameter.
@@ -51,6 +55,10 @@ public abstract class UrlRewritingFilter extends FilterBase implements JmxManage
 		this.provider = (UrlRewritingProvider)loadConfigInitProvider(className, 
 				UrlRewritingProvider.class, 
 				configElements);
+		
+		this.exposedAttributes = this.provider.getWantedSessionAttributes();
+		if(this.exposedAttributes == null)
+			this.exposedAttributes = new String[0];
 	}
 
 	public abstract void messageReceived(NextFilter nextFilter, IoSession session,
@@ -65,8 +73,14 @@ public abstract class UrlRewritingFilter extends FilterBase implements JmxManage
 		boolean passOn = true;
 		
 		if (req.getUrl() != null) {
+			HashMap<String, Object> exposedSessionAttributes = new HashMap<String, Object>();
+			
+			for(String attr : this.exposedAttributes)
+				if(session.containsAttribute(attr))
+					exposedSessionAttributes.put(attr, session.getAttribute(attr));
+			
 			UrlRewritingResult result = this.provider.rewriteRequestUrl(req.getUrl(), req.getVerb(), 
-					session.getRemoteAddress(), req.getHeaders()); 
+					session.getRemoteAddress(), req.getHeaders(), exposedSessionAttributes); 
 			
 			if(result != null) {
 				URL rewritten = result.getRewrittenUrl();
@@ -81,6 +95,8 @@ public abstract class UrlRewritingFilter extends FilterBase implements JmxManage
 
 					resp.setCommonHeaders();
 					resp.setSequenceNumber(req.getSequenceNumber());
+					if(resp.getHeader("Session") != null)
+						resp.setHeader("Session", req.getHeader("Session"));
 					logger.debug("dropped  request, return response: " + resp);
 
 					session.write(resp);

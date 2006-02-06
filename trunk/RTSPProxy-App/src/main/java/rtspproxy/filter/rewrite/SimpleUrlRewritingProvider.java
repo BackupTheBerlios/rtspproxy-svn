@@ -17,6 +17,7 @@ import org.dom4j.Element;
 import rtspproxy.config.AAAConfigurable;
 import rtspproxy.filter.GenericProviderAdapter;
 import rtspproxy.rtsp.RtspRequest;
+import rtspproxy.rtsp.RtspRequest.Verb;
 
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
@@ -44,7 +45,7 @@ public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 	 * @see rtspproxy.filter.rewrite.UrlRewritingProvider#rewriteRequestUrl(java.net.URL)
 	 */
 	public UrlRewritingResult rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client,
-			Map<String, String> requestHeaders) {
+			Map<String, String> requestHeaders, Map<String, Object> exposedSessionAttributes) {
 		UrlRewritingResult result = null;
 		URL rewritten = null;
 		String req = request.toString();
@@ -147,6 +148,11 @@ public class SimpleUrlRewritingProvider extends GenericProviderAdapter
 								toUrl.getPort(), "/"));
 			}
 		}
+	}
+
+	public String[] getWantedSessionAttributes() {
+		// no attributes wanted
+		return null;
 	}
 
 }
