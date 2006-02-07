@@ -9,7 +9,7 @@
         <parent>
                 <groupId>net.merlimat</groupId>
                 <artifactId>rtspproxy</artifactId>
-                <version>3.0-ALPHA4-SNAPSHOT</version>
+                <version>3.0-ALPHA5-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
         </parent>
 
@@ -18,7 +18,7 @@
 	<name>RTSP Proxy standalone application</name>
 	<groupId>net.merlimat</groupId>
 	<artifactId>RTSPProxy-App</artifactId>
-	<version>3.0-ALPHA4-SNAPSHOT</version>
+	<version>3.0-ALPHA5-SNAPSHOT</version>
 	<url>http://rtspproxy.berlios.de</url>
 	<inceptionYear>2003</inceptionYear>
 
@@ -28,7 +28,7 @@
     <dependency>
       <groupId>net.merlimat</groupId>
       <artifactId>RTSPProxy-Core</artifactId>
-      <version>3.0-ALPHA4-SNAPSHOT</version>
+      <version>3.0-ALPHA5-SNAPSHOT</version>
     </dependency>
 
 		<dependency>

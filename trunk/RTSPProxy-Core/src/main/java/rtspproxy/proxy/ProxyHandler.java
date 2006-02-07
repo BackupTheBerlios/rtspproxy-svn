@@ -42,8 +42,12 @@ import rtspproxy.RtpClientService;
 import rtspproxy.RtpServerService;
 import rtspproxy.config.Config;
 import rtspproxy.filter.RtspServerFilters;
+import rtspproxy.lib.number.UnsignedInt;
+import rtspproxy.lib.number.UnsignedLong;
 import rtspproxy.proxy.track.RdtTrack;
 import rtspproxy.proxy.track.RtpTrack;
+import rtspproxy.rtp.range.PortrangeRtpServerSession;
+import rtspproxy.rtp.range.PortrangeRtpServerSessionFactory;
 import rtspproxy.rtsp.RtspCode;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
@@ -79,8 +83,6 @@ public class ProxyHandler
 
 	private HashMap<String, Object> sharedSessionObjects = new HashMap<String, Object>();
 	
-	private static final String sharedSessionAttribute = "__SharedSessionArttributes";
-	
 	/**
 	 * Creates a new ProxyHandler from a client side protocol session.
 	 * 
@@ -89,7 +91,7 @@ public class ProxyHandler
 	public ProxyHandler( IoSession clientSession )
 	{
 		this.clientSession = clientSession;
-		this.clientSession.setAttribute(sharedSessionAttribute, sharedSessionObjects);
+		this.clientSession.setAttribute(ProxyConstants.RSTP_SHARED_SESSION_ATTRIBUTE, sharedSessionObjects);
 	}
 
 	public void passToServer( RtspMessage message )
@@ -200,6 +202,7 @@ public class ProxyHandler
 	public void passSetupRequestToServer( RtspRequest request )
 	{
 		ProxySession proxySession = null;
+		PortrangeRtpServerSession portrangeRtpSession = null;
 
 		if ( request.getHeader( "Session" ) != null ) {
 			// The client already specified a session ID.
@@ -278,9 +281,31 @@ public class ProxyHandler
 					if(Config.proxyServerRtpMultiplePorts.getValue()) {
 						log.debug("using RTP port range");
 						
+						try {
+							portrangeRtpSession = PortrangeRtpServerSessionFactory.getInstance().getSession();
+							
+							proxyRtpPort = portrangeRtpSession.getRtpPort();
+							proxyRtcpPort = portrangeRtpSession.getRtcpPort();
+							
+							log.debug("setting local server RTP/RTCP ports to "	+ proxyRtpPort + "/" + proxyRtcpPort);
+						} catch(IOException ioe) {
+							log.info("failed to allocate local RTP/RTCP ports", ioe);
+							
+							sendResponse( clientSession, RtspResponse
+									.errorResponse( RtspCode.InternalServerError ) );
+							return;
+						}
 					}
 					transport.setClientPort( new int[] { proxyRtpPort, proxyRtcpPort } );
 
+					// offer a distinguished SSRC to the remote server
+					if(Config.proxyRtspOfferSsrcToServer.getValue()) {
+						String ssrc = ProxySession.newServerSessionID().toHexString();
+						log.debug("offering generated SSRC to remote server, ssrc=" + ssrc);
+						
+						transport.setSSRC(ssrc);
+					}
+					
 				} else if ( transport.getTransportProtocol() == TransportProtocol.RDT ) {
 					clientSession.setAttribute( clientRdtPortATTR, new Integer( transport
 							.getClientPort()[0] ) );
@@ -296,6 +321,8 @@ public class ProxyHandler
 			proxySession = new ProxySession();
 			clientSession.setAttribute( ProxySession.ATTR, proxySession );
 		}
+		if(portrangeRtpSession != null)
+			proxySession.setPortrangeRtpServerSession(portrangeRtpSession);
 
 		request.setHeader( "Transport", rtspTransportList.toString() );
 
@@ -491,7 +518,7 @@ public class ProxyHandler
 		// Save current ProxyHandler into the ProtocolSession
 		serverSession.setAttribute( ProxyHandler.ATTR, this );
 
-		serverSession.setAttribute(sharedSessionAttribute, sharedSessionObjects);
+		serverSession.setAttribute(ProxyConstants.RSTP_SHARED_SESSION_ATTRIBUTE, sharedSessionObjects);
 		
 		log.debug( "Server session: " + serverSession.getAttributeKeys() );
 	}
@@ -500,7 +527,7 @@ public class ProxyHandler
 	 * set an object in the shared objects map
 	 */
 	public static void setSharedSessionAttribute(IoSession session, String name, Object value) {
-		HashMap<String, Object> map = (HashMap<String, Object>)session.getAttribute(sharedSessionAttribute);
+		HashMap<String, Object> map = (HashMap<String, Object>)session.getAttribute(ProxyConstants.RSTP_SHARED_SESSION_ATTRIBUTE);
 		
 		synchronized (map) {
 			map.put(name, value);
@@ -509,7 +536,7 @@ public class ProxyHandler
 	
 	public static Object getSharedSessionAttribute(IoSession session, String name) {
 		Object v = null;
-		HashMap<String, Object> map = (HashMap<String, Object>)session.getAttribute(sharedSessionAttribute);
+		HashMap<String, Object> map = (HashMap<String, Object>)session.getAttribute(ProxyConstants.RSTP_SHARED_SESSION_ATTRIBUTE);
 		
 		synchronized (map) {
 			v = map.get(name);
@@ -520,7 +547,7 @@ public class ProxyHandler
 	
 	public static final boolean containsSharedSessionAttribute(IoSession session, String name) {
 		boolean v = false;
-		HashMap<String, Object> map = (HashMap<String, Object>)session.getAttribute(sharedSessionAttribute);
+		HashMap<String, Object> map = (HashMap<String, Object>)session.getAttribute(ProxyConstants.RSTP_SHARED_SESSION_ATTRIBUTE);
 		
 		synchronized (map) {
 			v = map.containsKey(name);

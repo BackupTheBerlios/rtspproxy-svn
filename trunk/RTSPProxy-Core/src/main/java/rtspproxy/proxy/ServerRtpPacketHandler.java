@@ -26,6 +26,7 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
+import rtspproxy.config.Config;
 import rtspproxy.lib.Exceptions;
 import rtspproxy.proxy.track.RtpTrack;
 import rtspproxy.proxy.track.Track;
@@ -48,12 +49,20 @@ public class ServerRtpPacketHandler extends IoHandlerAdapter
 	{
 		// log.debug( "Received RTP packet" );
 		RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
-		RtpTrack track = RtpTrack.getByServerSSRC( packet.getSsrc() );
+		RtpTrack track = null;
 
+		if(!Config.proxyServerRtpSsrcUnreliable.getValue())
+			track = RtpTrack.getByServerSSRC( packet.getSsrc() );
+		
 		log.debug("recevied server RTP packet, SSRC=" + packet.getSsrc() + ", CSRC=" + packet.getCsrc()
-				+ ", server=" + session.getRemoteAddress(), ", local=" + session.getLocalAddress());
+				+ ", server=" + session.getRemoteAddress() + ", local=" + session.getLocalAddress());
+		
 		if ( track == null ) {
-			track = (RtpTrack)Track.getByServerAddress( (InetSocketAddress) session.getRemoteAddress() );
+			if(Config.proxyServerRtpMultiplePorts.getValue())
+				track = (RtpTrack)Track.getByLocalRemoteServerAddress((InetSocketAddress)session.getLocalAddress(),
+						(InetSocketAddress)session.getRemoteAddress());
+			else
+				track = (RtpTrack)Track.getByServerAddress( (InetSocketAddress) session.getRemoteAddress() );
 
 			if ( track == null ) {
 				// drop packet

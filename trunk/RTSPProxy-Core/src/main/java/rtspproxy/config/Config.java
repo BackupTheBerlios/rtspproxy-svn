@@ -118,6 +118,14 @@ public class Config extends Singleton implements Observer
 			"/rtspproxy/proxy/server/rtcpPort" // xpathExpr
 			);
 
+	public static final BooleanParameter proxyServerRtpMultiplePorts = new BooleanParameter(
+			"proxy.server.rtp.multiport.enable", // name
+			false, // default value
+			false, // mutable
+			"Enables the RTP/RTCP multiport handling.",
+			"/rtspproxy/proxy/server/rtpUsePortrange" // xpathExpr
+			);
+
 	public static final IntegerParameter proxyServerRtpMinPort = new IntegerParameter(
 			"proxy.server.rtp.port.min", // name
 			new Integer( 0 ), // min value
@@ -125,7 +133,7 @@ public class Config extends Singleton implements Observer
 			new Integer( 9000 ), // default value
 			true, // mutable
 			"Port to listen for RTP packets arriving from servers.",
-			"/rtspproxy/proxy/server/rtpMinPort" // xpathExpr
+			"/rtspproxy/proxy/server/rtpPortrange/minPort" // xpathExpr
 			);
 
 	public static final IntegerParameter proxyServerRtpMaxPort = new IntegerParameter(
@@ -135,17 +143,39 @@ public class Config extends Singleton implements Observer
 			new Integer( 9100 ), // default value
 			true, // mutable
 			"Port to listen for RTP packets arriving from servers.",
-			"/rtspproxy/proxy/server/rtpMaxPort" // xpathExpr
+			"/rtspproxy/proxy/server/rtpPortrange/maxPort" // xpathExpr
 			);
 	
-	public static final BooleanParameter proxyServerRtpMultiplePorts = new BooleanParameter(
-			"proxy.server.rtp.multiport.enable", // name
-			false, // default value
-			false, // mutable
-			"Enables the RTP/RTCP multiport handling.",
-			"/rtspproxy/proxy/server/rtpUsePortrange" // xpathExpr
+	public static final IntegerParameter proxyServerRtpIdleTimeout = new IntegerParameter(
+			"proxy.server.rtp.portrange.idle.timeout", // name
+			new Integer( 0 ), // min value
+			new Integer( 86400 ), // max value
+			new Integer( 3600 ), // default value
+			true, // mutable
+			"Timeout an open RTP server port may linger around.",
+			"/rtspproxy/proxy/server/rtpPortrange/idleTimeout" // xpathExpr
+			);	
+
+	public static final IntegerParameter proxyServerRtpIdleScanInterval = new IntegerParameter(
+			"proxy.server.rtp.portrange.idle.timeout", // name
+			new Integer( 0 ), // min value
+			new Integer( 86400 ), // max value
+			new Integer( 1800 ), // default value
+			true, // mutable
+			"Scan interval on idle RTP server ports.",
+			"/rtspproxy/proxy/server/rtpPortrange/idleScanInterval" // xpathExpr
 			);
-	
+
+	public static final IntegerParameter proxyServerRtpThreadPoolSize = new IntegerParameter(
+			"proxy.server.rtp.portrange.pool.size", // name
+			new Integer( 0 ), // min value
+			new Integer( 2147483647 ), // max value
+			new Integer( 10 ), // default value
+			true, // mutable
+			"Scan interval on idle RTP server ports.",
+			"/rtspproxy/proxy/server/rtpPortrange/threadPoolSize" // xpathExpr
+			);
+
 	public static final IntegerParameter proxyClientRtpPort = new IntegerParameter(
 			"proxy.client.rtp.port", // name
 			new Integer( 0 ), // min value
@@ -235,6 +265,7 @@ public class Config extends Singleton implements Observer
 			"Enable keep-alive on RTSP connections to remote servers.",
 			"/rtspproxy/proxy/transport/hacks/rtspKeepAlive" // xpathExpr
 			);
+	
 	public static final BooleanParameter proxyRtspAllowBrokenHeaders = new BooleanParameter(
 			"proxy.transport.rtsp.broken.headers.enable", // name
 			false, // default value
@@ -242,6 +273,22 @@ public class Config extends Singleton implements Observer
 			"Allow certain work-arounds for clients generating non-conformant RTSP protocol traffic.",
 			"/rtspproxy/proxy/transport/hacks/rtspAllowBrokenHeaders" // xpathExpr
 			);
+
+	public static final BooleanParameter proxyRtspOfferSsrcToServer = new BooleanParameter(
+			"proxy.transport.rtsp.offer.ssrc.enable", // name
+			false, // default value
+			false, // mutable
+			"Allow certain work-arounds for clients generating non-conformant RTSP protocol traffic.",
+			"/rtspproxy/proxy/transport/hacks/offerRemoteSsrc" // xpathExpr
+			);
+
+	public static final BooleanParameter proxyServerRtpSsrcUnreliable = new BooleanParameter(
+			"proxy.streaming.rtp.ssrc.unreliable", // name
+			false, // default value
+			false, // mutable
+			"Disable the evaluation of the SSRC send by the remote streaming server.",
+			"/rtspproxy/proxy/streaming/hacks/rtpSsrcUnreliable" // xpathExpr
+			);	
 
 	// /////////////////////////////////////////////////////////
 

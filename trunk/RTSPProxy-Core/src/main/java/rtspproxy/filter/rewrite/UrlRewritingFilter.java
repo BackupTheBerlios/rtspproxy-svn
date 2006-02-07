@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import rtspproxy.filter.FilterBase;
 import rtspproxy.jmx.JmxManageable;
 import rtspproxy.jmx.JmxManageable2;
+import rtspproxy.proxy.ProxyHandler;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
@@ -75,9 +76,22 @@ public abstract class UrlRewritingFilter extends FilterBase implements JmxManage
 		if (req.getUrl() != null) {
 			HashMap<String, Object> exposedSessionAttributes = new HashMap<String, Object>();
 			
-			for(String attr : this.exposedAttributes)
-				if(session.containsAttribute(attr))
-					exposedSessionAttributes.put(attr, session.getAttribute(attr));
+			for(String attr : this.exposedAttributes) {
+				logger.debug("exposing session attribute: " + attr);
+				if(session.containsAttribute(attr)) {
+					Object o = session.getAttribute(attr);
+					
+					logger.debug("attribute " + attr + " found in session, val=" + o);
+					exposedSessionAttributes.put(attr, o);
+				}
+				
+				if(ProxyHandler.containsSharedSessionAttribute(session, attr)) {
+					Object o = ProxyHandler.getSharedSessionAttribute(session, attr);
+
+					logger.debug("attribute " + attr + " found in shared session map, val=" + o);
+					exposedSessionAttributes.put(attr, o);
+				}
+			}
 			
 			UrlRewritingResult result = this.provider.rewriteRequestUrl(req.getUrl(), req.getVerb(), 
 					session.getRemoteAddress(), req.getHeaders(), exposedSessionAttributes); 

@@ -36,6 +36,41 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class Track
 {
 
+	protected static class LocalRemoteAddressPair {
+		private InetSocketAddress local;
+		private InetSocketAddress remote;
+		
+		public LocalRemoteAddressPair(InetSocketAddress local, InetSocketAddress remote) {
+			this.local = local;
+			this.remote = remote;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			boolean equal = false;
+			
+			if(obj instanceof LocalRemoteAddressPair) {
+				LocalRemoteAddressPair o = (LocalRemoteAddressPair)obj;
+				
+				equal = (this.local.equals(o.local) && this.remote.equals(o.remote));
+			}
+			return equal;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			return (this.local.hashCode() ^ this.remote.hashCode());
+		}
+		
+		
+	}
+	
 	protected static final String ATTR = Track.class.toString() + "Attr";
 
 	/** Maps a client address to a Track */
@@ -44,6 +79,10 @@ public abstract class Track
 	/** Maps a server address to a Track */
 	protected static Map<InetSocketAddress, Track> serverAddressMap = new ConcurrentHashMap<InetSocketAddress, Track>();
 
+	/** Maps a local server address/port and a remote address/port to a Track */
+	protected static Map<LocalRemoteAddressPair, Track> localRemoteServerAddressMap = 
+		new ConcurrentHashMap<LocalRemoteAddressPair, Track>();
+	
 	/**
 	 * Control Url of the track. This is the url handle given by the server to
 	 * control different tracks in a RTSP session.
@@ -93,6 +132,22 @@ public abstract class Track
 	public static Track getByServerAddress( InetSocketAddress serverAddress )
 	{
 		return serverAddressMap.get( serverAddress );
+	}
+
+	/**
+	 * Get the track by looking at server socket address.
+	 * <p>
+	 * Used as a workaround for streaming servers which do not hand out a ssrc
+	 * in the setup handshake.
+	 * 
+	 * @return a Track instance if a matching pair is found or null
+	 */
+	public static Track getByLocalRemoteServerAddress( InetSocketAddress localServerAddress,
+			InetSocketAddress remoteServerAddress)
+	{
+		LocalRemoteAddressPair pair = new LocalRemoteAddressPair(localServerAddress, remoteServerAddress);
+		
+		return localRemoteServerAddressMap.get( pair );
 	}
 
 	// /// Member methods

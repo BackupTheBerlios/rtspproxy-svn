@@ -2,16 +2,21 @@
   <threadPoolSize>10</threadPoolSize>
   <proxy>
     <rtspPort>554</rtspPort>
-    <server>
-      <rtpPort>6970</rtpPort>
-      <rtcpPort>6971</rtcpPort>
-      <rdtPort>6972</rdtPort>
-      <address>10.0.0.24</address>
-      <!-- interface>eth0</interface -->
-      <rtpMinPort>9000</rtpMinPort>
-      <rtpMaxPort>9100</rtpMaxPort>
-	  <rtpUsePortrange>false</rtpUsePortrange>
-    </server>
+	<server>
+		<rtpPort>6970</rtpPort>
+		<rtcpPort>6971</rtcpPort>
+		<rdtPort>6972</rdtPort>
+		<address>10.0.0.24</address>
+		<!-- interface>eth0</interface -->
+		<rtpUsePortrange>false</rtpUsePortrange>
+		<rtpPortrange>
+			<minPort>9000</minPort>
+			<maxPort>9100</maxPort>
+			<idleTimeout>120</idleTimeout>
+			<idleScanInterval>60</idleScanInterval>
+			<threadPoolSize>10</threadPoolSize>
+		</rtpPortrange>
+	</server>
     <client>
       <rtpPort>6970</rtpPort>
       <rtcpPort>6971</rtcpPort>
@@ -24,8 +29,14 @@
 		<rdt>true</rdt>
 		<hacks>
 			<lowerTransportSuppress>false</lowerTransportSuppress>
+			<offerRemoteSsrc>false</offerRemoteSsrc>
 		</hacks>
 	</transport>
+	<streaming>
+		<hacks>
+			<rtpSsrcUnreliable>false</rtpSsrcUnreliable>
+		</hacks>
+	</streaming>
   </proxy>
   <jmx>
     <manageable>true</manageable>

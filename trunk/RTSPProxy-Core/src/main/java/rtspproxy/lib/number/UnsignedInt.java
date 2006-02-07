@@ -17,6 +17,8 @@
  */
 package rtspproxy.lib.number;
 
+import java.util.Random;
+
 /**
  * The UnsignedInt class wraps a value of an unsigned 32 bits number.
  * 
@@ -45,6 +47,10 @@ public final class UnsignedInt extends UnsignedNumber {
 
 	private UnsignedInt() {
 		value = 0;
+	}
+	
+	public UnsignedInt( Random random ) {
+		value = random.nextLong();
 	}
 
 	public static UnsignedInt fromBytes(byte[] c) {

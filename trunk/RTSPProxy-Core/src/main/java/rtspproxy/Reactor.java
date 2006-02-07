@@ -25,6 +25,7 @@ import rtspproxy.config.Config;
 import rtspproxy.filter.FilterRegistry;
 import rtspproxy.jmx.JmxAgent;
 import rtspproxy.lib.Exceptions;
+import rtspproxy.rtp.range.PortrangeRtpServerSessionFactory;
 
 /**
  * Main reactor of RTSP proxy. This reactor assembles all required services.
@@ -91,11 +92,18 @@ public class Reactor
 
 		filterRegistry = new FilterRegistry();
 		filterRegistry.populateRegistry();		
+		
+		PortrangeRtpServerSessionFactory portrangeFactory = new PortrangeRtpServerSessionFactory();
+		portrangeFactory.setLocalAddress(rtpServerService.getAddress());
+		portrangeFactory.start();
+		
 	}
 
 	static public void stop()
 	{
 		try {
+			PortrangeRtpServerSessionFactory.getInstance().stop();
+			
 			if ( jmxAgent != null )
 				jmxAgent.stop();
 

@@ -12,7 +12,7 @@
   <groupId>net.merlimat</groupId>
   <artifactId>rtspproxy</artifactId>
   <packaging>pom</packaging>
-  <version>3.0-ALPHA4-SNAPSHOT</version>
+  <version>3.0-ALPHA5-SNAPSHOT</version>
   <url>http://rtspproxy.berlios.de</url>
   <inceptionYear>2003</inceptionYear>
   

@@ -19,6 +19,7 @@ import rtspproxy.RtpClientService;
 import rtspproxy.RtpServerService;
 import rtspproxy.lib.number.UnsignedInt;
 import rtspproxy.rtp.RtpPacket;
+import rtspproxy.rtp.range.PortrangeRtpServerSession;
 import rtspproxy.rtp.rtcp.RtcpPacket;
 
 public class RtpTrack extends Track
@@ -68,6 +69,8 @@ public class RtpTrack extends Track
 	private int serverRtpPort;
 
 	private int serverRtcpPort;
+	
+	private PortrangeRtpServerSession portrangeRtpServerSession;
 
 	/**
 	 * Construct a new Track.
@@ -168,9 +171,15 @@ public class RtpTrack extends Track
 		// modify the SSRC for the server
 		packet.setSsrc( proxySSRC );
 
-		if ( rtpServerSession == null )
-			rtpServerSession = RtpServerService.getInstance().newSession(
-					new InetSocketAddress( serverAddress, serverRtpPort ) );
+		if ( rtpServerSession == null ) {
+			if(this.portrangeRtpServerSession != null) {
+				rtpServerSession = this.portrangeRtpServerSession.newRtpSession(new InetSocketAddress( serverAddress, 
+						serverRtpPort ));
+			} else {
+				rtpServerSession = RtpServerService.getInstance().newSession(
+						new InetSocketAddress( serverAddress, serverRtpPort ) );
+			}
+		}
 
 		rtpServerSession.write( packet.toByteBuffer() );
 	}
@@ -187,10 +196,15 @@ public class RtpTrack extends Track
 		// modify the SSRC for the server
 		packet.setSsrc( proxySSRC );
 
-		if ( rtcpServerSession == null )
-			rtcpServerSession = RtcpServerService.getInstance().newSession(
-					new InetSocketAddress( clientAddress, clientRtcpPort ) );
-
+		if ( rtcpServerSession == null ) {
+			if(this.portrangeRtpServerSession != null) {
+				rtcpServerSession = this.portrangeRtpServerSession.newRtcpSession(new InetSocketAddress( serverAddress, 
+						serverRtcpPort ));
+			} else {
+				rtcpServerSession = RtcpServerService.getInstance().newSession(
+						new InetSocketAddress( serverAddress, serverRtcpPort ) );
+			}
+		}
 		rtcpServerSession.write( packet.toByteBuffer() );
 	}
 
@@ -283,17 +297,39 @@ public class RtpTrack extends Track
 		this.serverRtpPort = rtpPort;
 		this.serverRtcpPort = rtcpPort;
 
-		serverAddressMap.put( new InetSocketAddress( serverAddress, rtpPort ), this );
-		serverAddressMap.put( new InetSocketAddress( serverAddress, rtcpPort ), this );
+		InetSocketAddress rtpSockAddr = new InetSocketAddress( serverAddress, rtpPort );
+		InetSocketAddress rtcpSockAddr = new InetSocketAddress( serverAddress, rtcpPort ); 
+		
+		serverAddressMap.put( rtpSockAddr, this );
+		serverAddressMap.put( rtcpSockAddr, this );
+		
+		if(this.portrangeRtpServerSession != null) {
+			localRemoteServerAddressMap.put(
+					new LocalRemoteAddressPair(this.portrangeRtpServerSession.getRtpSocketAddress(), rtpSockAddr), 
+					this);
+			localRemoteServerAddressMap.put(
+					new LocalRemoteAddressPair(this.portrangeRtpServerSession.getRtcpSocketAddress(), rtcpSockAddr), 
+					this);
+		}
 	}
 
 	public synchronized void close()
 	{
 		if ( serverSSRC != null )
 			serverSsrcMap.remove( serverSSRC );
-		serverAddressMap.remove( new InetSocketAddress( serverAddress, serverRtpPort ) );
-		serverAddressMap.remove( new InetSocketAddress( serverAddress, serverRtcpPort ) );
-
+		
+		InetSocketAddress rtpSockAddr = new InetSocketAddress(serverAddress, serverRtpPort);
+		InetSocketAddress rtcpSockAddr = new InetSocketAddress(serverAddress, serverRtcpPort);
+		
+		serverAddressMap.remove( rtpSockAddr );
+		serverAddressMap.remove( rtcpSockAddr );
+		if(this.portrangeRtpServerSession != null) {
+			localRemoteServerAddressMap.remove(
+					new LocalRemoteAddressPair(this.portrangeRtpServerSession.getRtpSocketAddress(), rtpSockAddr));
+			localRemoteServerAddressMap.remove(
+					new LocalRemoteAddressPair(this.portrangeRtpServerSession.getRtcpSocketAddress(), rtcpSockAddr));
+		}		
+		
 		clientAddressMap.remove( new InetSocketAddress( clientAddress, clientRtpPort ) );
 		clientAddressMap.remove( new InetSocketAddress( clientAddress, clientRtcpPort ) );
 
@@ -325,5 +361,9 @@ public class RtpTrack extends Track
 			}
 			// try with another id
 		}
+	}
+
+	public void setPortrangeRtpServerSession(PortrangeRtpServerSession session) {
+		this.portrangeRtpServerSession = session;
 	}
 }

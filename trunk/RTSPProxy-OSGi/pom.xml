@@ -3,14 +3,14 @@
   <parent>
     <groupId>net.merlimat</groupId>
     <artifactId>rtspproxy</artifactId>
-    <version>3.0-ALPHA4-SNAPSHOT</version>
+    <version>3.0-ALPHA5-SNAPSHOT</version>
   </parent>
   
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.merlimat</groupId>
   <artifactId>RTSPProxy-OSGi</artifactId>
   <packaging>osgi-bundle</packaging>
-  <version>3.0-ALPHA4-SNAPSHOT</version>
+  <version>3.0-ALPHA5-SNAPSHOT</version>
   <name>RTSP Proxy OSGi bundle</name>
   <url>http://rtspproxy.berlios.de</url>
   <inceptionYear>2003</inceptionYear>
@@ -20,7 +20,7 @@
     <dependency>
       <groupId>net.merlimat</groupId>
       <artifactId>RTSPProxy-Core</artifactId>
-      <version>3.0-ALPHA4-SNAPSHOT</version>
+      <version>3.0-ALPHA5-SNAPSHOT</version>
     </dependency>
 
     <dependency>

@@ -51,10 +51,14 @@ import rtspproxy.config.Config;
 import rtspproxy.filter.FilterBase;
 import rtspproxy.jmx.mbeans.Filter;
 import rtspproxy.jmx.mbeans.Info;
+import rtspproxy.jmx.mbeans.PortrangeRtpServerFactory;
+import rtspproxy.jmx.mbeans.PortrangeRtpSession;
 import rtspproxy.jmx.mbeans.ProxySessionFacade;
 import rtspproxy.jmx.mbeans.Service;
 import rtspproxy.lib.Singleton;
 import rtspproxy.proxy.ProxySession;
+import rtspproxy.rtp.range.PortrangeRtpServerSession;
+import rtspproxy.rtp.range.PortrangeRtpServerSessionFactory;
 
 /**
  * Entry point class for all the JMX interface.
@@ -71,6 +75,7 @@ public class JmxAgent extends Singleton
 	public static final String FILTERS_DOMAIN = "RtspProxy.Filters";
 	public static final String RTSP_SESSION_DOMAIN = "RtspProxy.Sessions.RTSP";
 	public static final String PROXY_SESSION_DOMAIN = "RtspProxy.Sessions.Proxy";
+	public static final String RTP_DYNAMIC_SESSION_DOMAIN = "RtspProxy.Sessions.RTP.dynamic";
 
 	private MBeanServer mbeanServer = null;
 
@@ -319,4 +324,84 @@ public class JmxAgent extends Singleton
 		}
 		
 	}
+	
+	/**
+	 * register a proxy session
+	 * 
+	 */
+	public void registerPortRangeRtpServerSessionfactory(PortrangeRtpServerSessionFactory sessionFactory) {
+		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		if ( !enabled )
+			return;
+
+		try {
+			ObjectName objectName = ObjectName.getInstance( SERVICES_DOMAIN + ":name=PortrangeRtpServerSessionFactory");
+		
+			mbeanServer.registerMBean( new PortrangeRtpServerFactory(sessionFactory), objectName );
+		} catch(Exception e) {
+			log.info("failed to register PortrangeRtpServerFactory MBean", e);
+		}
+	}
+	
+	/**
+	 * register a proxy session
+	 * 
+	 */
+	public void unregisterPortRangeRtpServerSessionfactory() {
+		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		if ( !enabled )
+			return;
+
+		try {
+			ObjectName objectName = ObjectName.getInstance( SERVICES_DOMAIN + ":name=PortrangeRtpServerSessionFactory");
+		
+			mbeanServer.unregisterMBean(  objectName );
+		} catch(InstanceNotFoundException infe) {
+			log.debug("PortrangeRtpServerFactory MBean not found", infe);
+		} catch(Exception e) {
+			log.info("failed to register PortrangeRtpServerFactory MBean", e);
+		}
+	}
+	
+	/**
+	 * register a generated RTP server session in the portrange case
+	 */
+	public void registerPortrangeRtpServerSession(PortrangeRtpServerSession session) {
+		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		if ( !enabled )
+			return;
+		
+		try {
+			PortrangeRtpSession mbean = new PortrangeRtpSession(session);
+			ObjectName name = mbean.buildName();
+		
+			mbeanServer.registerMBean(mbean, name);
+			session.setObjectName(name);
+		} catch(Exception e) {
+			log.error( "failed to register proxy session MBean: session=" + session, e );
+		}
+	}
+	
+	/**
+	 * register a generated RTP server session in the portrange case
+	 */
+	public void unregisterPortrangeRtpServerSession(PortrangeRtpServerSession session) {
+		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		if ( !enabled )
+			return;
+		
+		try {
+			ObjectName name = session.getObjectName();
+		
+			if(name != null) {
+				mbeanServer.unregisterMBean(name);
+				session.setObjectName(null);
+			}
+		} catch(InstanceNotFoundException infe) {
+			log.debug("internal problem: MBean not found, name=" + session.getObjectName(), infe);
+		} catch(Exception e) {
+			log.error( "failed to register proxy session MBean: session=" + session, e );
+		}		
+	}
+
 }

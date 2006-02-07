@@ -28,10 +28,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rtspproxy.jmx.JmxAgent;
+import rtspproxy.lib.number.UnsignedInt;
 import rtspproxy.lib.number.UnsignedLong;
 import rtspproxy.proxy.track.RdtTrack;
 import rtspproxy.proxy.track.RtpTrack;
 import rtspproxy.proxy.track.Track;
+import rtspproxy.rtp.range.PortrangeRtpServerSession;
+import rtspproxy.rtp.range.PortrangeRtpServerSessionFactory;
 
 /**
  * Manages RTSP sessions with both client and server.
@@ -107,7 +110,12 @@ public class ProxySession
 	 * object name of proxy session
 	 */
 	private ObjectName objectName;
-	
+
+	/**
+	 * the special server-side session which handles RTP sessions with different local source ports
+	 */
+	private PortrangeRtpServerSession portrangeRtpServerSession;
+
 	/**
 	 * @return Returns the objectName.
 	 */
@@ -147,6 +155,9 @@ public class ProxySession
 		RtpTrack track = new RtpTrack( url );
 		if ( serverSsrc != null )
 			track.setServerSSRC( serverSsrc );
+		if(portrangeRtpServerSession != null)
+			track.setPortrangeRtpServerSession(this.portrangeRtpServerSession);
+		
 		trackList.put( url, track );
 		log.debug( "ProxySession: " + clientSessionId + " Added track. TrackList: "
 				+ trackList );
@@ -257,6 +268,9 @@ public class ProxySession
 		if ( serverSessionId != null )
 			serverSessionIds.remove( serverSessionId );
 		
+		if(this.portrangeRtpServerSession != null)
+			PortrangeRtpServerSessionFactory.getInstance().releaseSession(this.portrangeRtpServerSession);
+		
 		// unregister session facade in MBean server
 		JmxAgent.getInstance().unregisterProxySession(this);
 	}
@@ -290,10 +304,36 @@ public class ProxySession
 	}
 
 	/**
+	 * Creates a unique session ID that is a 64 bit number.
+	 * 
+	 * @return the session ID string.
+	 */
+	public static UnsignedInt newServerSessionID()
+	{
+		UnsignedInt id;
+		while ( true ) {
+			// Create a 64 bit random number
+			synchronized ( random ) {
+				id = new UnsignedInt( random );
+			}
+
+			if ( serverSessionIds.get( id.toString() ) == null ) {
+				// Ok, the id is unique
+				return id;
+			}
+			// try with another id
+		}
+	}
+
+	/**
 	 * @return Returns the closedFlag.
 	 */
 	public boolean isClosed() {
 		return closedFlag;
+	}
+
+	public void setPortrangeRtpServerSession(PortrangeRtpServerSession portrangeRtpSession) {
+		this.portrangeRtpServerSession = portrangeRtpSession;
 	}
 
 }
