@@ -3,25 +3,72 @@
  */
 package rtspproxy.config;
 
+import java.util.List;
+
+import org.apache.commons.configuration.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
- *
+ * 
  */
-public abstract class ListParameter extends Parameter {
+public class ListParameter<T> extends Parameter
+{
 
-	/**
-	 * @param name
-	 * @param mutable
-	 * @param description
-	 * @param xpathExpr
-	 */
-	public ListParameter(String name, boolean mutable, String description,
-			String xpathExpr) {
-		super(name, mutable, description, xpathExpr);
-	}
+    private static Logger log = LoggerFactory.getLogger( ListParameter.class );
 
-	/**
-	 * add a value to the list
-	 */
-	public abstract void addValue(String value);
+    private List<T> list;
+
+    /**
+     * @param name
+     * @param mutable
+     * @param description
+     */
+    public ListParameter( String name, boolean mutable, String description )
+    {
+        super( name, mutable, description );
+    }
+
+    @Override
+    public Object getObjectValue()
+    {
+        return list;
+    }
+
+    @Override
+    public String getStringValue()
+    {
+        return list.toString();
+    }
+
+    @Override
+    public String getType()
+    {
+        return "java.util.List";
+    }
+
+    @Override
+    public void readConfiguration( Configuration configuration )
+    {
+        List elements = configuration.getList( name );
+        if ( elements == null ) {
+            log.debug( "Elements not found for key '{}'", name );
+            return;
+        }
+
+        for ( Object element : elements ) {
+            log.info( "ELEMENT: {}", element );
+        }
+    }
+
+    @Override
+    public void setObjectValue( Object object )
+    {
+        if ( !(object instanceof List) ) {
+            throw new IllegalArgumentException( "Only accept a List parameter." );
+        }
+        
+        list = (List<T>)object;
+    }
 }

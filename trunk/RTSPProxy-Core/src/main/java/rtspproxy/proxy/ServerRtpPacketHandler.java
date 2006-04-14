@@ -28,6 +28,7 @@ import org.apache.mina.common.IoSession;
 
 import rtspproxy.config.Config;
 import rtspproxy.lib.Exceptions;
+import rtspproxy.lib.number.UnsignedInt;
 import rtspproxy.proxy.track.RtpTrack;
 import rtspproxy.proxy.track.Track;
 import rtspproxy.rtp.RtpPacket;
@@ -38,72 +39,77 @@ import rtspproxy.rtp.RtpPacket;
 public class ServerRtpPacketHandler extends IoHandlerAdapter
 {
 
-	private static Logger log = LoggerFactory.getLogger( ServerRtpPacketHandler.class );
+    private static Logger log = LoggerFactory.getLogger( ServerRtpPacketHandler.class );
 
-	/*
-	 * @see org.apache.mina.io.IoHandlerAdapter#dataRead(org.apache.mina.io.IoSession,
-	 *      org.apache.mina.common.ByteBuffer)
-	 */
-	@Override
-	public void messageReceived( IoSession session, Object buffer ) throws Exception
-	{
-		// log.debug( "Received RTP packet" );
-		RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
-		RtpTrack track = null;
+    /*
+     * @see org.apache.mina.io.IoHandlerAdapter#dataRead(org.apache.mina.io.IoSession,
+     *      org.apache.mina.common.ByteBuffer)
+     */
+    @Override
+    public void messageReceived( IoSession session, Object buffer ) throws Exception
+    {
+        // log.debug( "Received RTP packet" );
+        RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
+        RtpTrack track = null;
 
-		if(!Config.proxyServerRtpSsrcUnreliable.getValue())
-			track = RtpTrack.getByServerSSRC( packet.getSsrc() );
-		
-		log.debug("recevied server RTP packet, SSRC=" + packet.getSsrc() + ", CSRC=" + packet.getCsrc()
-				+ ", server=" + session.getRemoteAddress() + ", local=" + session.getLocalAddress());
-		
-		if ( track == null ) {
-			if(Config.proxyServerRtpMultiplePorts.getValue())
-				track = (RtpTrack)Track.getByLocalRemoteServerAddress((InetSocketAddress)session.getLocalAddress(),
-						(InetSocketAddress)session.getRemoteAddress());
-			else
-				track = (RtpTrack)Track.getByServerAddress( (InetSocketAddress) session.getRemoteAddress() );
+        if ( !Config.proxyServerRtpSsrcUnreliable.getValue() )
+            track = RtpTrack.getByServerSSRC( packet.getSsrc() );
 
-			if ( track == null ) {
-				// drop packet
-				log.debug( "Invalid SSRC identifier: "
-						+ packet.getSsrc().toHexString() );
-				return;
-			} else {
-				// hot-wire the ssrc into the track
-				log.debug( "Adding SSRC identifier: "
-						+ packet.getSsrc().toHexString() );
-				track.setServerSSRC( packet.getSsrc() );
-			}
+        /*
+         * if ( log.isDebugEnabled() ) { log.debug( "recevied server RTP packet,
+         * SSRC=" + packet.getSsrc() + ", CSRC=" + packet.getCsrc() + ",
+         * server=" + session.getRemoteAddress() + ", local=" +
+         * session.getLocalAddress() ); }
+         */
 
-		}
+        if ( track == null ) {
+            if ( Config.proxyServerRtpMultiplePorts.getValue() )
+                track = (RtpTrack) Track.getByLocalRemoteServerAddress(
+                        (InetSocketAddress) session.getLocalAddress(),
+                        (InetSocketAddress) session.getRemoteAddress() );
+            else
+                track = (RtpTrack) Track.getByServerAddress( (InetSocketAddress) session
+                        .getRemoteAddress() );
 
-		track.setRtpServerSession( session );
-		track.forwardRtpToClient( packet );
-	}
+            if ( track == null ) {
+                // drop packet
+                log.debug( "Invalid SSRC identifier: {}", packet.getSsrc().toHexString() );
+                return;
+            }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.mina.io.IoHandlerAdapter#exceptionCaught(org.apache.mina.io.IoSession,
-	 *      java.lang.Throwable)
-	 */
-	@Override
-	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
-	{
-		log.debug( "Exception: " + cause );
-		Exceptions.logStackTrace( cause );
-		session.close();
-	}
+            // hot-wire the ssrc into the track
+            if ( track.getServerSSRC() == UnsignedInt.ZERO ) {
+                log.debug( "Adding SSRC identifier: {}", packet.getSsrc().toHexString() );
+                track.setServerSSRC( packet.getSsrc() );
+            }
+        }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.mina.io.IoHandlerAdapter#sessionCreated(org.apache.mina.io.IoSession)
-	 */
-	@Override
-	public void sessionCreated( IoSession session ) throws Exception
-	{
-	}
+        track.setRtpServerSession( session );
+        track.forwardRtpToClient( packet );
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.mina.io.IoHandlerAdapter#exceptionCaught(org.apache.mina.io.IoSession,
+     *      java.lang.Throwable)
+     */
+    @Override
+    public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
+    {
+        log.debug( "Exception: {}", cause );
+        Exceptions.logStackTrace( cause );
+        session.close();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.mina.io.IoHandlerAdapter#sessionCreated(org.apache.mina.io.IoSession)
+     */
+    @Override
+    public void sessionCreated( IoSession session ) throws Exception
+    {
+    }
 
 }

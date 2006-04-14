@@ -5,26 +5,17 @@ package rtspproxy.filter.control;
 
 import java.util.List;
 
-import org.apache.mina.common.IdleStatus;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.common.IoFilter.NextFilter;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import rtspproxy.filter.FilterBase;
-import rtspproxy.rtsp.RtspMessage;
-import rtspproxy.rtsp.RtspRequest;
-import rtspproxy.rtsp.RtspResponse;
 
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
  *
  */
-public class ControlFilter extends FilterBase {
-
-	private static Logger log = LoggerFactory.getLogger(ControlFilter.class);
-	
+public class ControlFilter extends FilterBase 
+{	
 	public static final String FilterNAME = "controlFilter";
 
 	protected ControlProvider provider;

@@ -44,7 +44,8 @@ public class RtspRequest extends RtspMessage
 		verb = Verb.None;
 	}
 
-	public Type getType()
+	@Override
+    public Type getType()
 	{
 		return Type.TypeRequest;
 	}
@@ -101,11 +102,12 @@ public class RtspRequest extends RtspMessage
 	 * [buffer]
 	 * </pre>
 	 */
-	public String toString()
+	@Override
+    public String toString()
 	{
-		StringBuilder sb = new StringBuilder();
-		sb.append( getVerbString() + " " );
-		sb.append( url != null ? url : "*" );
+		final StringBuilder sb = new StringBuilder();
+		sb.append( getVerbString() ).append( ' ' );
+		sb.append( url != null ? url : '*' );
 		sb.append( " RTSP/1.0\r\n" );
 		sb.append( getHeadersString() );
 

@@ -6,11 +6,12 @@
 		$Id$
 		$URL$
 	-->
-        <parent>
-                <groupId>net.merlimat</groupId>
-                <artifactId>rtspproxy</artifactId>
-                <version>3.0-ALPHA5-SNAPSHOT</version>
-        </parent>
+
+	<parent>
+		<groupId>net.merlimat</groupId>
+		<artifactId>rtspproxy</artifactId>
+		<version>3.0-ALPHA5-SNAPSHOT</version>
+	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -22,31 +23,50 @@
 	<inceptionYear>2003</inceptionYear>
 
 	<dependencies>
-		
+
 		<dependency>
-			<groupId>directory-network</groupId>
-			<artifactId>mina</artifactId>
-			<version>0.9.0</version>
+			<groupId>org.apache.directory.mina</groupId>
+			<artifactId>mina-core</artifactId>
+			<version>0.9.3</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>mx4j</groupId>
 			<artifactId>mx4j-tools</artifactId>
 			<version>2.1.1</version>
 		</dependency>
-		
+
 		<dependency>
-			<groupId>dom4j</groupId>
-			<artifactId>dom4j</artifactId>
-			<version>1.6.1</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.0-rc3</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.9</version>
+		</dependency>
+ 
 		<dependency>
 			<groupId>commons-pool</groupId>
 			<artifactId>commons-pool</artifactId>
 			<version>1.2</version>
 		</dependency>
+
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.2</version>
+		</dependency>
 		
+		<!-- Included here to disambiguate the version number -->
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.1</version>
+		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -56,16 +76,25 @@
 	</dependencies>
 
 	<repositories>
-<!--
+
 		<repository>
-		<id>Apache repository</id>
-		<url>http://svn.apache.org/repository/</url>
+			<id>Apache repository</id>
+			<url>http://svn.apache.org/repository/</url>
 		</repository>
--->
+
+		<!-- For snapshots (no release jars or non-apache jars)           -->
 		<repository>
-		<id>ibilio maven1</id>
-		<url>http://www.ibiblio.org/maven/</url>
+			<id>apache.snapshots</id>
+			<name>Apache Snapshot Repository</name>
+			<url>http://cvs.apache.org/maven-snapshot-repository</url>
 		</repository>
+
+		<!--
+			<repository>
+			<id>ibilio maven2</id>
+			<url>http://www.ibiblio.org/maven2/</url>
+			</repository>
+		-->
 	</repositories>
 
 	<build>

@@ -26,6 +26,8 @@ import java.util.Random;
  */
 public final class UnsignedInt extends UnsignedNumber {
 	static final long serialVersionUID = 1L;
+    
+    public static final UnsignedInt ZERO = new UnsignedInt( 0 );
 
 	private long value;
 

@@ -40,45 +40,46 @@ import rtspproxy.config.Config;
 public class Authenticator implements JMXAuthenticator
 {
 
-	private static Logger log = LoggerFactory.getLogger( Authenticator.class );
+    private static Logger log = LoggerFactory.getLogger( Authenticator.class );
 
-	public Subject authenticate( Object credentials ) throws SecurityException
-	{
-		if ( !( credentials instanceof String[] ) )
-			throw new SecurityException( "Bad credentials" );
+    public Subject authenticate( Object credentials ) throws SecurityException
+    {
+        if ( !(credentials instanceof String[]) )
+            throw new SecurityException( "Bad credentials" );
 
-		String[] creds = (String[]) credentials;
-		if ( creds.length != 2 )
-			throw new SecurityException( "Bad credentials" );
+        String[] creds = (String[]) credentials;
+        if ( creds.length != 2 )
+            throw new SecurityException( "Bad credentials" );
 
-		String user = creds[0];
-		String password = creds[1];
+        String user = creds[0];
+        String password = creds[1];
 
-		if ( user == null ) {
-			log.info( "Authentication failed: null username" );
-			throw new SecurityException( "Bad user name" );
-		}
+        if ( user == null ) {
+            log.info( "Authentication failed: null username" );
+            throw new SecurityException( "Bad user name" );
+        }
 
-		if ( password == null ) {
-			log.info( "Authentication failed for user " + user + " null password." );
-			throw new SecurityException( "Bad password" );
-		}
+        if ( password == null ) {
+            log.info( "Authentication failed for user '{}': null password.", user );
+            throw new SecurityException( "Bad password" );
+        }
 
-		// Expected values
-		String adminUser = Config.proxyManagementUser.getValue();
-		String adminPassword = Config.proxyManagementPassword.getValue();
+        // Expected values
+        String adminUser = Config.jmxUser.getValue();
+        String adminPassword = Config.jmxPassword.getValue();
 
-		if ( !user.equals( adminUser ) || !password.equals( adminPassword ) ) {
-			log.info( "Authentication failed for user " + user
-					+ ". Invalid username or password." );
-			throw new SecurityException( "Invalid username or password." );
-		}
+        if ( !user.equals( adminUser ) || !password.equals( adminPassword ) ) {
+            log.info( "Authentication failed for user {}. Invalid username or password.",
+                    user );
+            throw new SecurityException( "Invalid username or password." );
+        }
 
-		log.debug( "Successful Authentication for user " + user );
-		Set<JMXPrincipal> principals = new HashSet<JMXPrincipal>();
-		principals.add( new JMXPrincipal( user ) );
-		Subject subject = new Subject( true, principals, Collections.EMPTY_SET,
-				Collections.EMPTY_SET );
-		return subject;
-	}
+        log.debug( "Successful Authentication for user '{}'", user );
+        
+        Set<JMXPrincipal> principals = new HashSet<JMXPrincipal>();
+        principals.add( new JMXPrincipal( user ) );
+        Subject subject = new Subject( true, principals, Collections.EMPTY_SET,
+                Collections.EMPTY_SET );
+        return subject;
+    }
 }

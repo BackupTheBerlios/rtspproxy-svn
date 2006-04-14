@@ -18,13 +18,9 @@
 
 package rtspproxy;
 
-import java.net.SocketAddress;
-
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
-import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
-import org.apache.mina.filter.ThreadPoolFilter;
 
 import rtspproxy.config.Config;
 import rtspproxy.config.Parameter;

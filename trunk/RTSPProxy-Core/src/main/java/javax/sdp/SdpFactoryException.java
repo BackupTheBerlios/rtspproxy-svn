@@ -70,7 +70,8 @@ public class SdpFactoryException extends SdpException
 	 * 
 	 * @return the error message
 	 */
-	public String getMessage()
+	@Override
+    public String getMessage()
 	{
 		if ( super.getMessage() != null )
 			return super.getMessage();

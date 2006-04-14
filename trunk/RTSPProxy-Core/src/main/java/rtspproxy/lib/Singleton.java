@@ -47,7 +47,8 @@ public abstract class Singleton
 		classMap.put( this.getClass(), this );
 	}
 
-	public void finalize()
+	@Override
+    public void finalize()
 	{
 		classMap.remove( this.getClass() );
 	}

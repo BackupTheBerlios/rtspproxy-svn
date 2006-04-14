@@ -3,6 +3,8 @@
  */
 package rtspproxy.config;
 
+import org.apache.commons.configuration.Configuration;
+
 /**
  * @author Matteo Merli
  */
@@ -17,9 +19,9 @@ public class IntegerParameter extends Parameter
 	private Integer defaultValue;
 
 	public IntegerParameter( String name, Integer minValue, Integer maxValue,
-			Integer defaultValue, boolean mutable, String description, String xpathExpr )
+			Integer defaultValue, boolean mutable, String description )
 	{
-		super( name, mutable, description, xpathExpr );
+		super( name, mutable, description );
 
 		if ( defaultValue == null )
 			throw new IllegalArgumentException( "Default value for " + name
@@ -27,21 +29,6 @@ public class IntegerParameter extends Parameter
 		this.defaultValue = defaultValue;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
-	}
-
-	@Override
-	public void setValue( String value ) throws IllegalArgumentException
-	{
-
-		Integer tmpValue;
-		try {
-			tmpValue = Integer.valueOf( value );
-		} catch ( NumberFormatException nfe ) {
-			throw new IllegalArgumentException( "Integer value for " + name
-					+ "not valid: " + value );
-		}
-
-		setObjectValue( tmpValue );
 	}
 
 	@Override
@@ -96,5 +83,12 @@ public class IntegerParameter extends Parameter
 			setChanged();
 		}
 	}
+    
+    @Override
+    public void readConfiguration( Configuration configuration )
+    {
+        int value = configuration.getInt( name );
+        setObjectValue( value );
+    }
 
 }

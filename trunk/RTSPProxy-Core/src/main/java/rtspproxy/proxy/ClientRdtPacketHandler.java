@@ -20,17 +20,14 @@ package rtspproxy.proxy;
 
 import java.net.InetSocketAddress;
 
-import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.common.TrafficMask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rtspproxy.lib.Exceptions;
 import rtspproxy.proxy.track.RdtTrack;
 import rtspproxy.proxy.track.Track;
-import rtspproxy.rdt.RdtFilterChainBuilder;
 import rtspproxy.rdt.RdtPacket;
 
 /**
@@ -42,70 +39,67 @@ import rtspproxy.rdt.RdtPacket;
 public class ClientRdtPacketHandler extends IoHandlerAdapter
 {
 
-	private static Logger log = LoggerFactory.getLogger( ClientRdtPacketHandler.class );
+    private static Logger log = LoggerFactory.getLogger( ClientRdtPacketHandler.class );
 
-	/**
-	 * this sessionCreated method is an ugly hack. It suspends the session for a moment and
-	 * checks the filter chain if the protocol filter has already been applied to the 
-	 * session. If not, it assembles the filter chain. This should have been done by the acceptor
-	 * (which he does not do (in mina 0.9.0))
-	 */
-	@Override
-	public void sessionCreated( IoSession session ) throws Exception
-	{
-		/*
-		log.debug("new client-side RDT session created");
+    /**
+     * this sessionCreated method is an ugly hack. It suspends the session for a
+     * moment and checks the filter chain if the protocol filter has already
+     * been applied to the session. If not, it assembles the filter chain. This
+     * should have been done by the acceptor (which he does not do (in mina
+     * 0.9.0))
+     */
+    @Override
+    public void sessionCreated( IoSession session ) throws Exception
+    {
+        /*
+         * log.debug("new client-side RDT session created");
+         * 
+         * TrafficMask mask = session.getTrafficMask();
+         * 
+         * try { session.setTrafficMask(TrafficMask.NONE);
+         * 
+         * IoFilterChain chain = session.getFilterChain();
+         * 
+         * if(!chain.contains(RdtFilterChainBuilder.rdtCODEC)) {
+         * log.debug("hot-patching filter chain"); (new
+         * RdtFilterChainBuilder()).buildFilterChain(chain); } } finally {
+         * session.setTrafficMask(mask); }
+         */
+    }
 
-		TrafficMask mask = session.getTrafficMask();
-		
-		try {
-			session.setTrafficMask(TrafficMask.NONE);
-			
-			IoFilterChain chain = session.getFilterChain();
-			
-			if(!chain.contains(RdtFilterChainBuilder.rdtCODEC)) {
-				log.debug("hot-patching filter chain");
-				(new RdtFilterChainBuilder()).buildFilterChain(chain);
-			}
-		} finally {
-			session.setTrafficMask(mask);
-		}
-		*/
-	}
+    @Override
+    public void messageReceived( IoSession session, Object buffer ) throws Exception
+    {
+        if ( buffer instanceof RdtPacket ) {
+            RdtPacket rdtPacket = (RdtPacket) buffer;
 
-	@Override
-	public void messageReceived( IoSession session, Object buffer ) throws Exception
-	{
-		if(buffer instanceof RdtPacket) {
-			RdtPacket rdtPacket = (RdtPacket)buffer;
-			
-			log.debug( "Received RDT packet from client, packet=" + rdtPacket );
+            log.debug( "Received RDT packet from client, packet={}", rdtPacket );
 
-			RdtTrack track = (RdtTrack) Track.getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
+            RdtTrack track = (RdtTrack) Track
+                    .getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
 
-			if ( track == null ) {
-				// drop packet
-				log.debug( "Invalid address: "
-						+ (InetSocketAddress) session.getRemoteAddress()
-						+ " - Class: "
-						+ ( (InetSocketAddress) session.getRemoteAddress() ).getAddress().getClass() );
-				return;
-			}
+            if ( track == null ) {
+                // drop packet
+                log.debug( "Invalid address: {} - Class: {}", session.getRemoteAddress(),
+                        ((InetSocketAddress) session.getRemoteAddress()).getAddress()
+                                .getClass() );
+                return;
+            }
 
-			track.forwardRdtToServer( rdtPacket );			
-		} else {
-			log.debug("invalid object passed: " + buffer.getClass().getName());
-			
-			throw new IllegalStateException("invalid packet on chain");
-		}
-		
-	}
-	
-	@Override
-	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
-	{
-		log.info( "Exception: " + cause );
-		Exceptions.logStackTrace( cause );
-		session.close();
-	}
+            track.forwardRdtToServer( rdtPacket );
+        } else {
+            log.debug( "invalid object passed: {}", buffer.getClass().getName() );
+
+            throw new IllegalStateException( "invalid packet on chain" );
+        }
+
+    }
+
+    @Override
+    public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
+    {
+        log.info( "Exception: " + cause );
+        Exceptions.logStackTrace( cause );
+        session.close();
+    }
 }

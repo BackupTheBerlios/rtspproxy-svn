@@ -100,7 +100,7 @@ public class NetworkInterface
 				addresses.addAll( getAddresses( networkInterface ) );
 
 			} catch ( Exception e ) {
-				log.error( "Cannot register network interface: " + interfaceName, e );
+				log.error( "Cannot register network interface '{}': {} ", interfaceName, e );
 				return null;
 			}
 		} else {

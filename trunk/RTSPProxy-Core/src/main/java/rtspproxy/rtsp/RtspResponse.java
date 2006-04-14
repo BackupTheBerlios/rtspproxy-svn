@@ -39,7 +39,8 @@ public class RtspResponse extends RtspMessage
 		code = RtspCode.OK;
 	}
 
-	public Type getType()
+	@Override
+    public Type getType()
 	{
 		return Type.TypeResponse;
 	}
@@ -74,10 +75,11 @@ public class RtspResponse extends RtspMessage
 	 *    [buf] 
 	 * </pre>
 	 */
-	public String toString()
+	@Override
+    public String toString()
 	{
-		StringBuilder sb = new StringBuilder();
-		sb.append( "RTSP/1.0 " ).append( code.value() ).append( " " );
+		final StringBuilder sb = new StringBuilder();
+		sb.append( "RTSP/1.0 " ).append( code.value() ).append( ' ' );
 		sb.append( code.description() ).append( CRLF );
 		sb.append( getHeadersString() );
 
@@ -87,7 +89,7 @@ public class RtspResponse extends RtspMessage
 		if ( getBufferSize() > 0 ) {
 			sb.append( getBuffer() );
 
-			log.debug( "Buffer Size: " + getBufferSize() );
+			log.debug( "Buffer Size: {}", getBufferSize() );
 		}
 
 		return sb.toString();

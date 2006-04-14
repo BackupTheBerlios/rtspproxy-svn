@@ -6,7 +6,6 @@ package rtspproxy.filter.control;
 import java.util.List;
 
 import org.apache.mina.common.IoSession;
-import org.apache.mina.common.IoFilter.NextFilter;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

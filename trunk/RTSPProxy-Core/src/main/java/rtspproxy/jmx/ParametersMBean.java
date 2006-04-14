@@ -157,7 +157,7 @@ public class ParametersMBean implements DynamicMBean
 		for ( Object obj : attributes ) {
 
 			attr = (Attribute) obj;
-			parameter = Config.getParameter( ((Attribute) attr).getName() );
+			parameter = Config.getParameter( attr.getName() );
 			if ( parameter == null )
 				continue;
 

@@ -86,7 +86,7 @@ public class Reactor
 		ProxyService rdtServerService = new RdtServerService();
 		rdtServerService.start();
 
-		boolean enableJmx = Config.proxyManagementEnable.getValue();
+		boolean enableJmx = Config.jmxEnable.getValue();
 		if ( enableJmx )
 			jmxAgent = new JmxAgent();
 

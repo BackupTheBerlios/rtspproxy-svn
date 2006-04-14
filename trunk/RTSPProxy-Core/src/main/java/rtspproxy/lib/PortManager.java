@@ -33,140 +33,140 @@ import org.slf4j.LoggerFactory;
 public class PortManager
 {
 
-	private static Logger log = LoggerFactory.getLogger( PortManager.class );
+    private static Logger log = LoggerFactory.getLogger( PortManager.class );
 
-	protected static final int minUdpPort = 6790;
-	protected static final int maxUdpPort = 49151;
-	private static Set<Integer> reservedPorts = Collections.synchronizedSet( new HashSet<Integer>() );
+    protected static final int minUdpPort = 6790;
 
-	// TODO: Using custom exceptions
-	public static void reservePort( int port ) throws Exception
-	{
-		if ( reservedPorts.contains( port ) )
-			throw new Exception( "Port " + port + "is reserved" );
+    protected static final int maxUdpPort = 49151;
 
-		reservedPorts.add( port );
-	}
+    private static Set<Integer> reservedPorts = Collections
+            .synchronizedSet( new HashSet<Integer>() );
 
-	public static void removePort( int port )
-	{
-		reservedPorts.remove( port );
-	}
+    // TODO: Using custom exceptions
+    public static void reservePort( int port ) throws Exception
+    {
+        if ( reservedPorts.contains( port ) )
+            throw new Exception( "Port " + port + "is reserved" );
 
-	/**
-	 * @param port
-	 *        To port to be tested
-	 * @return true if the port is already reserved, false if the port can be
-	 *         used.
-	 */
-	public static boolean isPortReserved( int port )
-	{
-		return reservedPorts.contains( port );
-	}
+        reservedPorts.add( port );
+    }
 
-	/**
-	 * Get the first port (starting from <i>start</i>) that does not appear in
-	 * the reservation list.
-	 * 
-	 * @param start
-	 *        the base port number to start from
-	 * @return the port number if found
-	 */
-	public static int getNextNotReservedPort( int start )
-			throws NoPortAvailableException
-	{
-		int port = start;
-		while ( reservedPorts.contains( port ) ) {
-			if ( port > maxUdpPort ) {
-				// port not found
-				throw new NoPortAvailableException();
-			}
-			port += 1;
-		}
-		return port;
-	}
+    public static void removePort( int port )
+    {
+        reservedPorts.remove( port );
+    }
 
-	public static int[] findAvailablePorts( int nPorts, int startFrom )
-		throws NoPortAvailableException
-	{
-		int dataPort, controlPort, startingPort;
+    /**
+     * @param port
+     *            To port to be tested
+     * @return true if the port is already reserved, false if the port can be
+     *         used.
+     */
+    public static boolean isPortReserved( int port )
+    {
+        return reservedPorts.contains( port );
+    }
 
-		startingPort = startFrom;
+    /**
+     * Get the first port (starting from <i>start</i>) that does not appear in
+     * the reservation list.
+     * 
+     * @param start
+     *            the base port number to start from
+     * @return the port number if found
+     */
+    public static int getNextNotReservedPort( int start ) throws NoPortAvailableException
+    {
+        int port = start;
+        while ( reservedPorts.contains( port ) ) {
+            if ( port > maxUdpPort ) {
+                // port not found
+                throw new NoPortAvailableException();
+            }
+            port += 1;
+        }
+        return port;
+    }
 
-		while ( true ) {
-			
-			startingPort = getNextNotReservedPort( startingPort );
-			dataPort = getNextPortAvailable( startingPort );
+    public static int[] findAvailablePorts( int nPorts, int startFrom )
+            throws NoPortAvailableException
+    {
+        int dataPort, controlPort, startingPort;
 
-			if ( isPortReserved( dataPort ) ) {
-				// The port is effectively unbound, but reserved in
-				// PortManager.
-				startingPort += nPorts;
-				continue;
-			}
+        startingPort = startFrom;
 
-			if ( nPorts == 1 ) {
-				// There is only the data port
-				int[] a = { dataPort };
-				log.debug( "DataPort: " + dataPort );
-				try {
-					reservePort( dataPort );
-				} catch ( Exception e ) {
-					continue;
-				}
-				return a;
+        while ( true ) {
 
-			} else if ( nPorts == 2 ) {
-				// We have to find 2 consequents free UDP ports.
-				// also: dataPort must be an even number
-				if ( ( dataPort % 2 ) != 0 ) {
-					continue;
+            startingPort = getNextNotReservedPort( startingPort );
+            dataPort = getNextPortAvailable( startingPort );
 
-				} else {
-					controlPort = getNextPortAvailable( dataPort + 1 );
+            if ( isPortReserved( dataPort ) ) {
+                // The port is effectively unbound, but reserved in
+                // PortManager.
+                startingPort += nPorts;
+                continue;
+            }
 
-					if ( controlPort != ( dataPort + 1 ) ) {
-						// port are not consequents
-						continue;
-					} else if ( isPortReserved( controlPort ) ) {
-						continue;
+            if ( nPorts == 1 ) {
+                // There is only the data port
+                int[] a = { dataPort };
+                log.debug( "DataPort: {}", dataPort );
+                try {
+                    reservePort( dataPort );
+                } catch ( Exception e ) {
+                    continue;
+                }
+                return a;
 
-					} else {
-						try {
-							reservePort( dataPort );
-							reservePort( controlPort );
-						} catch ( Exception e ) {
-							continue;
-						}
+            } else if ( nPorts == 2 ) {
+                // We have to find 2 consequents free UDP ports.
+                // also: dataPort must be an even number
+                if ( (dataPort % 2) != 0 ) {
+                    continue;
+                }
+                controlPort = getNextPortAvailable( dataPort + 1 );
 
-						int[] a = { dataPort, controlPort };
-						log.debug( "DataPort: " + dataPort + " - ControlPort: "
-								+ controlPort );
-						return a;
-					}
-				}
-			}
-		}
-	}
+                if ( controlPort != (dataPort + 1) ) {
+                    // port are not consequents
+                    continue;
+                } else if ( isPortReserved( controlPort ) ) {
+                    continue;
 
-	private static int getNextPortAvailable( int startPort )
-			throws NoPortAvailableException
-	{
+                } else {
+                    try {
+                        reservePort( dataPort );
+                        reservePort( controlPort );
+                    } catch ( Exception e ) {
+                        continue;
+                    }
 
-		for ( int port = startPort; port <= maxUdpPort; port++ ) {
-			DatagramSocket s = null;
-			try {
-				s = new DatagramSocket( port );
-				s.close();
-				return port;
+                    int[] a = { dataPort, controlPort };
+                    log.debug( "DataPort: {} - ControlPort: {}", dataPort, controlPort );
+                    return a;
+                }
 
-			} catch ( IOException e ) {
-				// Ignore
-			}
-		}
+            }
+        }
+    }
 
-		// No port is available
-		throw new NoPortAvailableException();
-	}
+    private static int getNextPortAvailable( int startPort )
+            throws NoPortAvailableException
+    {
+
+        for ( int port = startPort; port <= maxUdpPort; port++ ) {
+            DatagramSocket s = null;
+            try {
+                s = new DatagramSocket( port );
+                s.close();
+                return port;
+
+            } catch ( IOException e ) {
+                // Ignore
+            }
+        }
+
+        // No port is available
+        throw new NoPortAvailableException();
+    }
 
 }

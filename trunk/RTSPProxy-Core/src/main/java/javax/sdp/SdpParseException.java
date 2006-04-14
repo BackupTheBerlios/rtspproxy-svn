@@ -77,7 +77,8 @@ public class SdpParseException extends SdpException
 	 * 
 	 * @return the message stored when the exception was created.
 	 */
-	public String getMessage()
+	@Override
+    public String getMessage()
 	{
 		return super.getMessage();
 	}

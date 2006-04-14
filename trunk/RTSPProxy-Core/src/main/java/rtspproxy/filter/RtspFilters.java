@@ -48,150 +48,136 @@ import rtspproxy.rtsp.RtspEncoder;
 public abstract class RtspFilters implements IoFilterChainBuilder
 {
 
-	private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
-	{
+    private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
+    {
 
-		// Decoders can be shared
-		private ProtocolEncoder rtspEncoder = new RtspEncoder();
+        // Decoders can be shared
+        private final ProtocolEncoder rtspEncoder = new RtspEncoder();
 
-		private ProtocolDecoder rtspDecoder = new RtspDecoder();
+        private final ProtocolDecoder rtspDecoder = new RtspDecoder();
 
-		public ProtocolEncoder getEncoder()
-		{
-			return rtspEncoder;
-		}
+        public ProtocolEncoder getEncoder()
+        {
+            return rtspEncoder;
+        }
 
-		public ProtocolDecoder getDecoder()
-		{
-			return rtspDecoder;
-		}
-	};
+        public ProtocolDecoder getDecoder()
+        {
+            return rtspDecoder;
+        }
+    };
 
-	private static final IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
+    private static final IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
 
-	public static final String rtspCodecNAME = "rtspCodec";
+    public static final String rtspCodecNAME = "rtspCodec";
 
-	/**
-	 * IP Address filter.
-	 * <p>
-	 * This needs to be the first filter in the chain to block blacklisted host
-	 * in the early stage of the connection, preventing network and computation
-	 * load from unwanted hosts.
-	 */
-	protected void addIpAddressFilter( IoFilterChain chain, Side side )
-	{
-		List<IpAddressFilter> filters;
-		
-		if(side == Side.Client)
-			filters = FilterRegistry.getInstance().getClientAddressFilters();
-		else
-			filters = FilterRegistry.getInstance().getServerAddressFilters();
-		
-		for(IpAddressFilter ipAddressFilter : filters) {
+    /**
+     * IP Address filter.
+     * <p>
+     * This needs to be the first filter in the chain to block blacklisted host
+     * in the early stage of the connection, preventing network and computation
+     * load from unwanted hosts.
+     */
+    protected void addIpAddressFilter( IoFilterChain chain, Side side )
+    {
+        // XXX: disabled
+        /*
+         * List<IpAddressFilter> filters;
+         * 
+         * if(side == Side.Client) filters =
+         * FilterRegistry.getInstance().getClientAddressFilters(); else filters =
+         * FilterRegistry.getInstance().getServerAddressFilters();
+         * 
+         * for(IpAddressFilter ipAddressFilter : filters) {
+         * 
+         * chain.addAfter( ProxyServiceRegistry.threadPoolFilterNAME,
+         * ipAddressFilter.getChainName(), ipAddressFilter );
+         *  }
+         */
+    }
 
-			chain.addAfter( ProxyServiceRegistry.threadPoolFilterNAME,
-					ipAddressFilter.getChainName(), ipAddressFilter );
-			
-		}
-		
-	}
+    /**
+     * The RTSP codec filter is always present. Translates the incoming streams
+     * into RTSP messages.
+     */
+    protected void addRtspCodecFilter( IoFilterChain chain )
+    {
+        chain.addLast( rtspCodecNAME, codecFilter );
+    }
 
-	/**
-	 * The RTSP codec filter is always present. Translates the incoming streams
-	 * into RTSP messages.
-	 */
-	protected void addRtspCodecFilter( IoFilterChain chain )
-	{
-		chain.addLast( rtspCodecNAME, codecFilter );
-	}
+    /**
+     * Authentication filter.
+     */
+    protected void addAuthenticationFilter( IoFilterChain chain )
+    {
+        for ( AuthenticationFilter authenticationFilter : FilterRegistry.getInstance()
+                .getClientAuthenticationFilters() ) {
+            chain.addAfter( rtspCodecNAME, authenticationFilter.getChainName(),
+                    authenticationFilter );
+        }
+    }
 
-	/**
-	 * Authentication filter.
-	 */
-	protected void addAuthenticationFilter( IoFilterChain chain )
-	{
-		for(AuthenticationFilter authenticationFilter : FilterRegistry.getInstance().getClientAuthenticationFilters()) {
-			chain.addAfter( rtspCodecNAME, authenticationFilter.getChainName(),
-					authenticationFilter );
-			
-		}
-	}
+    protected void addAccountingFilter( IoFilterChain chain, Side side )
+    {
+        // XXX: disabled
+        /*
+        List<AccountingFilter> filters;
 
-	protected void addAccountingFilter( IoFilterChain chain, Side side )
-	{
-		List<AccountingFilter> filters;
-		
-		if(side == Side.Client) {
-			filters = FilterRegistry.getInstance().getClientAccountingFilters();
+        if ( side == Side.Client ) {
+            filters = FilterRegistry.getInstance().getClientAccountingFilters();
 
-			for(AccountingFilter accountingFilter : filters) {
-				chain.addAfter( rtspCodecNAME,
-						accountingFilter.getChainName(), accountingFilter );
-			}
-		} else {
-			filters = FilterRegistry.getInstance().getServerAccountingFilters();
+            for ( AccountingFilter accountingFilter : filters ) {
+                chain.addAfter( rtspCodecNAME, accountingFilter.getChainName(),
+                        accountingFilter );
+            }
+        } else {
+            filters = FilterRegistry.getInstance().getServerAccountingFilters();
 
-			for(AccountingFilter accountingFilter : filters) {
-				chain.addAfter( rtspCodecNAME,
-						accountingFilter.getChainName(), accountingFilter );
-			}
-		}
-		
-		/*
-		boolean enableAccountingFilter = Config.proxyFilterAccountingEnable.getValue();
+            for ( AccountingFilter accountingFilter : filters ) {
+                chain.addAfter( rtspCodecNAME, accountingFilter.getChainName(),
+                        accountingFilter );
+            }
+        }
+        */
+    }
 
-		if ( enableAccountingFilter ) {
-			if ( accountingFilter == null ) {
-				accountingFilter = new AccountingFilter();
-			}
-			if ( chain.contains( authenticationFilterNAME ) ) {
-				/ *
-				 * If we have the authentication filter in the chain, it's
-				 * preferable to have the accounting after that, to see the user
-				 * identity if authenticated.
-				 * /
-				chain.addAfter( authenticationFilterNAME, accountingFilterNAME,
-						accountingFilter );
-			} else {
-				/ *
-				 * At least we want to have it after the RTSP codec, because it
-				 * deals with already parsed RTSP messages.
-				 * /
-				chain.addAfter( rtspCodecNAME, accountingFilterNAME, accountingFilter );
-			}
-		}
-		*/
-	}
+    protected void addRewriteFilter( IoFilterChain chain, Side side )
+    {
+        // XXX: disabled
+        /*
+        List<UrlRewritingFilter> filters;
 
-	protected void addRewriteFilter( IoFilterChain chain, Side side )
-	{
-		List<UrlRewritingFilter> filters;
-		
-		if(side == Side.Client)
-			filters = FilterRegistry.getInstance().getClientUrlRewritingFilters();
-		else
-			filters = FilterRegistry.getInstance().getServerUrlRewritingFilters();
-		
-		for(UrlRewritingFilter urlRewritingFilter : filters) {
+        if ( side == Side.Client )
+            filters = FilterRegistry.getInstance().getClientUrlRewritingFilters();
+        else
+            filters = FilterRegistry.getInstance().getServerUrlRewritingFilters();
 
-			chain.addAfter( rtspCodecNAME, urlRewritingFilter.getChainName(), urlRewritingFilter );
-			
-		}
-	}
+        for ( UrlRewritingFilter urlRewritingFilter : filters ) {
 
-	protected void addControlFilter ( IoFilterChain chain, Side side) {
-		if(side == Side.Client) {
-			List<ClientControlFilter> filters = FilterRegistry.getInstance().getClientControlFilters();
+            chain.addAfter( rtspCodecNAME, urlRewritingFilter.getChainName(),
+                    urlRewritingFilter );
+        }
+        */
+    }
 
-			for(ControlFilter controlFilter : filters) {
-				chain.addAfter( rtspCodecNAME, controlFilter.getChainName(), controlFilter);
-			}
-		} else {
-			List<ServerControlFilter> filters = FilterRegistry.getInstance().getServerControlFilters();
-		
-			for(ControlFilter controlFilter : filters) {
-				chain.addAfter( rtspCodecNAME, controlFilter.getChainName(), controlFilter);
-			}
-		}
-	}
+    protected void addControlFilter( IoFilterChain chain, Side side )
+    {
+        if ( side == Side.Client ) {
+            List<ClientControlFilter> filters = FilterRegistry.getInstance()
+                    .getClientControlFilters();
+
+            for ( ControlFilter controlFilter : filters ) {
+                chain.addAfter( rtspCodecNAME, controlFilter.getChainName(),
+                        controlFilter );
+            }
+        } else {
+            List<ServerControlFilter> filters = FilterRegistry.getInstance()
+                    .getServerControlFilters();
+
+            for ( ControlFilter controlFilter : filters ) {
+                chain.addAfter( rtspCodecNAME, controlFilter.getChainName(),
+                        controlFilter );
+            }
+        }
+    }
 }

@@ -6,12 +6,13 @@
 		$Id$
 		$URL$
 	-->
-        <parent>
-                <groupId>net.merlimat</groupId>
-                <artifactId>rtspproxy</artifactId>
-                <version>3.0-ALPHA5-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
-        </parent>
+
+	<parent>
+		<groupId>net.merlimat</groupId>
+		<artifactId>rtspproxy</artifactId>
+		<version>3.0-ALPHA5-SNAPSHOT</version>
+		<!--	<relativePath>../pom.xml</relativePath> -->
+	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -24,40 +25,21 @@
 
 
 	<dependencies>
-
-    <dependency>
-      <groupId>net.merlimat</groupId>
-      <artifactId>RTSPProxy-Core</artifactId>
-      <version>3.0-ALPHA5-SNAPSHOT</version>
-    </dependency>
-
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.0-rc3</version>
+			<groupId>net.merlimat</groupId>
+			<artifactId>RTSPProxy-Core</artifactId>
+			<version>3.0-ALPHA5-SNAPSHOT</version>
 		</dependency>
-
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.9</version>
-		</dependency>
-
+		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>3.8.1</version>
 			<scope>test</scope>
 		</dependency>
+		
 	</dependencies>
-<!--
-	<repositories>
-		<repository>
-		<id>Apache repository</id>
-		<url>http://svn.apache.org/repository/</url>
-		</repository>
-	</repositories>
--->
+
 
 	<build>
 		<defaultGoal>assembly:directory</defaultGoal>

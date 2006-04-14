@@ -15,37 +15,13 @@
  * $URL$
  * 
  */
-
-package rtspproxy;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import rtspproxy.config.Config;
-import rtspproxy.lib.Exceptions;
+package rtspproxy.config;
 
 /**
- * The thread holded by this class is started in the shutdown phase.
- * 
  * @author Matteo Merli
+ * 
  */
-public class ShutdownHandler extends Thread
+public interface ListElementParameter
 {
-
-	private static Logger log = LoggerFactory.getLogger( ShutdownHandler.class );
-
-	@Override
-    public void run()
-	{
-		log.info( "Shutting down" );
-		try {
-			log.info( "Stopping {} {}", Config.getName(), Config.getVersion() );
-			Reactor.stop();
-
-		} catch ( Exception e ) {
-			log.error( "Exception in the reactor: ", e );
-			Exceptions.logStackTrace( e );
-		}
-	}
-
+    
 }

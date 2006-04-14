@@ -134,14 +134,14 @@ public class JmxAgent extends Singleton
 
 	private void startWebConsole() throws Exception
 	{
-		boolean enabled = Config.proxyManagementWebEnable.getValue();
+		boolean enabled = Config.jmxWebEnable.getValue();
 		if ( !enabled )
 			return;
 
-		String host = Config.proxyManagementHost.getValue();
-		int port = Config.proxyManagementWebPort.getValue();
-		String user = Config.proxyManagementUser.getValue();
-		String password = Config.proxyManagementPassword.getValue();
+		String host = Config.jmxAddress.getValue();
+		int port = Config.jmxWebPort.getValue();
+		String user = Config.jmxUser.getValue();
+		String password = Config.jmxPassword.getValue();
 
 		HttpAdaptor adaptor = new HttpAdaptor();
 		ObjectName name = new ObjectName( "Server:name=HttpAdaptor" );
@@ -164,7 +164,7 @@ public class JmxAgent extends Singleton
 	@SuppressWarnings("unchecked")
 	private void startConnectorServer() throws Exception
 	{
-		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
 		if ( !enabled )
 			return;
 
@@ -177,7 +177,7 @@ public class JmxAgent extends Singleton
 		int namingPort = ( (Integer) mbeanServer.getAttribute( namingName, "Port" ) ).intValue();
 
 		String jndiPath = "/rtspproxy";
-		String host = Config.proxyManagementHost.getValue();
+		String host = Config.jmxAddress.getValue();
 		String uri = "service:jmx:rmi://" + host + "/jndi/rmi://" + host + ":"
 				+ namingPort + jndiPath;
 
@@ -207,7 +207,7 @@ public class JmxAgent extends Singleton
 	 * register a MBean as a management facade to a filter implementation
 	 */
 	public void registerFilter(FilterBase filter) {
-		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
 		if ( !enabled )
 			return;
 
@@ -287,7 +287,7 @@ public class JmxAgent extends Singleton
 	 * 
 	 */
 	public void registerProxySession(ProxySession session) {
-		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
 		if ( !enabled )
 			return;
 
@@ -306,7 +306,7 @@ public class JmxAgent extends Singleton
 	 * unregister a proxy session
 	 */
 	public void unregisterProxySession(ProxySession session) {
-		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
 		if ( !enabled )
 			return;
 
@@ -318,9 +318,9 @@ public class JmxAgent extends Singleton
 				session.setObjectName(null);
 			}
 		} catch(InstanceNotFoundException infe) {
-			log.debug("internal problem: MBean not found, name=" + session.getObjectName(), infe);
+			log.debug("internal problem: MBean not found, name={}", session.getObjectName(), infe);
 		} catch(Exception e) {
-			log.error( "failed to register proxy session MBean: session=" + session, e );
+			log.error( "failed to register proxy session MBean: session={}", session, e );
 		}
 		
 	}
@@ -330,7 +330,7 @@ public class JmxAgent extends Singleton
 	 * 
 	 */
 	public void registerPortRangeRtpServerSessionfactory(PortrangeRtpServerSessionFactory sessionFactory) {
-		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
 		if ( !enabled )
 			return;
 
@@ -348,7 +348,7 @@ public class JmxAgent extends Singleton
 	 * 
 	 */
 	public void unregisterPortRangeRtpServerSessionfactory() {
-		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
 		if ( !enabled )
 			return;
 
@@ -367,7 +367,7 @@ public class JmxAgent extends Singleton
 	 * register a generated RTP server session in the portrange case
 	 */
 	public void registerPortrangeRtpServerSession(PortrangeRtpServerSession session) {
-		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
 		if ( !enabled )
 			return;
 		
@@ -378,7 +378,7 @@ public class JmxAgent extends Singleton
 			mbeanServer.registerMBean(mbean, name);
 			session.setObjectName(name);
 		} catch(Exception e) {
-			log.error( "failed to register proxy session MBean: session=" + session, e );
+			log.error( "failed to register proxy session MBean: session={}", session, e );
 		}
 	}
 	
@@ -386,7 +386,7 @@ public class JmxAgent extends Singleton
 	 * register a generated RTP server session in the portrange case
 	 */
 	public void unregisterPortrangeRtpServerSession(PortrangeRtpServerSession session) {
-		boolean enabled = Config.proxyManagementRemoteEnable.getValue();
+		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
 		if ( !enabled )
 			return;
 		
@@ -400,7 +400,7 @@ public class JmxAgent extends Singleton
 		} catch(InstanceNotFoundException infe) {
 			log.debug("internal problem: MBean not found, name=" + session.getObjectName(), infe);
 		} catch(Exception e) {
-			log.error( "failed to register proxy session MBean: session=" + session, e );
+			log.error( "failed to register proxy session MBean: session={}", session, e );
 		}		
 	}
 

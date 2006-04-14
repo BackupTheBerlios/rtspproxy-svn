@@ -45,13 +45,16 @@ public abstract class UnsignedNumber extends Number {
 	 */
 	public abstract void shiftLeft(int nBits);
 
-	public abstract String toString();
+	@Override
+    public abstract String toString();
 
 	public abstract int compareTo(UnsignedNumber other);
 
-	public abstract boolean equals(Object other);
+	@Override
+    public abstract boolean equals(Object other);
 	
-	public abstract int hashCode();
+	@Override
+    public abstract int hashCode();
 
 	public String toHexString() {
 		return toHexString(false);

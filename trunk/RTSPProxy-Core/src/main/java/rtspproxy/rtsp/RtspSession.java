@@ -61,7 +61,7 @@ public class RtspSession
 		}
 		RtspSession session = new RtspSession( sessionId );
 		sessions.put( sessionId, session );
-		log.debug( "New session created - id=" + sessionId );
+		log.debug( "New session created - id={}", sessionId );
 		return session;
 	}
 

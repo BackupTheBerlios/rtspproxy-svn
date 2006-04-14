@@ -76,7 +76,8 @@ public class MediaDescriptionImpl implements javax.sdp.MediaDescription
 		return retval.toString();
 	}
 
-	public String toString()
+	@Override
+    public String toString()
 	{
 		return this.encode();
 	}

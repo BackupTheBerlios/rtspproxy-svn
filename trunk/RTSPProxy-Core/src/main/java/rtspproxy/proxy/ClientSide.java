@@ -41,7 +41,7 @@ public class ClientSide extends IoHandlerAdapter
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
-		log.info( "New connection from " + session.getRemoteAddress() );
+		log.info( "New connection from {}", session.getRemoteAddress() );
 		// Creates a new ProxyHandler and saves it
 		// as a Session attribute
 		ProxyHandler proxyHandler = new ProxyHandler( session );
@@ -68,7 +68,7 @@ public class ClientSide extends IoHandlerAdapter
 			return;
 		}
 		// close all: same as sessionClosed()
-		log.info( "Exception: " + cause );
+		log.info( "Exception: {}", cause );
 		Exceptions.logStackTrace( cause );
 		sessionClosed( session );
 	}
@@ -219,7 +219,7 @@ public class ClientSide extends IoHandlerAdapter
 	public void messageReceived( IoSession session, Object message )
 	{
 		RtspMessage rtspMessage = (RtspMessage) message;
-		log.debug( "Received message:\n" + message );
+		log.debug( "Received message:\n{}", message );
 
 		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( ProxyHandler.ATTR ) );
 

@@ -26,56 +26,60 @@ package rtspproxy.filter.authentication.scheme;
 public class Credentials
 {
 
-	protected String userName;
+    protected String userName;
 
-	protected String password;
-	
-	public Credentials()
-	{
-	}
+    protected String password;
 
-	public Credentials( String userName, String password )
-	{
-		this.userName = userName;
-		this.password = password;
-	}
+    public Credentials()
+    {
+    }
 
-	/**
-	 * @return Returns the password.
-	 */
-	public String getPassword()
-	{
-		return password;
-	}
+    public Credentials( String userName, String password )
+    {
+        this.userName = userName;
+        this.password = password;
+    }
 
-	/**
-	 * @param password
-	 *            The password to set.
-	 */
-	public void setPassword( String password )
-	{
-		this.password = password;
-	}
+    /**
+     * @return Returns the password.
+     */
+    public String getPassword()
+    {
+        return password;
+    }
 
-	/**
-	 * @return Returns the userName.
-	 */
-	public String getUserName()
-	{
-		return userName;
-	}
+    /**
+     * @param password
+     *            The password to set.
+     */
+    public void setPassword( String password )
+    {
+        this.password = password;
+    }
 
-	/**
-	 * @param userName
-	 *            The userName to set.
-	 */
-	public void setUserName( String userName )
-	{
-		this.userName = userName;
-	}
+    /**
+     * @return Returns the userName.
+     */
+    public String getUserName()
+    {
+        return userName;
+    }
 
-	public String toString()
-	{
-		return "(" + userName + ":" + password + ")";
-	}
+    /**
+     * @param userName
+     *            The userName to set.
+     */
+    public void setUserName( String userName )
+    {
+        this.userName = userName;
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder();
+        sb.append( '(' ).append( userName ).append( ':' );
+        sb.append( password ).append( ')' );
+        return sb.toString();
+    }
 }

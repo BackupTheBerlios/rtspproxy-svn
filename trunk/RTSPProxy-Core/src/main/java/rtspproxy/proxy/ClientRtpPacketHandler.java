@@ -52,13 +52,13 @@ public class ClientRtpPacketHandler extends IoHandlerAdapter
 	public void messageReceived( IoSession session, Object buffer ) throws Exception
 	{
 		RtpPacket packet = new RtpPacket( (ByteBuffer) buffer );
-		log.debug( "Received RTP packet: " + packet.getSequence() );
+		log.debug( "Received RTP packet: {}", packet.getSequence() );
 
 		RtpTrack track = (RtpTrack)Track.getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
 
 		if ( track == null ) {
 			// drop packet
-			log.debug( "Packet received from unknown client: " + session.getRemoteAddress() ); 
+			log.debug( "Packet received from unknown client: {}", session.getRemoteAddress() ); 
 			return;
 		}
 
@@ -68,7 +68,7 @@ public class ClientRtpPacketHandler extends IoHandlerAdapter
 	@Override
 	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
-		log.debug( "Exception: " + cause );
+		log.debug( "Exception: {}", cause );
 		Exceptions.logStackTrace( cause );
 		session.close();
 	}

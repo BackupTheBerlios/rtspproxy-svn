@@ -3,6 +3,8 @@
  */
 package rtspproxy.config;
 
+import org.apache.commons.configuration.Configuration;
+
 /**
  * @author Matteo Merli
  */
@@ -14,23 +16,10 @@ public class BooleanParameter extends Parameter
 	private boolean defaultValue;
 
 	public BooleanParameter( String name, boolean defaultValue, boolean mutable,
-			String description, String xpathExpr )
+			String description )
 	{
-		super( name, mutable, description, xpathExpr );
+		super( name, mutable, description );
 		this.defaultValue = defaultValue;
-	}
-
-	public void setValue( String value ) throws IllegalArgumentException
-	{
-		value = value.trim().toLowerCase();
-		if ( "true".equals( value ) || "yes".equals( value ) )
-			this.value = true;
-		else if ( "false".equals( value ) || "no".equals( value ) )
-			this.value = false;
-		else
-			throw new IllegalArgumentException( "Boolean value not valid: " + value );
-
-		setChanged();
 	}
 
 	/**
@@ -80,4 +69,12 @@ public class BooleanParameter extends Parameter
 			setChanged();
 		}
 	}
+    
+
+    @Override
+    public void readConfiguration( Configuration configuration )
+    {
+        boolean value = configuration.getBoolean( name );
+        setObjectValue( value );
+    }
 }

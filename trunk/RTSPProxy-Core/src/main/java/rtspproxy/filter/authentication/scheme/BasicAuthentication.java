@@ -64,12 +64,13 @@ public class BasicAuthentication implements AuthenticationScheme
 			byte[] decBytes = Base64.decode( authString );
 			String auth = StringUtil.toString( decBytes );
 
-			log.debug( "auth: " + auth );
+			log.debug( "auth: {}", auth );
 			username = auth.split( ":", 2 )[0];
 			password = auth.split( ":", 2 )[1];
-			log.debug( "username=" + username + " - password=" + password );
+			log.debug( "username={} - password={}", username, password );
+            
 		} catch ( Exception e ) {
-			log.warn( "Malformed authString: " + authString );
+			log.warn( "Malformed authString: {}", authString );
 			return null;
 		}
 

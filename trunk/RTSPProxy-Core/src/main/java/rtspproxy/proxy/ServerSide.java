@@ -13,12 +13,10 @@
 
 package rtspproxy.proxy;
 
-import java.util.HashMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.lib.Exceptions;
 import rtspproxy.rtsp.RtspCode;
@@ -37,7 +35,7 @@ public class ServerSide extends IoHandlerAdapter
 	@Override
 	public void sessionCreated( IoSession session ) throws Exception
 	{
-		log.info( "Created session to server: " + session.getRemoteAddress() );
+		log.info( "Created session to server: {}", session.getRemoteAddress() );
 	}
 
 	@Override
@@ -198,7 +196,7 @@ public class ServerSide extends IoHandlerAdapter
 	public void messageReceived( IoSession session, Object message )
 	{
 		RtspMessage rtspMessage = (RtspMessage) message;
-		log.debug( "Received message:\n" + message );
+		log.debug( "Received message:\n{}", message );
 
 		ProxyHandler proxyHandler = (ProxyHandler) ( session.getAttribute( ProxyHandler.ATTR ) );
 		if ( proxyHandler == null ) {

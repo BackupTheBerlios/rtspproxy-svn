@@ -1,6 +1,21 @@
-/**
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   Copyright (C) 2005 - Matteo Merli - matteo.merli@gmail.com            *
+ *                                                                         *
+ ***************************************************************************/
+
+/*
+ * $Id: RtspFilters.java 406 2006-01-27 00:28:56Z rbieniek $
+ * 
+ * $URL: https://svn.berlios.de/svnroot/repos/rtspproxy/trunk/RTSPProxy-Core/src/main/java/rtspproxy/filter/RtspFilters.java $
  * 
  */
+
 package rtspproxy.filter;
 
 import java.util.Collections;
@@ -16,7 +31,6 @@ import rtspproxy.config.Config;
 import rtspproxy.filter.accounting.AccountingFilter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.filter.control.ClientControlFilter;
-import rtspproxy.filter.control.ControlFilter;
 import rtspproxy.filter.control.ServerControlFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
 import rtspproxy.filter.rewrite.ClientUrlRewritingFilter;
@@ -36,31 +50,31 @@ public class FilterRegistry extends Singleton {
 	private static Logger logger = LoggerFactory.getLogger(FilterRegistry.class);
 
 	// client side address filters
-	private LinkedList<IpAddressFilter> clientAddressFilters = new LinkedList<IpAddressFilter>();
+	private List<IpAddressFilter> clientAddressFilters = new LinkedList<IpAddressFilter>();
 	
 	// server side address filters
-	private LinkedList<IpAddressFilter> serverAddressFilters = new LinkedList<IpAddressFilter>();
+	private List<IpAddressFilter> serverAddressFilters = new LinkedList<IpAddressFilter>();
 
 	// client side authentication filters
-	private LinkedList<AuthenticationFilter> clientAuthenticationFilters = new LinkedList<AuthenticationFilter>();
+	private List<AuthenticationFilter> clientAuthenticationFilters = new LinkedList<AuthenticationFilter>();
 	
 	// client side accounting filter
-	private LinkedList<AccountingFilter> clientAccountingFilters = new LinkedList<AccountingFilter>();
+	private List<AccountingFilter> clientAccountingFilters = new LinkedList<AccountingFilter>();
 	
 	// server side accounting filter
-	private LinkedList<AccountingFilter> serverAccountingFilters = new LinkedList<AccountingFilter>();
+	private List<AccountingFilter> serverAccountingFilters = new LinkedList<AccountingFilter>();
 	
 	// client side rewriting filters
-	private LinkedList<UrlRewritingFilter> clientUrlRewritingFilters = new LinkedList<UrlRewritingFilter>();
+	private List<UrlRewritingFilter> clientUrlRewritingFilters = new LinkedList<UrlRewritingFilter>();
 	
 	// server side rewriting filters
-	private LinkedList<UrlRewritingFilter> serverUrlRewritingFilters = new LinkedList<UrlRewritingFilter>();
+	private List<UrlRewritingFilter> serverUrlRewritingFilters = new LinkedList<UrlRewritingFilter>();
 	
 	// client side control traffic filters
-	private LinkedList<ClientControlFilter> clientControlFilters = new LinkedList<ClientControlFilter>();
+	private List<ClientControlFilter> clientControlFilters = new LinkedList<ClientControlFilter>();
 	
 	// client side control traffic filters
-	private LinkedList<ServerControlFilter> serverControlFilters = new LinkedList<ServerControlFilter>();
+	private List<ServerControlFilter> serverControlFilters = new LinkedList<ServerControlFilter>();
 	
 	/**
 	 * 
@@ -180,7 +194,7 @@ public class FilterRegistry extends Singleton {
 	}
 	
 	private void registerFilterMBean(FilterBase filter) {
-		if(Config.proxyManagementEnable.getValue())
+		if(Config.jmxEnable.getValue())
 			JmxAgent.getInstance().registerFilter(filter);
 	}
 

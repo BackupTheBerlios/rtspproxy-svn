@@ -20,14 +20,10 @@ package rtspproxy;
 
 import java.util.Observable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
 
-import rtspproxy.ProxyServiceRegistry.IoFilterChainBuilderWrapper;
 import rtspproxy.config.Config;
 import rtspproxy.config.Parameter;
 import rtspproxy.filter.RtspClientFilters;
@@ -39,10 +35,8 @@ import rtspproxy.proxy.ClientSide;
  */
 public final class RtspService extends ProxyService
 {
-
-	private static Logger log = LoggerFactory.getLogger( RtspService.class );
-
-	private IoHandler rtspHandler = new ClientSide();
+	
+	private final IoHandler rtspHandler = new ClientSide();
 
 	private final IoFilterChainBuilder filterChainBuilder = new RtspClientFilters();
 
@@ -54,8 +48,8 @@ public final class RtspService extends ProxyService
 
 		// Subscribe to parameter changes
 		Config.proxyClientInterface.addObserver( this );
+        Config.proxyClientAddress.addObserver( this );
 		Config.proxyRtspPort.addObserver( this );
-
 	}
 
 	@Override

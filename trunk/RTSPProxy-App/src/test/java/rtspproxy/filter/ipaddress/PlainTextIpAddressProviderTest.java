@@ -20,8 +20,6 @@ package rtspproxy.filter.ipaddress;
 import java.io.StringReader;
 import java.net.InetAddress;
 
-import rtspproxy.filter.ipaddress.SimpleIpAddressProvider;
-
 import junit.framework.TestCase;
 
 /**

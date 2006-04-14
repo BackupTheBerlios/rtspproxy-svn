@@ -20,20 +20,15 @@ package rtspproxy.proxy;
 
 import java.net.InetSocketAddress;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.common.TrafficMask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.lib.Exceptions;
 import rtspproxy.proxy.track.RdtTrack;
 import rtspproxy.proxy.track.Track;
-import rtspproxy.rdt.RdtFilterChainBuilder;
 import rtspproxy.rdt.RdtPacket;
-import rtspproxy.rdt.RdtPacketDecoder;
 
 /**
  * Handles RDT packets from server and forward them to client. The RTSP 
@@ -81,22 +76,21 @@ public class ServerRdtPacketHandler extends IoHandlerAdapter
 		if(buffer instanceof RdtPacket) {
 			RdtPacket rdtPacket = (RdtPacket)buffer;
 			
-			log.debug( "Received RDT packet from server, packet=" + rdtPacket );
+			log.debug( "Received RDT packet from server, packet={}", rdtPacket );
 
 			RdtTrack track = (RdtTrack)Track.getByServerAddress( (InetSocketAddress) session.getRemoteAddress() );
 
 			if ( track == null ) {
 				// drop packet
-				log.debug( "Invalid address: "
-						+ (InetSocketAddress) session.getRemoteAddress()
-						+ " - Class: "
-						+ ( (InetSocketAddress) session.getRemoteAddress() ).getAddress().getClass() );
+				log.debug( "Invalid address: {} - Class: {}",
+						session.getRemoteAddress(),
+						( (InetSocketAddress) session.getRemoteAddress() ).getAddress().getClass() );
 				return;
 			}
 
 			track.forwardRdtToClient( rdtPacket );			
 		} else {
-			log.debug("invalid object passed: " + buffer.getClass().getName());
+			log.debug("invalid object passed: {}",  buffer.getClass().getName());
 			
 			throw new IllegalStateException("invalid packet on chain");
 		}
@@ -105,7 +99,7 @@ public class ServerRdtPacketHandler extends IoHandlerAdapter
 	@Override
 	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
 	{
-		log.info( "Exception: " + cause );
+		log.info( "Exception: {}", cause );
 		Exceptions.logStackTrace( cause );
 		session.close();
 	}

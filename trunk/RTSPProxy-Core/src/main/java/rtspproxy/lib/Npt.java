@@ -88,9 +88,10 @@ public class Npt
 		return npt;
 	}
 
-	public String toString()
+	@Override
+    public String toString()
 	{
-		StringBuilder s = new StringBuilder();
+		final StringBuilder s = new StringBuilder();
 		s.append( "npt=" );
 		if ( live )
 			s.append( "now-" );
@@ -99,7 +100,7 @@ public class Npt
 				s.append( "0-" );
 			else {
 				s.append( Double.toString( timeStart ) );
-				s.append( "-" );
+				s.append( '-' );
 			}
 
 			if ( timeEnd != 0.0 ) {

@@ -32,46 +32,50 @@ import rtspproxy.proxy.track.Track;
 import rtspproxy.rtp.rtcp.RtcpPacket;
 
 /**
- * Handles RTCP packets from client and forward them to server. The RTSP 
- * session is obtained using the client IP address and port.
+ * Handles RTCP packets from client and forward them to server. The RTSP session
+ * is obtained using the client IP address and port.
  * 
  * @author Matteo Merli
  */
 public class ClientRtcpPacketHandler extends IoHandlerAdapter
 {
 
-	private static Logger log = LoggerFactory.getLogger( ClientRtcpPacketHandler.class );
+    private static Logger log = LoggerFactory.getLogger( ClientRtcpPacketHandler.class );
 
-	@Override
-	public void sessionCreated( IoSession session ) throws Exception
-	{
-	}
+    @Override
+    public void sessionCreated( IoSession session ) throws Exception
+    {
+    }
 
-	@Override
-	public void messageReceived( IoSession session, Object buffer ) throws Exception
-	{
-		RtcpPacket packet = new RtcpPacket( (ByteBuffer) buffer );
-		// log.debug( "Received RTCP packet: " + packet.getType() );
+    @Override
+    public void messageReceived( IoSession session, Object buffer ) throws Exception
+    {
+        RtcpPacket packet = new RtcpPacket( (ByteBuffer) buffer );
+        // log.debug( "Received RTCP packet: {}", packet.getType() );
 
-		RtpTrack track = (RtpTrack)Track.getByClientAddress( (InetSocketAddress) session.getRemoteAddress() );
+        RtpTrack track = (RtpTrack) Track.getByClientAddress( (InetSocketAddress) session
+                .getRemoteAddress() );
 
-		if ( track == null ) {
-			// drop packet
-			log.debug( "Invalid address: "
-					+ (InetSocketAddress) session.getRemoteAddress()
-					+ " - Class: "
-					+ ( (InetSocketAddress) session.getRemoteAddress() ).getAddress().getClass() );
-			return;
-		}
+        if ( track == null ) {
+            // drop packet
+            log.debug( "Invalid address: {} - Class: {}", session.getRemoteAddress(),
+                    ((InetSocketAddress) session.getRemoteAddress()).getAddress()
+                            .getClass() );
+            
+            log.debug( "Known Client Addresses: {}", Track.clientAddressMap.keySet() );
+            return;
+        }
 
-		track.forwardRtcpToServer( packet );
-	}
+        track.forwardRtcpToServer( packet );
+    }
 
-	@Override
-	public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
-	{
-		log.debug( "Exception: " + cause );
-		Exceptions.logStackTrace( cause );
-		session.close();
-	}
+    @Override
+    public void exceptionCaught( IoSession session, Throwable cause ) throws Exception
+    {
+        if ( log.isDebugEnabled() ) {
+            log.debug( "Exception: " + cause );
+            Exceptions.logStackTrace( cause );
+        }
+        session.close();
+    }
 }

@@ -102,12 +102,12 @@ public enum RtspCode {
 	{
 		if ( description != null )
 			return description;
-		else 
-			return name();
+		
+		return name();
 	}
 	
 	/**
-	 * Try to translare a numeric RTSP status code to
+	 * Try to translate a numeric RTSP status code to
 	 * the corresponding enum value.
 	 * 
 	 * @param strCode numeric code (as a string)

@@ -28,8 +28,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoFilterChain;
@@ -37,13 +35,14 @@ import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.TransportType;
 import org.apache.mina.filter.ThreadPoolFilter;
+import org.apache.mina.transport.socket.nio.DatagramAcceptor;
 import org.apache.mina.transport.socket.nio.SocketAcceptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.config.Config;
 import rtspproxy.config.Parameter;
 import rtspproxy.lib.Singleton;
-import rtspproxy.transport.socket.nio.DatagramAcceptor;
-import rtspproxy.transport.socket.nio.SessionAwareDatagramAcceptor;
 
 /**
  * Custom implementation of the ServiceRegistry interface. Creates an acceptor
@@ -127,8 +126,8 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
 		
 		IoFilterChainBuilder builder = new IoFilterChainBuilderWrapper( service,
 				filterChainBuilder );
-		// acceptor.setFilterChainBuilder( builder );
-		acceptor.bind( address, ioHandler, builder );
+		acceptor.setFilterChainBuilder( builder );
+		acceptor.bind( address, ioHandler );
 
 		services.put( service.getName(), service );
 

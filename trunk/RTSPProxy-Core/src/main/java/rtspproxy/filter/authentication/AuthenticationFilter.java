@@ -45,162 +45,160 @@ import rtspproxy.rtsp.RtspResponse;
 public class AuthenticationFilter extends FilterBase
 {
 
-	private static Logger log = LoggerFactory.getLogger( AuthenticationFilter.class );
+    private static Logger log = LoggerFactory.getLogger( AuthenticationFilter.class );
 
-	public static final String FilterNAME = "authenticationFilter";
+    public static final String FilterNAME = "authenticationFilter";
 
-	public static final String ATTR = AuthenticationFilter.class.getName() + "Attr";
+    public static final String ATTR = AuthenticationFilter.class.getName() + "Attr";
 
-	private static final Map<String, Class> schemeRegistry = new HashMap<String, Class>();
+    private static final Map<String, Class> schemeRegistry = new HashMap<String, Class>();
 
-	static {
-		// Fill in known schemes
-		schemeRegistry.put( "basic", BasicAuthentication.class );
-		schemeRegistry.put( "digest", DigestAuthentication.class );
-	}
+    static {
+        // Fill in known schemes
+        schemeRegistry.put( "basic", BasicAuthentication.class );
+        schemeRegistry.put( "digest", DigestAuthentication.class );
+    }
 
-	/**
-	 * Backend provider.
-	 */
-	private AuthenticationProvider provider;
+    /**
+     * Backend provider.
+     */
+    private AuthenticationProvider provider;
 
-	/** Different authentication schemes implementation */
-	private AuthenticationScheme scheme = null;
+    /** Different authentication schemes implementation */
+    private AuthenticationScheme scheme = null;
 
-	/**
-	 * Construct a new AuthenticationFilter. Looks at the configuration to load
-	 * the choseen backend implementation.
-	 */
-	public AuthenticationFilter(String className, String schemeName, List<Element> configElements)
-	{
-		super(FilterNAME, className, "authentication");
-		
-		this.provider = (AuthenticationProvider)loadConfigInitProvider(className, 
-				AuthenticationProvider.class, 
-				configElements);
-		
-		// Validate the choosen authentication scheme
-		Class schemeClass = schemeRegistry.get( schemeName.toLowerCase() );
-		if ( schemeClass == null ) {
-			// scheme not found
-			log.error( "Authentication Scheme not found: " + schemeName
-					+ ". Valid values are: "
-					+ Arrays.toString( schemeRegistry.keySet().toArray() ) );
-			Reactor.stop();
-			return;
-		}
+    /**
+     * Construct a new AuthenticationFilter. Looks at the configuration to load
+     * the choseen backend implementation.
+     */
+    public AuthenticationFilter( String className, String schemeName,
+            List<Element> configElements )
+    {
+        super( FilterNAME, className, "authentication" );
 
-		// Instanciate the selected scheme
-		try {
-			scheme = (AuthenticationScheme) schemeClass.newInstance();
-		} catch ( Exception e ) {
-		}
+        this.provider = (AuthenticationProvider) loadConfigInitProvider( className,
+                AuthenticationProvider.class, configElements );
 
-		log.info( "Using AuthenticationFilter " + scheme.getName() + " (" + className
-				+ ")" );
-	}
+        // Validate the choosen authentication scheme
+        Class schemeClass = schemeRegistry.get( schemeName.toLowerCase() );
+        if ( schemeClass == null ) {
+            // scheme not found
+            log.error( "Authentication Scheme not found: " + schemeName
+                    + ". Valid values are: "
+                    + Arrays.toString( schemeRegistry.keySet().toArray() ) );
+            Reactor.stop();
+            return;
+        }
 
-	public void messageReceived( NextFilter nextFilter, IoSession session, Object message )
-			throws Exception
-	{
-		if ( !(message instanceof RtspRequest) ) {
-			// Shouldn't happen
-			log.warn( "Object message is not a RTSP message" );
-			return;
-		}
+        // Instanciate the selected scheme
+        try {
+            scheme = (AuthenticationScheme) schemeClass.newInstance();
+        } catch ( Exception e ) {
+        }
 
-		if (isRunning()) {
-			if (session.getAttribute(ATTR) != null) {
-				// Client already autheticated
-				log
-						.debug("Already authenticaed: "
-								+ session.getAttribute(ATTR));
-				nextFilter.messageReceived(session, message);
-			}
+        log.info( "Using AuthenticationFilter " + scheme.getName() + " (" + className
+                + ")" );
+    }
 
-			String authString = ((RtspMessage) message)
-					.getHeader("Proxy-Authorization");
-			if (authString == null) {
-				log.debug("RTSP message: \n" + message);
-				RtspResponse response = RtspResponse
-						.errorResponse(RtspCode.ProxyAuthenticationRequired);
-				response.setHeader("Proxy-Authenticate", scheme.getName() + " "
-						+ scheme.getChallenge());
+    @Override
+    public void messageReceived( final NextFilter nextFilter, final IoSession session,
+            final Object message ) throws Exception
+    {
+        if ( !(message instanceof RtspRequest) ) {
+            // Shouldn't happen
+            log.warn( "Object message is not a RTSP message" );
+            return;
+        }
 
-				log.debug("Sending RTSP message: \n" + response);
+        if ( isRunning() ) {
+            if ( session.getAttribute( ATTR ) != null ) {
+                // Client already autheticated
+                log.debug( "Already authenticaed: {}", session.getAttribute( ATTR ) );
+                nextFilter.messageReceived( session, message );
+            }
 
-				session.write(response);
-				return;
-			}
+            final String authString = ((RtspMessage) message)
+                    .getHeader( "Proxy-Authorization" );
+            if ( authString == null ) {
+                log.debug( "RTSP message: \n{}", message );
+                final RtspResponse response = RtspResponse
+                        .errorResponse( RtspCode.ProxyAuthenticationRequired );
+                
+                response.setHeader( "Proxy-Authenticate", scheme.getName() + " "
+                        + scheme.getChallenge() );
 
-			if (!validateAuthenticationScheme(authString)) {
-				RtspResponse response = RtspResponse
-						.errorResponse(RtspCode.BadRequest);
+                log.debug( "Sending RTSP message: \n{}", response );
 
-				session.write(response);
-				return;
-			}
+                session.write( response );
+                return;
+            }
 
-			log.debug("RTSP message: \n" + message);
+            if ( !validateAuthenticationScheme( authString ) ) {
+                final RtspResponse response = RtspResponse
+                        .errorResponse( RtspCode.BadRequest );
 
-			// Check the authentication credentials
-			Credentials credentials = scheme
-					.getCredentials((RtspMessage) message);
+                session.write( response );
+                return;
+            }
 
-			boolean authenticationOk = false;
-			if (credentials != null) {
-				String password = provider.getPassword(credentials
-						.getUserName());
-				if (password != null)
-					if (scheme.computeAuthentication(credentials, password) == true)
-						authenticationOk = true;
-			}
+            log.debug( "RTSP message: \n{}", message );
 
-			if (!authenticationOk) {
-				log.warn("Authentication failed for user: " + credentials);
-				RtspResponse response = RtspResponse
-						.errorResponse(RtspCode.ProxyAuthenticationRequired);
-				response.setHeader("Proxy-Authenticate", scheme.getName() + " "
-						+ scheme.getChallenge());
+            // Check the authentication credentials
+            final Credentials credentials = scheme.getCredentials( (RtspMessage) message );
 
-				session.write(response);
-				return;
-			}
+            boolean authenticationOk = false;
+            if ( credentials != null ) {
+                final String password = provider.getPassword( credentials.getUserName() );
+                if ( password != null )
+                    if ( scheme.computeAuthentication( credentials, password ) == true )
+                        authenticationOk = true;
+            }
 
-			log.debug("Authentication succesfull for user: " + credentials);
+            if ( !authenticationOk ) {
+                log.warn( "Authentication failed for user: {}", credentials );
+                final RtspResponse response = RtspResponse
+                        .errorResponse( RtspCode.ProxyAuthenticationRequired );
+                response.setHeader( "Proxy-Authenticate", scheme.getName() + " "
+                        + scheme.getChallenge() );
 
-			/*
-			 * Mark the session with an "authenticated" attribute. This will
-			 * prevent the check for the credentials for every message received.
-			 */
-			session.setAttribute(ATTR, credentials.getUserName());
-		}
-		
-		// Forward message
-		nextFilter.messageReceived( session, message );
-	}
+                session.write( response );
+                return;
+            }
 
-	/**
-	 * Gets the authentication scheme stated by the client.
-	 * 
-	 * @param authString
-	 * @return
-	 */
-	private boolean validateAuthenticationScheme( String authString )
-	{
-		String schemeName;
-		try {
-			schemeName = authString.split( " " )[0];
-		} catch ( IndexOutOfBoundsException e ) {
-			// Malformed auth string
-			return false;
-		}
+            log.debug( "Authentication succesfull for user: {}", credentials );
 
-		if ( schemeName.equalsIgnoreCase( scheme.getName() ) )
-			return true;
+            /*
+             * Mark the session with an "authenticated" attribute. This will
+             * prevent the check for the credentials for every message received.
+             */
+            session.setAttribute( ATTR, credentials.getUserName() );
+        }
 
-		// Scheme not valid
-		return false;
-	}
+        // Forward message
+        nextFilter.messageReceived( session, message );
+    }
+
+    /**
+     * Gets the authentication scheme stated by the client.
+     * 
+     * @param authString
+     * @return
+     */
+    private boolean validateAuthenticationScheme( String authString )
+    {
+        String schemeName;
+        try {
+            schemeName = authString.split( " " )[0];
+        } catch ( IndexOutOfBoundsException e ) {
+            // Malformed auth string
+            return false;
+        }
+
+        if ( schemeName.equalsIgnoreCase( scheme.getName() ) )
+            return true;
+
+        // Scheme not valid
+        return false;
+    }
 
 }

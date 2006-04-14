@@ -62,14 +62,15 @@ public class RtspTransportList
 		return transportList.size();
 	}
 
-	public String toString()
+	@Override
+    public String toString()
 	{
-		StringBuilder buf = new StringBuilder();
+		final StringBuilder buf = new StringBuilder();
 		int i = 0;
-		for ( RtspTransport t : transportList ) {
+		for ( RtspTransport transport : transportList ) {
 			if ( i++ != 0 )
-				buf.append( "," );
-			buf.append( t.toString() );
+				buf.append( ',' );
+			buf.append( transport.toString() );
 		}
 		return buf.toString();
 	}

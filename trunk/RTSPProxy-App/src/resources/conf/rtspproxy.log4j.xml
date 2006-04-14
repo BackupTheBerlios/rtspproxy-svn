@@ -10,69 +10,80 @@
 <!-- $Id$ -->
 
 <!--
-   | For more configuration infromation and examples see the Jakarta Log4j
-   | owebsite: http://jakarta.apache.org/log4j
- -->
+	| For more configuration infromation and examples see the Jakarta Log4j
+	| owebsite: http://jakarta.apache.org/log4j
+-->
 
-<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/"
+	debug="false">
 
-   <!-- ================================= -->
-   <!-- Preserve messages in a local file -->
-   <!-- ================================= -->
+	<!-- ================================= -->
+	<!-- Preserve messages in a local file -->
+	<!-- ================================= -->
 
-   <!-- A time/date based rolling appender -->
-   <appender name="FILE" class="org.apache.log4j.FileAppender">
-      <param name="File" value="/tmp/rtspproxy.log"/>
-      <param name="Append" value="false"/>
+	<!-- A time/date based rolling appender -->
+	<appender name="FILE" class="org.apache.log4j.FileAppender">
+		<param name="File" value="/tmp/rtspproxy.log" />
+		<param name="Append" value="false" />
 
-      <layout class="org.apache.log4j.PatternLayout">
-         <!-- The default pattern: Date Priority [Category] Message\n -->
-         <param name="ConversionPattern" value="%9r %5p [%t] %c - %m%n"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<!-- The default pattern: Date Priority [Category] Message\n -->
+			<param name="ConversionPattern"
+				value="%9r %5p [%t] %c - %m%n" />
 
-         <!-- The full pattern: Date MS Priority [Category] (Thread:NDC) Message\n
-         <param name="ConversionPattern" value="%d %-5r %-5p [%c] (%t:%x) %m%n"/>
-          -->
-      </layout>
-   </appender>
+			<!-- The full pattern: Date MS Priority [Category] (Thread:NDC) Message\n
+				<param name="ConversionPattern" value="%d %-5r %-5p [%c] (%t:%x) %m%n"/>
+			-->
+		</layout>
+	</appender>
 
-   <!-- A time/date based rolling appender -->
-   <appender name="ACCOUNTING" class="org.apache.log4j.FileAppender">
-      <param name="File" value="/tmp/rtspproxy-accounting.log"/>
-      <param name="Append" value="true"/>
+	<!-- A time/date based rolling appender -->
+	<appender name="ACCOUNTING" class="org.apache.log4j.FileAppender">
+		<param name="File" value="/tmp/rtspproxy-accounting.log" />
+		<param name="Append" value="true" />
 
-      <layout class="org.apache.log4j.PatternLayout">
-         <!-- The default pattern: Date Priority [Category] Message\n -->
-         <param name="ConversionPattern" value="%m%n"/>
-      </layout>
-   </appender>
+		<layout class="org.apache.log4j.PatternLayout">
+			<!-- The default pattern: Date Priority [Category] Message\n -->
+			<param name="ConversionPattern" value="%m%n" />
+		</layout>
+	</appender>
 
-   <!-- ============================== -->
-   <!-- Append messages to the console -->
-   <!-- ============================== -->
+	<!-- ============================== -->
+	<!-- Append messages to the console -->
+	<!-- ============================== -->
 
-   <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
-      <param name="Target" value="System.out"/>
-      <param name="Threshold" value="INFO"/>
+	<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+		<param name="Target" value="System.out" />
 
-      <layout class="org.apache.log4j.PatternLayout">
-         <!-- The default pattern: Date Priority [Category] Message\n -->
-         <param name="ConversionPattern" value="%9r %5p [%t] %c - %m%n"/>
-      </layout>
-   </appender>
+		<layout class="org.apache.log4j.PatternLayout">
+			<!-- The default pattern: Date Priority [Category] Message\n -->
+			<param name="ConversionPattern"
+				value="%9r %5p [%t] %c - %m%n" />
+		</layout>
+	</appender>
 
-   <category name="accounting.rtspproxy" >
-      <priority value="INFO" />
-      <appender-ref ref="ACCOUNTING" />
-   </category>
+	<category name="accounting.rtspproxy">
+		<priority value="INFO" />
+		<appender-ref ref="ACCOUNTING" />
+	</category>
+	
+	<category name="rtspproxy.rtsp.RtspDecoder">
+		<priority value="INFO" />
+	</category>
+	
+	<category name="rtspproxy.ProxyService">
+		<priority value="INFO" />
+	</category>
 
-   <!-- ======================= -->
-   <!-- Setup the Root category -->
-   <!-- ======================= -->
+	<!-- ======================= -->
+	<!-- Setup the Root category -->
+	<!-- ======================= -->
 
-   <root>
-      <priority value="DEBUG"/>
-      <appender-ref ref="CONSOLE"/>
-      <appender-ref ref="FILE"/>
-   </root>
+	<root>
+		<priority value="INFO" />
+		
+		<appender-ref ref="CONSOLE" />
+		<!-- appender-ref ref="FILE" / -->
+	</root>
 
 </log4j:configuration>

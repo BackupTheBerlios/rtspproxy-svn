@@ -1,83 +1,178 @@
+<!-- $Id$ -->
+
 <rtspproxy>
-  <threadPoolSize>10</threadPoolSize>
-  <proxy>
-    <rtspPort>554</rtspPort>
-	<server>
-		<rtpPort>6970</rtpPort>
-		<rtcpPort>6971</rtcpPort>
-		<rdtPort>6972</rdtPort>
-		<address>10.0.0.24</address>
-		<!-- interface>eth0</interface -->
-		<rtpUsePortrange>false</rtpUsePortrange>
-		<rtpPortrange>
-			<minPort>9000</minPort>
-			<maxPort>9100</maxPort>
-			<idleTimeout>120</idleTimeout>
-			<idleScanInterval>60</idleScanInterval>
-			<threadPoolSize>10</threadPoolSize>
-		</rtpPortrange>
-	</server>
-    <client>
-      <rtpPort>6970</rtpPort>
-      <rtcpPort>6971</rtcpPort>
-      <rdtPort>6972</rdtPort>
-      <address>10.0.0.23</address>
-      <!-- interface>eth1</interface -->
-    </client>
-	<transport>
-		<rtp>true</rtp>
-		<rdt>true</rdt>
-		<hacks>
-			<lowerTransportSuppress>false</lowerTransportSuppress>
-			<offerRemoteSsrc>false</offerRemoteSsrc>
-		</hacks>
-	</transport>
-	<streaming>
-		<hacks>
-			<rtpSsrcUnreliable>false</rtpSsrcUnreliable>
-		</hacks>
-	</streaming>
-  </proxy>
-  <jmx>
-    <manageable>true</manageable>
-    <address>10.0.0.22</address>
-    <user>admin</user>
-    <password>admin123</password>
-    <web>
-      <manageable>true</manageable>
-      <port>8080</port>
-    </web>
-    <connectorService>
-      <manageable>true</manageable>
-    </connectorService>
-  </jmx>
-  <filters>
-    <authentication implClass="rtspproxy.filter.authentication.SimpleAuthenticationProvider" scheme="Digest" side="client">
-      <user>
-	<name>myuser</name>
-	<password>itspassword</password>
-      </user>
-    </authentication>
-    <ipaddress implClass="rtspproxy.filter.ipaddress.SimpleIpAddressProvider" side="client">
-      <deny>*</deny>
-      <allow>127.0.0.1</allow>
-      <allow>10.0.0.*</allow>
-      <allow>*.some.domain</allow>
-    </ipaddress>
-    <ipaddress implClass="rtspproxy.filter.ipaddress.SimpleIpAddressProvider" side="server">
-      <deny>*</deny>
-      <allow>127.0.0.1</allow>
-      <allow>10.0.0.*</allow>
-      <allow>*.some.domain</allow>
-    </ipaddress>
-    <accounting implClass="rtspproxy.filter.accounting.SimpleAccountingProvider" >
-      <category>accounting.rtspproxy</category>
-    </accounting>
-	<rewriting implClass="rtspproxy.filter.rewrite.SimpleUrlRewritingProvider" side="client">
-		<mapping>
-			<from>rtsp://10.0.0.1:554/</from>
-			<to>rtsp://10.0.0.2:1554/foo/</to>
-		</mapping>
-	</rewriting>
-  </filters>
+
+	<debug>true</debug>
+
+	<!-- Thread pool configuration. Number of active threads. -->
+	<threadPoolSize>10</threadPoolSize>
+
+	<proxy>
+
+		<!-- TCP port to be used for incoming RTSP connection from clients. -->
+		<rtspPort>5540</rtspPort>
+
+		<!-- Server-side configuration -->
+		<server>
+			<!-- <rtpPort>6970</rtpPort> -->
+			<!-- <rtcpPort>6971</rtcpPort> -->
+			<!-- <rdtPort>6972</rdtPort> -->
+			<!-- <address>10.0.0.24</address> -->
+
+			<!-- 
+				<rtpUsePortrange>false</rtpUsePortrange>
+				
+				<rtpPortrange>
+				<minPort>9000</minPort>
+				<maxPort>9100</maxPort>
+				<idleTimeout>120</idleTimeout>
+				<idleScanInterval>60</idleScanInterval>
+				<threadPoolSize>10</threadPoolSize>
+				</rtpPortrange>
+			-->
+		</server>
+
+
+		<client>
+			<!-- 
+				<rtpPort>6970</rtpPort>
+				<rtcpPort>6971</rtcpPort>
+				<rdtPort>6972</rdtPort>
+				<address>127.0.0.1</address>
+			-->
+			<interface>lo0</interface>
+		</client>
+
+		<!-- Proxy feature selection -->
+		<transport>
+			<!-- Enable RTP based streaming -->
+			<rtp>true</rtp>
+
+			<!-- Enable Real/RDT based streaming -->
+			<rdt>true</rdt>
+
+			<!-- These are some special case handling -->
+			<hacks>
+				<lowerTransportSuppress>false</lowerTransportSuppress>
+				<offerRemoteSsrc>false</offerRemoteSsrc>
+				<rtpSsrcUnreliable>false</rtpSsrcUnreliable>
+			</hacks>
+
+		</transport>
+
+	</proxy>
+
+	<!-- Management Interface -->
+	<jmx>
+		<!-- Enable or disable the JMX interface -->
+		<enable>true</enable>
+
+		<!-- Bound the JMX service to a local address. -->
+		<address>127.0.0.1</address>
+
+		<!-- Username and password to access the management interfaces -->
+		<user>admin</user>
+		<password>password</password>
+
+		<!-- JMX web console -->
+		<web>
+			<enable>true</enable>
+			<port>8080</port>
+		</web>
+
+		<!-- JMX remote service -->
+		<connectorService>
+			<!-- Enable or disable the TCP connector for JMX -->
+			<enable>true</enable>
+		</connectorService>
+	</jmx>
+
+	<!-- Filters are the mean layered functionalities such as Authentication or 
+		Tracking are implemented.
+	-->
+	<filters>
+
+		<!-- Authentication filter -->
+		<authentication>
+
+			<enable>false</enable>
+
+			<implClass>
+				rtspproxy.filter.authentication.SimpleAuthenticationProvider
+			</implClass>
+
+			<!-- Authentication Scheme: 
+				can be 'Basic' or 'Digest'
+			-->
+			<scheme>Digest</scheme>
+
+			<usersFile>conf/users.properties</usersFile>
+		</authentication>
+
+		<!-- Filter clients using theyr IP address -->
+		<ipaddress
+			implClass="rtspproxy.filter.ipaddress.SimpleIpAddressProvider"
+			side="client">
+
+			<!-- Enable or disable the ipaddress filter -->
+			<enabled>false</enabled>
+
+			<rules>
+				<rule type="deny" pattern="*" />
+				<allow>127.0.0.1</allow>
+				<allow>10.0.0.*</allow>
+				<allow>*.some.domain</allow>
+			</rules>
+		</ipaddress>
+
+		<ipaddress
+			implClass="rtspproxy.filter.ipaddress.SimpleIpAddressProvider"
+			side="server">
+
+			<!-- Enable or disable the ipaddress filter -->
+			<enable>false</enable>
+
+			<rules>
+				<deny>*</deny>
+				<allow>127.0.0.1</allow>
+				<allow>10.0.0.*</allow>
+				<allow>*.some.domain</allow>
+			</rules>
+		</ipaddress>
+
+
+		<accounting>
+
+			<!-- Enable or disable the ipaddress filter -->
+			<enable>false</enable>
+
+			<implClass>
+				rtspproxy.filter.accounting.SimpleAccountingProvider
+			</implClass>
+
+			<category>accounting.rtspproxy</category>
+		</accounting>
+
+
+		<rewriting>
+
+			<!-- enable or disable the rewriting filter -->
+			<enable>false</enable>
+
+			<!-- Class implementing the rewriting filter -->
+			<implClass>
+				rtspproxy.filter.rewrite.SimpleUrlRewritingProvider
+			</implClass>
+
+			<!-- Rewriting rules -->
+			<rules>
+				<mapping from="rtsp://10.0.0.1:554/"
+					       to="rtsp://10.0.0.2:1554/foo/" />
+
+				<mapping from="rtsp://127.0.0.01/" 
+					 		   to="rtsp://10.0.0.26:1554/foo/" />
+			</rules>
+		</rewriting>
+	</filters>
+
 </rtspproxy>
