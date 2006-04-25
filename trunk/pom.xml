@@ -94,6 +94,7 @@
     <module>RTSPProxy-Core</module>
     <module>RTSPProxy-App</module>
     <module>RTSPProxy-OSGi</module>
+    <module>JainSDP</module>
   </modules>
 
 
