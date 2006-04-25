@@ -10,249 +10,167 @@
  ***************************************************************************/
 
 /*
- * $Id: RtspFilters.java 406 2006-01-27 00:28:56Z rbieniek $
+ * $Id$
  * 
- * $URL: https://svn.berlios.de/svnroot/repos/rtspproxy/trunk/RTSPProxy-Core/src/main/java/rtspproxy/filter/RtspFilters.java $
+ * $URL$
  * 
  */
 
 package rtspproxy.filter;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-
+import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rtspproxy.Reactor;
-import rtspproxy.config.AAAConfig;
 import rtspproxy.config.Config;
+import rtspproxy.config.XMLConfigReader;
 import rtspproxy.filter.accounting.AccountingFilter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
-import rtspproxy.filter.control.ClientControlFilter;
-import rtspproxy.filter.control.ServerControlFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
-import rtspproxy.filter.rewrite.ClientUrlRewritingFilter;
-import rtspproxy.filter.rewrite.ServerUrlRewritingFilter;
 import rtspproxy.filter.rewrite.UrlRewritingFilter;
 import rtspproxy.jmx.JmxAgent;
-import rtspproxy.lib.Side;
 import rtspproxy.lib.Singleton;
+import rtspproxy.lib.Side;
 
 /**
- * Filter registry. This registry is populated from the configuration on reactor startup
+ * Filter registry. This registry is populated from the configuration on reactor
+ * startup
  * 
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
  */
-public class FilterRegistry extends Singleton {
+public class FilterRegistry extends Singleton
+{
 
-	private static Logger logger = LoggerFactory.getLogger(FilterRegistry.class);
+    private static Logger log = LoggerFactory.getLogger( FilterRegistry.class );
 
-	// client side address filters
-	private List<IpAddressFilter> clientAddressFilters = new LinkedList<IpAddressFilter>();
-	
-	// server side address filters
-	private List<IpAddressFilter> serverAddressFilters = new LinkedList<IpAddressFilter>();
+    private IpAddressFilter clientAddressFilter = null;
 
-	// client side authentication filters
-	private List<AuthenticationFilter> clientAuthenticationFilters = new LinkedList<AuthenticationFilter>();
-	
-	// client side accounting filter
-	private List<AccountingFilter> clientAccountingFilters = new LinkedList<AccountingFilter>();
-	
-	// server side accounting filter
-	private List<AccountingFilter> serverAccountingFilters = new LinkedList<AccountingFilter>();
-	
-	// client side rewriting filters
-	private List<UrlRewritingFilter> clientUrlRewritingFilters = new LinkedList<UrlRewritingFilter>();
-	
-	// server side rewriting filters
-	private List<UrlRewritingFilter> serverUrlRewritingFilters = new LinkedList<UrlRewritingFilter>();
-	
-	// client side control traffic filters
-	private List<ClientControlFilter> clientControlFilters = new LinkedList<ClientControlFilter>();
-	
-	// client side control traffic filters
-	private List<ServerControlFilter> serverControlFilters = new LinkedList<ServerControlFilter>();
-	
-	/**
-	 * 
-	 */
-	public FilterRegistry() {
-	}
+    private IpAddressFilter serverAddressFilter = null;
 
-	/**
-	 * get the active registry instance
-	 */
-	public static FilterRegistry getInstance() {
-		return (FilterRegistry)Singleton.getInstance(FilterRegistry.class);
-	}
-	
-	// flag to determine if already populated
-	private boolean populated = false;
-	
-	/**
-	 * populate from configuration
-	 */
-	public void populateRegistry() {
-		if(this.populated) {
-			logger.debug("filter registry already populated");
-			return;
-		}
-		
-		try {
-			for(AAAConfig filterConfig : Config.getIpAddressFilters()) {
-				IpAddressFilter ipAddressFilter = new IpAddressFilter(filterConfig.getImplClass(), 
-						filterConfig.getConfigElements());
-				
-				ipAddressFilter.setSide(filterConfig.getSide());
-				registerFilterMBean(ipAddressFilter);
+    private AuthenticationFilter authenticationFilter = null;
 
-				if(filterConfig.getSide() == Side.Client) {
-					this.clientAddressFilters.add(ipAddressFilter);
-				} else if(filterConfig.getSide() == Side.Server) {
-					this.serverAddressFilters.add(ipAddressFilter);
-				} else {
-					this.clientAddressFilters.add(ipAddressFilter);
-					this.serverAddressFilters.add(ipAddressFilter);
-				}
-			}
-			
-			for(AAAConfig filterConfig : Config.getAuthenticationFilters()) {
-				if(filterConfig.getSide() == Side.Client) {
-					AuthenticationFilter authFilter = new AuthenticationFilter(filterConfig.getImplClass(), 
-							filterConfig.getAttribute("scheme", "Basic"),
-							filterConfig.getConfigElements());
-					
-					authFilter.setSide(filterConfig.getSide());
-					registerFilterMBean(authFilter);
+    private AccountingFilter accountingFilter = null;
 
-					this.clientAuthenticationFilters.add(authFilter);
-				}
-			}
-			
-			for(AAAConfig filterConfig : Config.getAccountingFilters()) {
-				AccountingFilter accountingFilter = new AccountingFilter(filterConfig.getImplClass(), 
-						filterConfig.getConfigElements());
-				
-				accountingFilter.setSide(filterConfig.getSide());
-				registerFilterMBean(accountingFilter);
+    private UrlRewritingFilter clientRewritingFilter = null;
 
-				if(filterConfig.getSide() == Side.Client) {
-					this.clientAccountingFilters.add(accountingFilter);
-				} else if(filterConfig.getSide() == Side.Server) {
-					this.serverAccountingFilters.add(accountingFilter);
-				} else {
-					this.clientAccountingFilters.add(accountingFilter);
-					this.serverAccountingFilters.add(accountingFilter);
-				}
-			}
+    private UrlRewritingFilter serverRewritingFilter = null;
 
-			for(AAAConfig filterConfig : Config.getUrlRewritingFilters()) {
-				UrlRewritingFilter urlRewritingFilter;
-				
-				urlRewritingFilter = new ClientUrlRewritingFilter(filterConfig.getImplClass(), 
-						filterConfig.getConfigElements());			
-				urlRewritingFilter.setSide(Side.Client);
-				registerFilterMBean(urlRewritingFilter);
-				this.clientUrlRewritingFilters.add(urlRewritingFilter);
+    /**
+     * Get the active registry instance
+     */
+    public static FilterRegistry getInstance()
+    {
+        return (FilterRegistry) Singleton.getInstance( FilterRegistry.class );
+    }
 
-				urlRewritingFilter = new ServerUrlRewritingFilter(filterConfig.getImplClass(), 
-						filterConfig.getConfigElements());			
-				urlRewritingFilter.setSide(Side.Server);
-				registerFilterMBean(urlRewritingFilter);
-				this.serverUrlRewritingFilters.add(urlRewritingFilter);
-			}
+    // flag to determine if already populated
+    private boolean populated = false;
 
-			for(AAAConfig filterConfig : Config.getControlFilters()) {
-				if(filterConfig.getSide() == Side.Client) {
-					ClientControlFilter filter = new ClientControlFilter(filterConfig.getImplClass(),
-							filterConfig.getConfigElements());
-					
-					filter.setSide(Side.Client);
-					registerFilterMBean(filter);
-					this.clientControlFilters.add(filter);
-				} else {
-					ServerControlFilter filter = new ServerControlFilter(filterConfig.getImplClass(),
-							filterConfig.getConfigElements());
-					
-					filter.setSide(Side.Client);
-					registerFilterMBean(filter);
-					this.serverControlFilters.add(filter);
-				}
-			}
-			
-		} catch (Throwable t) {
-			logger.error("failed to populate filter registry", t);	
-			
-			Reactor.stop();
-			System.exit(-1);
-		}
-		
-		this.populated = true;
-	}
-	
-	private void registerFilterMBean(FilterBase filter) {
-		if(Config.jmxEnable.getValue())
-			JmxAgent.getInstance().registerFilter(filter);
-	}
+    /**
+     * populate from configuration
+     */
+    public void populateRegistry()
+    {
+        log.debug( "Populate filter registry." );
 
-	/**
-	 * @return Returns the clientAddressFilters.
-	 */
-	public List<IpAddressFilter> getClientAddressFilters() {
-		return Collections.unmodifiableList(clientAddressFilters);
-	}
+        if ( populated ) {
+            log.debug( "Filter registry already populated." );
+            return;
+        }
 
-	/**
-	 * @return Returns the serverAddressFilters.
-	 */
-	public List<IpAddressFilter> getServerAddressFilters() {
-		return Collections.unmodifiableList(serverAddressFilters);
-	}
+        Configuration config = XMLConfigReader.getConfiguration();
 
-	/**
-	 * @return Returns the clientAuthenticationFilters.
-	 */
-	public List<AuthenticationFilter> getClientAuthenticationFilters() {
-		return Collections.unmodifiableList(clientAuthenticationFilters);
-	}
+        if ( Config.filtersAuthenticationEnable.getValue() ) {
+            authenticationFilter = new AuthenticationFilter();
+            authenticationFilter.configure( config );
+            registerFilterMBean( authenticationFilter );
+        }
 
-	/**
-	 * @return Returns the clientAccountingFilters.
-	 */
-	public List<AccountingFilter> getClientAccountingFilters() {
-		return Collections.unmodifiableList(clientAccountingFilters);
-	}
+        if ( Config.filtersIpAddressEnable.getValue() ) {
+            clientAddressFilter = new IpAddressFilter( Side.Client );
+            clientAddressFilter.configure( config );
+            registerFilterMBean( clientAddressFilter );
 
-	/**
-	 * @return Returns the serverAccountingFilters.
-	 */
-	public List<AccountingFilter> getServerAccountingFilters() {
-		return Collections.unmodifiableList(serverAccountingFilters);
-	}
+            serverAddressFilter = new IpAddressFilter( Side.Server );
+            serverAddressFilter.configure( config );
+            registerFilterMBean( serverAddressFilter );         
+        }
 
-	public List<UrlRewritingFilter> getClientUrlRewritingFilters() {
-		return Collections.unmodifiableList(clientUrlRewritingFilters);
-	}
+        if ( Config.filtersRewriteEnable.getValue() ) {
+            clientRewritingFilter = new UrlRewritingFilter( Side.Client );
+            clientRewritingFilter.configure( config );
+            registerFilterMBean( clientRewritingFilter );
 
-	public List<UrlRewritingFilter> getServerUrlRewritingFilters() {
-		return Collections.unmodifiableList(serverUrlRewritingFilters);
-	}
+            serverRewritingFilter = new UrlRewritingFilter( Side.Server );
+            serverRewritingFilter.configure( config );
+            registerFilterMBean( serverRewritingFilter );
+        }
 
-	/**
-	 * @return Returns the clientControlFilters.
-	 */
-	public List<ClientControlFilter> getClientControlFilters() {
-		return Collections.unmodifiableList(clientControlFilters);
-	}
+        try {
+            // TODO: XXXXX
 
-	/**
-	 * @return Returns the serverControlFilters.
-	 */
-	public List<ServerControlFilter> getServerControlFilters() {
-		return Collections.unmodifiableList(serverControlFilters);
-	}
-	
+        } catch ( Throwable t ) {
+            log.error( "Failed to populate filter registry", t );
+
+            Reactor.stop();
+        }
+
+        this.populated = true;
+    }
+
+    private void registerFilterMBean( FilterBase filter )
+    {
+        if ( Config.jmxEnable.getValue() )
+            JmxAgent.getInstance().registerFilter( filter );
+    }
+
+    /**
+     * @return the accountingFilter
+     */
+    public AccountingFilter getAccountingFilter()
+    {
+        return accountingFilter;
+    }
+
+    /**
+     * @return the addressFilter
+     */
+    public IpAddressFilter getClientAddressFilter()
+    {
+        return clientAddressFilter;
+    }
+
+    /**
+     * @return the server address filter
+     */
+    public IpAddressFilter getServerAddressFilter()
+    {
+        return serverAddressFilter;
+    }
+
+    /**
+     * @return the authenticationFilter
+     */
+    public AuthenticationFilter getAuthenticationFilter()
+    {
+        return authenticationFilter;
+    }
+
+    /**
+     * @return the rewritingFilter
+     */
+    public UrlRewritingFilter getClientRewritingFilter()
+    {
+        return clientRewritingFilter;
+    }
+
+    /**
+     * @return the rewritingFilter
+     */
+    public UrlRewritingFilter getServerRewritingFilter()
+    {
+        return serverRewritingFilter;
+    }
+
 }

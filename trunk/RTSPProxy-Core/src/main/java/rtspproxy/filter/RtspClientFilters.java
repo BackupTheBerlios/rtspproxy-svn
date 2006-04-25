@@ -36,8 +36,8 @@ public class RtspClientFilters extends RtspFilters
 		addRtspCodecFilter( chain );
 		addAuthenticationFilter( chain );
 		addRewriteFilter( chain, Side.Client );
-		addAccountingFilter( chain, Side.Client );
-		addControlFilter( chain, Side.Client );
+		addAccountingFilter( chain );
+		addControlFilter( chain );
 	}
 
 }

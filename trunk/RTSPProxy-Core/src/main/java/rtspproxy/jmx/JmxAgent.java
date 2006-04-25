@@ -68,340 +68,310 @@ import rtspproxy.rtp.range.PortrangeRtpServerSessionFactory;
 public class JmxAgent extends Singleton
 {
 
-	private static Logger log = LoggerFactory.getLogger( JmxAgent.class );
+    private static Logger log = LoggerFactory.getLogger( JmxAgent.class );
 
-	public static final String DOMAIN = "RtspProxy";
-	public static final String SERVICES_DOMAIN = "RtspProxy.Services";
-	public static final String FILTERS_DOMAIN = "RtspProxy.Filters";
-	public static final String RTSP_SESSION_DOMAIN = "RtspProxy.Sessions.RTSP";
-	public static final String PROXY_SESSION_DOMAIN = "RtspProxy.Sessions.Proxy";
-	public static final String RTP_DYNAMIC_SESSION_DOMAIN = "RtspProxy.Sessions.RTP.dynamic";
+    public static final String DOMAIN = "RtspProxy";
 
-	private MBeanServer mbeanServer = null;
+    public static final String SERVICES_DOMAIN = "RtspProxy.Services";
 
-	/**
-	 * Creates a MBean server and attach all the MBeans to it. Also starts, if
-	 * needed, the web console and the JMX connector server.
-	 */
-	public JmxAgent()
-	{
-		// Silent mx4j info messages
-		System.setProperty( "mx4j.log.priority", "warn" );
+    public static final String FILTERS_DOMAIN = "RtspProxy.Filters";
 
-		// Redirect mx4j messages to our own logger
-		Log.redirectTo( new Slf4JLogger() );
+    public static final String RTSP_SESSION_DOMAIN = "RtspProxy.Sessions.RTSP";
 
-		mbeanServer = MBeanServerFactory.createMBeanServer();
+    public static final String PROXY_SESSION_DOMAIN = "RtspProxy.Sessions.Proxy";
 
-		try {
+    public static final String RTP_DYNAMIC_SESSION_DOMAIN = "RtspProxy.Sessions.RTP.dynamic";
 
-			// Basic Info
-			Object infoMBean = new Info();
-			ObjectName infoName = ObjectName.getInstance( DOMAIN + ":name=Info" );
-			mbeanServer.registerMBean( infoMBean, infoName );
+    private MBeanServer mbeanServer = null;
 
-			// Parameters
-			Object parametersMBean = mbeanServer.instantiate( ParametersMBean.class.getName() );
-			ObjectName parametersName = ObjectName.getInstance( DOMAIN
-					+ ":name=Parameters" );
-			mbeanServer.registerMBean( parametersMBean, parametersName );
+    /**
+     * Creates a MBean server and attach all the MBeans to it. Also starts, if
+     * needed, the web console and the JMX connector server.
+     */
+    public JmxAgent()
+    {
+        // Silent mx4j info messages
+        System.setProperty( "mx4j.log.priority", "warn" );
 
-			// Proxy Services
-			ProxyService[] proxyServices = { RtspService.getInstance(),
-					RdtClientService.getInstance(), RdtServerService.getInstance(),
-					RtcpClientService.getInstance(), RtcpServerService.getInstance(),
-					RtpClientService.getInstance(), RtpServerService.getInstance() };
-			ObjectName objectName;
-			for ( ProxyService proxyService : proxyServices ) {
-				objectName = ObjectName.getInstance( SERVICES_DOMAIN + ":name="
-						+ proxyService.getName() );
-				mbeanServer.registerMBean( new Service( proxyService ), objectName );
-			}
+        // Redirect mx4j messages to our own logger
+        Log.redirectTo( new Mx4jLoggerWrapper() );
 
-			startWebConsole();
-			startConnectorServer();
+        mbeanServer = MBeanServerFactory.createMBeanServer();
 
-		} catch ( Exception e ) {
-			log.error( "Exception: ", e );
-			Reactor.stop();
-		}
-	}
+        try {
 
-	public void stop()
-	{
-		// TODO: Handle the shutdown of the JMX agent
-	}
+            // Basic Info
+            Object infoMBean = new Info();
+            ObjectName infoName = ObjectName.getInstance( DOMAIN + ":name=Info" );
+            mbeanServer.registerMBean( infoMBean, infoName );
 
-	private void startWebConsole() throws Exception
-	{
-		boolean enabled = Config.jmxWebEnable.getValue();
-		if ( !enabled )
-			return;
+            // Parameters
+            Object parametersMBean = mbeanServer.instantiate( ParametersMBean.class
+                    .getName() );
+            ObjectName parametersName = ObjectName.getInstance( DOMAIN
+                    + ":name=Parameters" );
+            mbeanServer.registerMBean( parametersMBean, parametersName );
 
-		String host = Config.jmxAddress.getValue();
-		int port = Config.jmxWebPort.getValue();
-		String user = Config.jmxUser.getValue();
-		String password = Config.jmxPassword.getValue();
+            // Proxy Services
+            ProxyService[] proxyServices = { RtspService.getInstance(),
+                    RdtClientService.getInstance(), RdtServerService.getInstance(),
+                    RtcpClientService.getInstance(), RtcpServerService.getInstance(),
+                    RtpClientService.getInstance(), RtpServerService.getInstance() };
+            ObjectName objectName;
+            for ( ProxyService proxyService : proxyServices ) {
+                objectName = ObjectName.getInstance( SERVICES_DOMAIN + ":name="
+                        + proxyService.getName() );
+                mbeanServer.registerMBean( new Service( proxyService ), objectName );
+            }
 
-		HttpAdaptor adaptor = new HttpAdaptor();
-		ObjectName name = new ObjectName( "Server:name=HttpAdaptor" );
-		mbeanServer.registerMBean( adaptor, name );
-		adaptor.setHost( host );
-		adaptor.setPort( port );
-		// MX4J HTTP adaptor only supports Basic authentication
-		adaptor.setAuthenticationMethod( "basic" );
-		adaptor.addAuthorization( user, password );
-		adaptor.start();
+            startWebConsole();
+            startConnectorServer();
 
-		XSLTProcessor processor = new XSLTProcessor();
-		processor.setUseCache( true );
-		adaptor.setProcessor( processor );
+        } catch ( Exception e ) {
+            log.error( "Exception: ", e );
+            Reactor.stop();
+        }
+    }
 
-		String url = "http://" + host + ":" + port + "/";
-		log.info( "Started web console. Accepting connections on " + url );
-	}
+    public void stop()
+    {
+        // TODO: Handle the shutdown of the JMX agent
+    }
 
-	@SuppressWarnings("unchecked")
-	private void startConnectorServer() throws Exception
-	{
-		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
-		if ( !enabled )
-			return;
+    private void startWebConsole() throws Exception
+    {
+        boolean enabled = Config.jmxWebEnable.getValue();
+        if ( !enabled )
+            return;
 
-		// Register and start the rmiregistry MBean, needed by JSR 160
-		// RMIConnectorServer
-		ObjectName namingName = ObjectName.getInstance( "naming:type=rmiregistry" );
-		NamingService namingService = new NamingService();
-		mbeanServer.registerMBean( namingService, namingName );
-		namingService.start();
-		int namingPort = ( (Integer) mbeanServer.getAttribute( namingName, "Port" ) ).intValue();
+        String host = Config.jmxAddress.getValue();
+        int port = Config.jmxWebPort.getValue();
+        String user = Config.jmxUser.getValue();
+        String password = Config.jmxPassword.getValue();
 
-		String jndiPath = "/rtspproxy";
-		String host = Config.jmxAddress.getValue();
-		String uri = "service:jmx:rmi://" + host + "/jndi/rmi://" + host + ":"
-				+ namingPort + jndiPath;
+        HttpAdaptor adaptor = new HttpAdaptor();
+        ObjectName name = new ObjectName( "Server:name=HttpAdaptor" );
+        mbeanServer.registerMBean( adaptor, name );
+        adaptor.setHost( host );
+        adaptor.setPort( port );
+        // MX4J HTTP adaptor only supports Basic authentication
+        adaptor.setAuthenticationMethod( "basic" );
+        adaptor.addAuthorization( user, password );
+        adaptor.start();
 
-		JMXServiceURL url = new JMXServiceURL( uri );
+        XSLTProcessor processor = new XSLTProcessor();
+        processor.setUseCache( true );
+        adaptor.setProcessor( processor );
 
-		// Remote Authentication
-		JMXAuthenticator authenticator = new Authenticator();
-		Map<String, JMXAuthenticator> environment = new HashMap<String, JMXAuthenticator>();
-		environment.put( JMXConnectorServer.AUTHENTICATOR, authenticator );
+        String url = "http://" + host + ":" + port + "/";
+        log.info( "Started web console. Accepting connections on {}", url );
+    }
 
-		// Create and start the RMIConnectorServer
-		JMXConnectorServer connectorServer = JMXConnectorServerFactory.newJMXConnectorServer(
-				url, environment, mbeanServer );
-		connectorServer.start();
+    @SuppressWarnings("unchecked")
+    private void startConnectorServer() throws Exception
+    {
+        boolean enabled = Config.jmxConnectorServiceEnable.getValue();
+        if ( !enabled )
+            return;
 
-		log.info( "Started JMX connector server. Service url: " + uri );
-	}
+        // Register and start the rmiregistry MBean, needed by JSR 160
+        // RMIConnectorServer
+        ObjectName namingName = ObjectName.getInstance( "naming:type=rmiregistry" );
+        NamingService namingService = new NamingService();
+        mbeanServer.registerMBean( namingService, namingName );
+        namingService.start();
+        int namingPort = ((Integer) mbeanServer.getAttribute( namingName, "Port" ))
+                .intValue();
 
-	/**
-	 * get the singleton instance
-	 */
-	public static JmxAgent getInstance() {
-		return (JmxAgent)Singleton.getInstance(JmxAgent.class);
-	}
-	
-	/**
-	 * register a MBean as a management facade to a filter implementation
-	 */
-	public void registerFilter(FilterBase filter) {
-		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
-		if ( !enabled )
-			return;
+        String jndiPath = "/rtspproxy";
+        String host = Config.jmxAddress.getValue();
+        String uri = "service:jmx:rmi://" + host + "/jndi/rmi://" + host + ":"
+                + namingPort + jndiPath;
 
-		try {
-			Filter mbean = new Filter(filter);
-			
-			mbeanServer.registerMBean(mbean, mbean.getName());
-			filter.setMbeanName(mbean.getName());
-			if(filter instanceof JmxManageable)
-				((JmxManageable)filter).setMBeanServer(mbeanServer);
-		} catch(Exception e) {
-			log.error( "failed to register filter MBean: filter=" + filter, e );			
-		}
-	}
-	
-	/**
-	 * simple wrapper to log mx4j logging info into slf4j subsystem
-	 * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
-	 *
-	 */
-	public static class Slf4JLogger extends mx4j.log.Logger {
+        JMXServiceURL url = new JMXServiceURL( uri );
 
-		private Logger m_logger;
-		
-		/**
-		 * default no-op constructor
-		 */
-		public Slf4JLogger() {}
-		
-		/* (non-Javadoc)
-		 * @see mx4j.log.Logger#log(int, java.lang.Object, java.lang.Throwable)
-		 */
-		@Override
-		protected void log(int level, Object msg, Throwable t) {
-			switch(level) {
-			case mx4j.log.Logger.DEBUG:
-				this.m_logger.debug(msg.toString(), t);
-				break;
-			case mx4j.log.Logger.ERROR:
-				this.m_logger.error(msg.toString(), t);
-				break;
-			case mx4j.log.Logger.FATAL:
-				this.m_logger.error(msg.toString(), t);
-				break;
-			case mx4j.log.Logger.INFO:
-				this.m_logger.info(msg.toString(), t);
-				break;
-			case mx4j.log.Logger.TRACE:
-				this.m_logger.debug(msg.toString(), t);
-				break;
-			case mx4j.log.Logger.WARN:
-				this.m_logger.warn(msg.toString(), t);
-				break;
-			}
-		}
+        // Remote Authentication
+        JMXAuthenticator authenticator = new Authenticator();
+        Map<String, JMXAuthenticator> environment = new HashMap<String, JMXAuthenticator>();
+        environment.put( JMXConnectorServer.AUTHENTICATOR, authenticator );
 
-		/* (non-Javadoc)
-		 * @see mx4j.log.Logger#setCategory(java.lang.String)
-		 */
-		@Override
-		protected void setCategory(String arg0) {
-			super.setCategory(arg0);
-			
-			this.m_logger = LoggerFactory.getLogger(arg0);
-		}		
-	}
+        // Create and start the RMIConnectorServer
+        JMXConnectorServer connectorServer = JMXConnectorServerFactory
+                .newJMXConnectorServer( url, environment, mbeanServer );
+        connectorServer.start();
 
-	/**
-	 * @return Returns the mbeanServer.
-	 */
-	public MBeanServer getMbeanServer() {
-		return mbeanServer;
-	}
-	
-	/**
-	 * register a proxy session
-	 * 
-	 */
-	public void registerProxySession(ProxySession session) {
-		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
-		if ( !enabled )
-			return;
+        log.info( "Started JMX connector server. Service url: {}", uri );
+    }
 
-		try {
-			ProxySessionFacade mbean = new ProxySessionFacade(session);
-			ObjectName name = mbean.buildName();
-		
-			mbeanServer.registerMBean(mbean, name);
-			session.setObjectName(name);
-		} catch(Exception e) {
-			log.error( "failed to register proxy session MBean: session=" + session, e );
-		}
-	}
-	
-	/**
-	 * unregister a proxy session
-	 */
-	public void unregisterProxySession(ProxySession session) {
-		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
-		if ( !enabled )
-			return;
+    /**
+     * get the singleton instance
+     */
+    public static JmxAgent getInstance()
+    {
+        return (JmxAgent) Singleton.getInstance( JmxAgent.class );
+    }
 
-		try {
-			ObjectName name = session.getObjectName();
-		
-			if(name != null) {
-				mbeanServer.unregisterMBean(name);
-				session.setObjectName(null);
-			}
-		} catch(InstanceNotFoundException infe) {
-			log.debug("internal problem: MBean not found, name={}", session.getObjectName(), infe);
-		} catch(Exception e) {
-			log.error( "failed to register proxy session MBean: session={}", session, e );
-		}
-		
-	}
-	
-	/**
-	 * register a proxy session
-	 * 
-	 */
-	public void registerPortRangeRtpServerSessionfactory(PortrangeRtpServerSessionFactory sessionFactory) {
-		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
-		if ( !enabled )
-			return;
+    /**
+     * register a MBean as a management facade to a filter implementation
+     */
+    public void registerFilter( FilterBase filter )
+    {
+        boolean enabled = Config.jmxConnectorServiceEnable.getValue();
+        if ( !enabled )
+            return;
 
-		try {
-			ObjectName objectName = ObjectName.getInstance( SERVICES_DOMAIN + ":name=PortrangeRtpServerSessionFactory");
-		
-			mbeanServer.registerMBean( new PortrangeRtpServerFactory(sessionFactory), objectName );
-		} catch(Exception e) {
-			log.info("failed to register PortrangeRtpServerFactory MBean", e);
-		}
-	}
-	
-	/**
-	 * register a proxy session
-	 * 
-	 */
-	public void unregisterPortRangeRtpServerSessionfactory() {
-		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
-		if ( !enabled )
-			return;
+        try {
+            Filter mbean = new Filter( filter );
 
-		try {
-			ObjectName objectName = ObjectName.getInstance( SERVICES_DOMAIN + ":name=PortrangeRtpServerSessionFactory");
-		
-			mbeanServer.unregisterMBean(  objectName );
-		} catch(InstanceNotFoundException infe) {
-			log.debug("PortrangeRtpServerFactory MBean not found", infe);
-		} catch(Exception e) {
-			log.info("failed to register PortrangeRtpServerFactory MBean", e);
-		}
-	}
-	
-	/**
-	 * register a generated RTP server session in the portrange case
-	 */
-	public void registerPortrangeRtpServerSession(PortrangeRtpServerSession session) {
-		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
-		if ( !enabled )
-			return;
-		
-		try {
-			PortrangeRtpSession mbean = new PortrangeRtpSession(session);
-			ObjectName name = mbean.buildName();
-		
-			mbeanServer.registerMBean(mbean, name);
-			session.setObjectName(name);
-		} catch(Exception e) {
-			log.error( "failed to register proxy session MBean: session={}", session, e );
-		}
-	}
-	
-	/**
-	 * register a generated RTP server session in the portrange case
-	 */
-	public void unregisterPortrangeRtpServerSession(PortrangeRtpServerSession session) {
-		boolean enabled = Config.jmxConnectorServiceEnable.getValue();
-		if ( !enabled )
-			return;
-		
-		try {
-			ObjectName name = session.getObjectName();
-		
-			if(name != null) {
-				mbeanServer.unregisterMBean(name);
-				session.setObjectName(null);
-			}
-		} catch(InstanceNotFoundException infe) {
-			log.debug("internal problem: MBean not found, name=" + session.getObjectName(), infe);
-		} catch(Exception e) {
-			log.error( "failed to register proxy session MBean: session={}", session, e );
-		}		
-	}
+            mbeanServer.registerMBean( mbean, mbean.getName() );
+            filter.setMbeanName( mbean.getName() );
+            if ( filter instanceof JmxManageable )
+                ((JmxManageable) filter).setMBeanServer( mbeanServer );
+        } catch ( Exception e ) {
+            log.error( "failed to register filter MBean: filter=" + filter, e );
+        }
+    }
+
+    /**
+     * @return Returns the mbeanServer.
+     */
+    public MBeanServer getMbeanServer()
+    {
+        return mbeanServer;
+    }
+
+    /**
+     * register a proxy session
+     * 
+     */
+    public void registerProxySession( ProxySession session )
+    {
+        boolean enabled = Config.jmxEnable.getValue();
+        if ( !enabled )
+            return;
+
+        try {
+            ProxySessionFacade mbean = new ProxySessionFacade( session );
+            ObjectName name = mbean.buildName();
+
+            mbeanServer.registerMBean( mbean, name );
+            session.setObjectName( name );
+        } catch ( Exception e ) {
+            log.error( "failed to register proxy session MBean: session=" + session, e );
+        }
+    }
+
+    /**
+     * unregister a proxy session
+     */
+    public void unregisterProxySession( ProxySession session )
+    {
+        boolean enabled = Config.jmxConnectorServiceEnable.getValue();
+        if ( !enabled )
+            return;
+
+        try {
+            ObjectName name = session.getObjectName();
+
+            if ( name != null ) {
+                mbeanServer.unregisterMBean( name );
+                session.setObjectName( null );
+            }
+        } catch ( InstanceNotFoundException infe ) {
+            log.debug( "internal problem: MBean not found, name={}", session
+                    .getObjectName(), infe );
+        } catch ( Exception e ) {
+            log.error( "failed to register proxy session MBean: session={}", session, e );
+        }
+
+    }
+
+    /**
+     * register a proxy session
+     * 
+     */
+    public void registerPortRangeRtpServerSessionfactory(
+            PortrangeRtpServerSessionFactory sessionFactory )
+    {
+        boolean enabled = Config.jmxConnectorServiceEnable.getValue();
+        if ( !enabled )
+            return;
+
+        try {
+            ObjectName objectName = ObjectName.getInstance( SERVICES_DOMAIN
+                    + ":name=PortrangeRtpServerSessionFactory" );
+
+            mbeanServer.registerMBean( new PortrangeRtpServerFactory( sessionFactory ),
+                    objectName );
+        } catch ( Exception e ) {
+            log.info( "failed to register PortrangeRtpServerFactory MBean", e );
+        }
+    }
+
+    /**
+     * register a proxy session
+     * 
+     */
+    public void unregisterPortRangeRtpServerSessionfactory()
+    {
+        boolean enabled = Config.jmxConnectorServiceEnable.getValue();
+        if ( !enabled )
+            return;
+
+        try {
+            ObjectName objectName = ObjectName.getInstance( SERVICES_DOMAIN
+                    + ":name=PortrangeRtpServerSessionFactory" );
+
+            mbeanServer.unregisterMBean( objectName );
+        } catch ( InstanceNotFoundException infe ) {
+            log.debug( "PortrangeRtpServerFactory MBean not found", infe );
+        } catch ( Exception e ) {
+            log.info( "failed to register PortrangeRtpServerFactory MBean", e );
+        }
+    }
+
+    /**
+     * register a generated RTP server session in the portrange case
+     */
+    public void registerPortrangeRtpServerSession( PortrangeRtpServerSession session )
+    {
+        boolean enabled = Config.jmxConnectorServiceEnable.getValue();
+        if ( !enabled )
+            return;
+
+        try {
+            PortrangeRtpSession mbean = new PortrangeRtpSession( session );
+            ObjectName name = mbean.buildName();
+
+            mbeanServer.registerMBean( mbean, name );
+            session.setObjectName( name );
+        } catch ( Exception e ) {
+            log.error( "failed to register proxy session MBean: session={}", session, e );
+        }
+    }
+
+    /**
+     * register a generated RTP server session in the portrange case
+     */
+    public void unregisterPortrangeRtpServerSession( PortrangeRtpServerSession session )
+    {
+        boolean enabled = Config.jmxConnectorServiceEnable.getValue();
+        if ( !enabled )
+            return;
+
+        try {
+            ObjectName name = session.getObjectName();
+
+            if ( name != null ) {
+                mbeanServer.unregisterMBean( name );
+                session.setObjectName( null );
+            }
+        } catch ( InstanceNotFoundException infe ) {
+            log.debug( "internal problem: MBean not found, name="
+                    + session.getObjectName(), infe );
+        } catch ( Exception e ) {
+            log.error( "failed to register proxy session MBean: session={}", session, e );
+        }
+    }
 
 }

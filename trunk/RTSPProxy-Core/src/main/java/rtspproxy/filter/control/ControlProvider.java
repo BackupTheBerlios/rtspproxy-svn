@@ -26,20 +26,25 @@ public interface ControlProvider extends GenericProvider {
 	/**
 	 * process a request
 	 */
-	public void processRequest(IoSession session, RtspRequest request);
+	public void receivedRequest( IoSession session, RtspRequest request );
+
+	public void sendRequest( IoSession session, RtspRequest request );
 	
 	/**
 	 * process a response
 	 */
-	public void processResponse(IoSession session, RtspResponse response);
+	public void receivedResponse( IoSession session, RtspResponse response );
+
+	public void sendResponse( IoSession session, RtspResponse response );
 	
 	/**
 	 * session gets opened
 	 */
-	public void sessionOpened(IoSession session);
+	public void sessionOpened( IoSession session );
 	
 	/**
 	 * session gets closed
 	 */
-	public void sessionClosed(IoSession session);
+	public void sessionClosed( IoSession session );
+	
 }

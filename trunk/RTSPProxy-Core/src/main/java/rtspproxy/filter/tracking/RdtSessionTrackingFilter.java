@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import rtspproxy.config.Config;
 import rtspproxy.filter.FilterBase;
+import rtspproxy.filter.GenericProvider;
 import rtspproxy.rtsp.RtspRequest;
 import rtspproxy.rtsp.RtspResponse;
 import rtspproxy.rtsp.RtspTransport;
@@ -16,7 +17,7 @@ import rtspproxy.rtsp.RtspTransportList;
 
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
- *
+ * TODO: to be implemented
  */
 public abstract class RdtSessionTrackingFilter extends FilterBase {
 	
@@ -24,14 +25,26 @@ public abstract class RdtSessionTrackingFilter extends FilterBase {
 
 	public static final String FilterNAME = "rdtTrackingFilter";
 
-	/**
-	 * @param filterName
-	 * @param className
-	 * @param typeName
-	 */
-	public RdtSessionTrackingFilter(String typeName) {
-		super(FilterNAME, typeName);
-	}
+	public String getName()
+        {
+                return FilterNAME;
+        }
+
+        public void setProvider( GenericProvider provider )
+        {
+              	// XXX
+        }
+
+        public Class getProviderInterface()
+        {
+                return null;
+        }
+
+        public String getProviderClassName()
+        {
+                // TODO: to be implemented
+                return ""; // Config.filtersImplClass.getValue();
+        }
 
 	/**
 	 * check the message for following conditions

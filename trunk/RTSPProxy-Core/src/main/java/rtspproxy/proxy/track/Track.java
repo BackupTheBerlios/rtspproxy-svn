@@ -21,6 +21,7 @@ package rtspproxy.proxy.track;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -84,7 +85,7 @@ public abstract class Track
 
     /** Maps a client address to a Track */
     // TODO: bring back to protected
-    public static Map<InetSocketAddress, Track> clientAddressMap = new ConcurrentHashMap<InetSocketAddress, Track>();
+    protected static Map<InetSocketAddress, Track> clientAddressMap = new ConcurrentHashMap<InetSocketAddress, Track>();
 
     /** Maps a server address to a Track */
     protected static Map<InetSocketAddress, Track> serverAddressMap = new ConcurrentHashMap<InetSocketAddress, Track>();
@@ -141,6 +142,11 @@ public abstract class Track
     public static Track getByServerAddress( InetSocketAddress serverAddress )
     {
         return serverAddressMap.get( serverAddress );
+    }
+    
+    public static Set<InetSocketAddress> getClientAddresses()
+    {
+        return clientAddressMap.keySet();
     }
 
     /**

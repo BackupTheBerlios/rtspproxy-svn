@@ -19,69 +19,126 @@
 package rtspproxy.filter.ipaddress;
 
 import java.net.InetSocketAddress;
-import java.util.List;
 
 import org.apache.mina.common.IoSession;
-import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rtspproxy.config.Config;
 import rtspproxy.filter.FilterBase;
+import rtspproxy.lib.Side;
 
 /**
  * @author Matteo Merli
- *
+ * 
  */
-public class IpAddressFilter extends FilterBase
+public class IpAddressFilter extends FilterBase<IpAddressProvider>
 {
 
-	private static Logger log = LoggerFactory.getLogger( IpAddressFilter.class );
-	
-	public static final String FilterNAME = "ipAddressFilter";
+    private static Logger log = LoggerFactory.getLogger( IpAddressFilter.class );
 
-	private IpAddressProvider provider;
+    private static final String FilterNAME = "ipAddressFilter";
 
-	public IpAddressFilter(String className, List<Element> configElements)
-	{
-		super(FilterNAME, className, "ipaddress");
-		
-		this.provider = (IpAddressProvider)loadConfigInitProvider(className, IpAddressProvider.class,
-				configElements);
-	}
+    private IpAddressProvider provider = null;
 
-	@Override
-	public void messageReceived( NextFilter nextFilter, IoSession session, Object message )
-			throws Exception
-	{
-		if(!isRunning()) {
-			// forward because filter is suspended
-			nextFilter.messageReceived( session, message );			
-		} else if ( !provider.isBlocked( ( (InetSocketAddress) session.getRemoteAddress() ).getAddress() ) ) {
-			// forward if not blocked
-			nextFilter.messageReceived( session, message );
-		} else {
-			blockSession( session );
-		}
-	}
+    private Side side = Side.Client;
 
-	@Override
-	public void sessionCreated( NextFilter nextFilter, IoSession session )
-			throws Exception
-	{
-		if(!isRunning()) {
-			// forward because filter is suspended
-			nextFilter.sessionCreated( session );
-		} else if ( !provider.isBlocked( ( (InetSocketAddress) session.getRemoteAddress() ).getAddress() ) ) {
-			// forward if not blocked
-			nextFilter.sessionCreated( session );
-		} else {
-			blockSession( session );
-		}
-	}
+    public IpAddressFilter( Side side )
+    {
+	this.side = side;
+    }
 
-	protected void blockSession( IoSession session )
-	{
-		log.info( "Blocked connection from : " + session.getRemoteAddress() );
-		session.close();
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.FilterBase#getName()
+     */
+    @Override
+    public String getName()
+    {
+        return FilterNAME;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.FilterBase#getProviderClassName()
+     */
+    @Override
+    public String getProviderClassName()
+    {
+        return Config.filtersIpAddressImplClass.getValue();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.FilterBase#getProviderInterface()
+     */
+    @Override
+    protected Class<IpAddressProvider> getProviderInterface()
+    {
+        return IpAddressProvider.class;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.FilterBase#setProvider(rtspproxy.filter.GenericProvider)
+     */
+    @Override
+    protected void setProvider( IpAddressProvider provider )
+    {
+        this.provider = provider;
+	this.provider.setSide( side );
+    }
+
+    @Override
+    public void messageReceived( NextFilter nextFilter, IoSession session, Object message )
+            throws Exception
+    {
+	log.debug( "Testing address: {}", session.getRemoteAddress() );
+
+        if ( !isRunning() ) {
+            // forward because filter is suspended
+            nextFilter.messageReceived( session, message );
+
+        } else if ( !provider.isBlocked( ((InetSocketAddress) session.getRemoteAddress())
+                .getAddress() ) ) {
+            // forward if not blocked
+            nextFilter.messageReceived( session, message );
+
+        } else {
+            blockSession( session );
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.mina.common.IoFilterAdapter#sessionCreated(org.apache.mina.common.IoFilter.NextFilter,
+     *      org.apache.mina.common.IoSession)
+     */
+    @Override
+    public void sessionCreated( NextFilter nextFilter, IoSession session )
+            throws Exception
+    {
+        if ( !isRunning() ) {
+            // forward because filter is suspended
+            nextFilter.sessionCreated( session );
+            
+        } else if ( !provider.isBlocked( ((InetSocketAddress) session.getRemoteAddress())
+                .getAddress() ) ) {
+            // forward if not blocked
+            nextFilter.sessionCreated( session );
+        } else {
+            blockSession( session );
+        }
+    }
+
+    protected void blockSession( IoSession session )
+    {
+        log.info( "Blocked connection from : {}", session.getRemoteAddress() );
+        session.close();
+    }
 }

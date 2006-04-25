@@ -29,15 +29,16 @@ public class Filter implements FilterMBean {
 	 * @throws MalformedObjectNameException 
 	 * 
 	 */
-	public Filter(FilterBase filter) throws MalformedObjectNameException, NullPointerException {
+	public Filter( FilterBase filter ) 
+		throws MalformedObjectNameException, NullPointerException 
+	{
 		this.filter = filter;
 		
 		// build the MBean name
 		Hashtable<String, String> keys = new Hashtable<String, String>();
 		
-		keys.put("filter", filter.getTypeName());
-		keys.put("side", filter.getSide().toString());
-		keys.put("classname", filter.getClassName());
+		keys.put("filter", filter.getName());
+		keys.put("classname", filter.getProviderClassName());
 		keys.put("id", Long.toHexString(System.identityHashCode(filter)));
 		
 		this.name = new ObjectName(JmxAgent.FILTERS_DOMAIN, keys);

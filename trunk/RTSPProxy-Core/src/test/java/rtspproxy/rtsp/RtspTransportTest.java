@@ -41,6 +41,7 @@ public class RtspTransportTest extends TestCase
 	String test5 = "x-pn-tng/tcp;mode=play";
 	String test6 = "x-real-rdt/tcp;mode=play";
 	String test7 = "RTP/AVP/TCP;unicast;mode=play";
+    String test8 = "RTP/AVP/TCP;UNICAST;mode=play";
 
 	RtspTransport transport1;
 	RtspTransport transport2;
@@ -49,6 +50,7 @@ public class RtspTransportTest extends TestCase
 	RtspTransport transport5;
 	RtspTransport transport6;
 	RtspTransport transport7;
+    RtspTransport transport8;
 
 	@Override
 	protected void setUp() throws Exception
@@ -60,6 +62,7 @@ public class RtspTransportTest extends TestCase
 		transport5 = new RtspTransport( test5 );
 		transport6 = new RtspTransport( test6 );
 		transport7 = new RtspTransport( test7 );
+        transport8 = new RtspTransport( test8 );
 	}
 
 	public void testIsSupportedByProxy()
@@ -71,6 +74,7 @@ public class RtspTransportTest extends TestCase
 		assertEquals( false, transport5.isSupportedByProxy() );
 		assertEquals( false, transport6.isSupportedByProxy() );
 		assertEquals( false, transport7.isSupportedByProxy() );
+        assertEquals( false, transport8.isSupportedByProxy() );
 	}
 
 	/*
@@ -93,6 +97,7 @@ public class RtspTransportTest extends TestCase
 		assertEquals( false, transport5.isAppend() );
 		assertEquals( false, transport6.isAppend() );
 		assertEquals( false, transport7.isAppend() );
+        assertEquals( false, transport8.isAppend() );
 	}
 
 	/*
@@ -107,6 +112,7 @@ public class RtspTransportTest extends TestCase
 		assertTrue( Arrays.equals( new int[] { 0, 0 }, transport5.getClientPort() ) );
 		assertTrue( Arrays.equals( new int[] { 0, 0 }, transport6.getClientPort() ) );
 		assertTrue( Arrays.equals( new int[] { 0, 0 }, transport7.getClientPort() ) );
+        assertTrue( Arrays.equals( new int[] { 0, 0 }, transport8.getClientPort() ) );
 	}
 
 	/*
@@ -121,6 +127,7 @@ public class RtspTransportTest extends TestCase
 		assertEquals( DeliveryType.None, transport5.getDeliveryType() );
 		assertEquals( DeliveryType.unicast, transport6.getDeliveryType() );
 		assertEquals( DeliveryType.unicast, transport7.getDeliveryType() );
+        assertEquals( DeliveryType.unicast, transport8.getDeliveryType() );
 	}
 
 	/*

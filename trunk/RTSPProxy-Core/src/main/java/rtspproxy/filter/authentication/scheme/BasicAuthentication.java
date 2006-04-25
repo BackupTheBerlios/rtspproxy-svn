@@ -36,7 +36,9 @@ public class BasicAuthentication implements AuthenticationScheme
 
 	private static Logger log = LoggerFactory.getLogger( BasicAuthentication.class );
 
-	private String realm;
+	private static final String NAME = "Basic";
+
+	private final String realm;
 
 	public BasicAuthentication()
 	{
@@ -47,7 +49,7 @@ public class BasicAuthentication implements AuthenticationScheme
 
 	public String getName()
 	{
-		return "Basic";
+		return NAME;
 	}
 
 	public Credentials getCredentials( RtspMessage message )

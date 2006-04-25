@@ -24,12 +24,14 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.channels.UnresolvedAddressException;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.mina.common.ConnectFuture;
+import org.apache.mina.common.IoFuture;
 import org.apache.mina.common.IoSession;
+import org.apache.mina.common.TrafficMask;
+import org.apache.mina.common.IoFuture.Callback;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +60,7 @@ import rtspproxy.rtsp.RtspTransport.TransportProtocol;
 /**
  * @author Matteo Merli
  */
-public class ProxyHandler
+public class ProxyHandler implements Callback
 {
 
     private static Logger log = LoggerFactory.getLogger( ProxyHandler.class );
@@ -246,7 +248,7 @@ public class ProxyHandler
 
         RtspTransportList rtspTransportList = new RtspTransportList( request
                 .getHeader( "Transport" ) );
-        log.debug( "Parsed: {}", rtspTransportList );
+        log.debug( "Parsed: [{}]", rtspTransportList );
 
         if ( rtspTransportList.count() == 0 ) {
             /**
@@ -255,6 +257,7 @@ public class ProxyHandler
              * client will have the chance to reformule the request with another
              * transports set.
              */
+            log.debug( "No supported transport was found." );
             sendResponse( clientSession, RtspResponse
                     .errorResponse( RtspCode.UnsupportedTransport ) );
             return;
@@ -497,24 +500,32 @@ public class ProxyHandler
         connector.setFilterChainBuilder( new RtspServerFilters() );
 
         // Start communication.
+        InetSocketAddress addr = new InetSocketAddress( host, port );
         log.debug( "Trying to connect to '{}' {}", host, port );
-        try {
+        if ( addr.isUnresolved() ) {
+            log.warn( "Cannot resolve hostname: {}", host );
+            sendResponse( clientSession, RtspResponse
+                    .errorResponse( RtspCode.DestinationUnreachable ) );
+            clientSession.close();
+            return;
+        }
 
-            /*
-             * TODO: Current implementation wait (future.join()) until the
-             * connection with server is completed. This could block the thread
-             * for a long time. Check how to do it in asyncronous way.
-             */
-            ConnectFuture future = connector.connect(
-                    new InetSocketAddress( host, port ), new ServerSide() );
-            future.join();
-            serverSession = future.getSession();
+        // Set the traffic mask to none to avoid reception of
+        // messages from the client.
+        clientSession.setTrafficMask( TrafficMask.NONE );
 
-            // TODO: Rtsp Keep Alive
-            // if (Config.proxyRtspKeepAlive.getValue())
-            // ((SocketSession) serverSession).setKeepAlive(true);
-        } catch ( UnresolvedAddressException e ) {
-            log.warn( "Destination unreachable: " + host + ":" + port );
+        ConnectFuture future = connector.connect( addr, new ServerSide() );
+        future.setCallback( this );
+    }
+
+    public void operationComplete( IoFuture future )
+    {
+        ConnectFuture connectFuture = (ConnectFuture) future;
+        log.debug( "operation completed" );
+        clientSession.setTrafficMask( TrafficMask.ALL );
+
+        if ( !connectFuture.isConnected() ) {
+            log.warn( "Destination unreachable" );
             sendResponse( clientSession, RtspResponse
                     .errorResponse( RtspCode.DestinationUnreachable ) );
             clientSession.close();
@@ -522,6 +533,17 @@ public class ProxyHandler
         }
 
         log.debug( "Connected!" );
+
+        try {
+            serverSession = connectFuture.getSession();
+        } catch ( IOException e ) {
+            log.error( "Error getting connection session: " + e );
+            clientSession.close();
+        }
+
+        // TODO: Rtsp Keep Alive
+        // if (Config.proxyRtspKeepAlive.getValue())
+        // ((SocketSession) serverSession).setKeepAlive(true);
 
         // Save current ProxyHandler into the ProtocolSession
         serverSession.setAttribute( ProxyHandler.ATTR, this );

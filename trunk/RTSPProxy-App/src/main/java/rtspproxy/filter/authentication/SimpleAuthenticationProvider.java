@@ -18,70 +18,97 @@
 
 package rtspproxy.filter.authentication;
 
-import java.util.List;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-import org.dom4j.Element;
+import org.apache.commons.configuration.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import rtspproxy.config.AAAConfigurable;
-import rtspproxy.filter.GenericProviderAdapter;
+import rtspproxy.config.StringParameter;
 import rtspproxy.filter.authentication.scheme.Credentials;
 
 /**
  * @author Matteo Merli
  */
-public class SimpleAuthenticationProvider extends GenericProviderAdapter
-		implements AuthenticationProvider, AAAConfigurable {
+public class SimpleAuthenticationProvider implements AuthenticationProvider, Observer
+{
 
-	private static Logger log = Logger
-			.getLogger(SimpleAuthenticationProvider.class);
+    private static Logger log = LoggerFactory
+            .getLogger( SimpleAuthenticationProvider.class );
 
-	private Properties usersDb = new Properties();
+    private final StringParameter usersDbParameter;
 
-	public String getPassword(String username) {
-		return usersDb.getProperty(username);
-	}
+    private final Properties usersDb = new Properties();
 
-	public boolean isAuthenticated(Credentials credentials) {
-		String storedPassword = usersDb.getProperty(credentials.getUserName());
-		if (storedPassword == null)
-			// User is not present
-			return false;
+    public SimpleAuthenticationProvider()
+    {
+        usersDbParameter = new StringParameter( "filters.authentication.usersFile", // name
+                "conf/user.properties", // default value
+                true, // mutable
+                "" );
 
-		if (storedPassword.compareTo(credentials.getPassword()) == 0)
-			// Password is ok
-			return true;
-		else
-			// Password is wrong
-			return false;
-	}
+        usersDbParameter.addObserver( this );
+    }
 
-	public void configure(List<Element> configElements) throws Exception {
-		for (Element el : configElements) {
-			if (el.getName().equals("user")) {
-				Element nameEl = el.element("name");
-				Element passwordEl = el.element("password");
+    public void start() throws Exception
+    {
+        // Read user database
+        try {
+            String fileName = usersDbParameter.getValue();
+            InputStream is = new FileInputStream( fileName );
+            usersDb.load( is );
 
-				if (nameEl == null)
-					throw new IllegalArgumentException(
-							"no name element available in user configuration");
-				if (passwordEl == null)
-					throw new IllegalArgumentException(
-							"no password element available in user configuration");
+        } catch ( Exception e ) {
+            log.error( "Error reading users DB: " + e );
+        }
+    }
 
-				String name = nameEl.getTextTrim();
-				String password = passwordEl.getTextTrim();
+    public void stop()
+    {
+        usersDb.clear();
+    }
 
-				if (name == null || name.length() == 0)
-					throw new IllegalArgumentException("invalid username given");
-				if (password == null || password.length() == 0)
-					throw new IllegalArgumentException("invalid password given");
+    public String getPassword( String username )
+    {
+        return usersDb.getProperty( username );
+    }
 
-				log.debug("adding user " + name + " with password " + password);
-				this.usersDb.put(name, password);
-			}
-		}
-	}
+    public boolean isAuthenticated( Credentials credentials )
+    {
+        String storedPassword = usersDb.getProperty( credentials.getUserName() );
+        if ( storedPassword == null )
+            // User is not present
+            return false;
 
+        if ( storedPassword.compareTo( credentials.getPassword() ) == 0 )
+            // Password is ok
+            return true;
+
+        // Password is wrong
+        return false;
+    }
+
+    public void configure( Configuration configuration )
+    {
+        usersDbParameter.readConfiguration( configuration );
+    }
+
+    public void update( Observable o, Object arg )
+    {
+        if ( o != usersDbParameter ) {
+            log.debug( "Received notification of wrong object: {}", o );
+            return;
+        }
+
+        try {
+            stop();
+            start();
+        } catch ( Exception e ) {
+            log.error( "Error restarting Authentication provider" );
+        }
+    }
 }

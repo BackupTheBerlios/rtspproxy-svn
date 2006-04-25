@@ -10,9 +10,9 @@
  ***************************************************************************/
 
 /*
- * $Id: Handler.java 248 2005-10-23 18:47:41Z merlimat $
+ * $Id$
  * 
- * $URL: https://rbieniek@svn.berlios.de/svnroot/repos/rtspproxy/trunk/src/main/java/rtspproxy/rtsp/Handler.java $
+ * $URL$
  * 
  */
 package rtspproxy.filter.rewrite;
@@ -25,28 +25,35 @@ import rtspproxy.filter.GenericProvider;
 import rtspproxy.rtsp.RtspRequest;
 
 /**
- * This filter is used to rewrite the requested URL before passing it
- * to the upstream server.
+ * This filter is used to rewrite the requested URL before passing it to the
+ * upstream server.
  * 
  * @author Rainer Bieniek
  */
-public interface UrlRewritingProvider extends GenericProvider {
-	/**
-	 * rewrite the request URL.
-	 * @return a result object which can contain a modified result URL or a response message
-	 * sent back to the client. If null is returned, the URL is passed on without modification.
-	 */
-	public UrlRewritingResult rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client,
-			Map<String, String> requestHeaders, Map<String, Object> sessionAttributes);
+public interface UrlRewritingProvider extends GenericProvider
+{
 
-	/**
-	 * rewrite an URL in a response header.
-	 * @return a replacement URL or null if the URL is not to be modified.
-	 */
-	public URL rewriteResponseHeaderUrl(URL request);
-	
-	/**
-	 * get a list of session attributes the filter wants to get exposed from the session
-	 */
-	public String[] getWantedSessionAttributes();
+    /**
+     * rewrite the request URL.
+     * 
+     * @return a result object which can contain a modified result URL or a
+     *         response message sent back to the client. If null is returned,
+     *         the URL is passed on without modification.
+     */
+    public UrlRewritingResult rewriteRequestUrl( URL request, RtspRequest.Verb verb,
+            SocketAddress client, Map<String, String> requestHeaders,
+            Map<String, Object> sessionAttributes );
+
+    /**
+     * rewrite an URL in a response header.
+     * 
+     * @return a replacement URL or null if the URL is not to be modified.
+     */
+    public URL rewriteResponseHeaderUrl( URL request );
+
+    /**
+     * get a list of session attributes the filter wants to get exposed from the
+     * session
+     */
+    public String[] getWantedSessionAttributes();
 }

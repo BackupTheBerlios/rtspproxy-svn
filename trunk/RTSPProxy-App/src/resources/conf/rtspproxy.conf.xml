@@ -1,7 +1,11 @@
+
 <!-- $Id$ -->
 
 <rtspproxy>
 
+	<!-- Enable or disable debug output. 
+	     A more fine-grained configuration can be done in the log4j 
+	     properties file. -->
 	<debug>true</debug>
 
 	<!-- Thread pool configuration. Number of active threads. -->
@@ -14,10 +18,24 @@
 
 		<!-- Server-side configuration -->
 		<server>
+	
+			<!-- If specified, bound the proxy on a specifed network
+                             interface. -->
+                        <!-- <address>127.0.0.1</address> -->
+
+                        <!-- Same as for the address, but specifying the
+                             network interface name. On Linux they are called 'eth0', 'eth1'...
+                             On  MacOS X they are 'en0', 'en1', .. -->
+                        <!-- <interface>eth0</interface> -->
+		
+			<!-- RTP port used with servers -->
 			<!-- <rtpPort>6970</rtpPort> -->
+
+			<!-- RTCP port used with servers -->
 			<!-- <rtcpPort>6971</rtcpPort> -->
+
+			<!-- RDT port used with servers -->
 			<!-- <rdtPort>6972</rdtPort> -->
-			<!-- <address>10.0.0.24</address> -->
 
 			<!-- 
 				<rtpUsePortrange>false</rtpUsePortrange>
@@ -32,15 +50,25 @@
 			-->
 		</server>
 
-
+		<!-- Client-side configuration -->
 		<client>
-			<!-- 
-				<rtpPort>6970</rtpPort>
-				<rtcpPort>6971</rtcpPort>
-				<rdtPort>6972</rdtPort>
-				<address>127.0.0.1</address>
-			-->
-			<interface>lo0</interface>
+			<!-- If specified, bound the proxy on a specifed network 
+			     interface. -->
+			<address>127.0.0.1</address>
+
+			<!-- Same as for the address, but specifying the 
+			     network interface name. On Linux they are called 'eth0', 'eth1'...
+			     On  MacOS X they are 'en0', 'en1', .. -->
+                        <!-- <interface>eth0</interface> -->
+
+			<!-- Rtp port used with clients -->
+			<!-- <rtpPort>6970</rtpPort> -->
+
+			<!-- Rtcp port used with clients -->
+			<!-- <rtcpPort>6971</rtcpPort> -->
+
+			<!-- Rdt port used with clients -->
+			<!-- <rdtPort>6972</rdtPort> -->
 		</client>
 
 		<!-- Proxy feature selection -->
@@ -77,6 +105,8 @@
 		<!-- JMX web console -->
 		<web>
 			<enable>true</enable>
+			
+			<!-- HTTP port -->
 			<port>8080</port>
 		</web>
 
@@ -87,15 +117,15 @@
 		</connectorService>
 	</jmx>
 
-	<!-- Filters are the mean layered functionalities such as Authentication or 
+	<!-- Filters are mean layered functionalities such as Authentication or 
 		Tracking are implemented.
 	-->
 	<filters>
 
 		<!-- Authentication filter -->
 		<authentication>
-
-			<enable>false</enable>
+			<!-- Enable or disable the authentication filter -->
+			<enable>true</enable>
 
 			<implClass>
 				rtspproxy.filter.authentication.SimpleAuthenticationProvider
@@ -106,38 +136,34 @@
 			-->
 			<scheme>Digest</scheme>
 
+			<!-- The SimpleAuthenticationProvider uses a Property file 
+			     to keep a user db. In this file, keys are the usernames 
+			     and values are the passwords. -->
 			<usersFile>conf/users.properties</usersFile>
 		</authentication>
 
 		<!-- Filter clients using theyr IP address -->
-		<ipaddress
-			implClass="rtspproxy.filter.ipaddress.SimpleIpAddressProvider"
-			side="client">
-
+		<ipaddress>
+			
 			<!-- Enable or disable the ipaddress filter -->
-			<enabled>false</enabled>
+                        <enable>true</enable>
 
-			<rules>
-				<rule type="deny" pattern="*" />
-				<allow>127.0.0.1</allow>
-				<allow>10.0.0.*</allow>
-				<allow>*.some.domain</allow>
-			</rules>
-		</ipaddress>
+			<implClass>
+				rtspproxy.filter.ipaddress.SimpleIpAddressProvider
+			</implClass>
 
-		<ipaddress
-			implClass="rtspproxy.filter.ipaddress.SimpleIpAddressProvider"
-			side="server">
+			<!-- Access rules for clients -->
+			<client-rules>	
+				<rule type="deny"  pattern="*" />
+				<rule type="allow" pattern="127.0.0.1" />
+				<rule type="allow" pattern="10.0.0.*" />
+				<rule type="allow" pattern="*.some.domain" />
+			</client-rules>
 
-			<!-- Enable or disable the ipaddress filter -->
-			<enable>false</enable>
-
-			<rules>
-				<deny>*</deny>
-				<allow>127.0.0.1</allow>
-				<allow>10.0.0.*</allow>
-				<allow>*.some.domain</allow>
-			</rules>
+			<!-- Restrict access to certains RTSP servers  -->
+			<server-rules>
+				<rule type="deny" pattern="*.bad.domain.com" />
+			</server-rules>
 		</ipaddress>
 
 
@@ -146,6 +172,7 @@
 			<!-- Enable or disable the ipaddress filter -->
 			<enable>false</enable>
 
+			<!-- -->
 			<implClass>
 				rtspproxy.filter.accounting.SimpleAccountingProvider
 			</implClass>
@@ -154,7 +181,7 @@
 		</accounting>
 
 
-		<rewriting>
+		<rewrite>
 
 			<!-- enable or disable the rewriting filter -->
 			<enable>false</enable>
@@ -164,15 +191,35 @@
 				rtspproxy.filter.rewrite.SimpleUrlRewritingProvider
 			</implClass>
 
-			<!-- Rewriting rules -->
+			<!-- SimpleUrlRewritingProvider uses the following rules 
+		 	     to rewrite the URLs.	
+                          -->
 			<rules>
-				<mapping from="rtsp://10.0.0.1:554/"
-					       to="rtsp://10.0.0.2:1554/foo/" />
-
-				<mapping from="rtsp://127.0.0.01/" 
-					 		   to="rtsp://10.0.0.26:1554/foo/" />
+				<mapping>
+					<from>rtsp://10.0.0.1:554/</from>
+					<to>rtsp://10.0.0.2:1554/foo/</to>
+				</mapping>
+				<mapping>
+					<from>rtsp://127.0.0.1/</from>
+					<to>rtsp://10.0.0.26:1554/foo/</to>
+				</mapping>
 			</rules>
-		</rewriting>
+		</rewrite>
+
+		<control>
+			<enable>false</enable>
+			
+			<filters>
+				<filter side="Client" 
+					name="testFilter" 
+					implClass="path.to.Class" />
+
+				<filter side="Server" 
+					name="testFilterServer"
+					implClass="other.path.class" />
+			</filters>
+		</control>
+
 	</filters>
 
 </rtspproxy>

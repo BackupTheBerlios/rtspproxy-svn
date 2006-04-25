@@ -3,6 +3,8 @@
  */
 package rtspproxy.filter;
 
+import org.apache.commons.configuration.Configuration;
+
 /**
  * Generic interface used as a parent interface to specific filter provider definitions.
  * 
@@ -17,11 +19,13 @@ public interface GenericProvider {
 	 * 
 	 * @throws Exception
 	 */
-	public void init() throws Exception;
+	public void start() throws Exception;
 
 	/**
 	 * Called once at service shutdown.
 	 */
-	public void shutdown();
+	public void stop();
+    
+    public void configure( Configuration configuration ) throws Exception;
 
 }

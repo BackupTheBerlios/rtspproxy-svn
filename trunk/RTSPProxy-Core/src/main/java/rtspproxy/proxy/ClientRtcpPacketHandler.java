@@ -58,11 +58,13 @@ public class ClientRtcpPacketHandler extends IoHandlerAdapter
 
         if ( track == null ) {
             // drop packet
-            log.debug( "Invalid address: {} - Class: {}", session.getRemoteAddress(),
-                    ((InetSocketAddress) session.getRemoteAddress()).getAddress()
-                            .getClass() );
-            
-            log.debug( "Known Client Addresses: {}", Track.clientAddressMap.keySet() );
+            if ( log.isDebugEnabled() ) {
+                log.debug( "Invalid address: {} - Class: {}", session.getRemoteAddress(),
+                        ((InetSocketAddress) session.getRemoteAddress()).getAddress()
+                                .getClass() );
+
+                log.debug( "Known Client Addresses: {}", Track.getClientAddresses() );
+            }
             return;
         }
 

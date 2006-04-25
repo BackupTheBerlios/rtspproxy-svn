@@ -24,14 +24,6 @@ public class RdtSessionClientTrackingFilter extends RdtSessionTrackingFilter {
 	// session attribute
 	private static final String SessionAttribute = "lastSetupURL";
 
-	/**
-	 * @param filterName
-	 * @param typeName
-	 */
-	public RdtSessionClientTrackingFilter() {
-		super("client");
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 

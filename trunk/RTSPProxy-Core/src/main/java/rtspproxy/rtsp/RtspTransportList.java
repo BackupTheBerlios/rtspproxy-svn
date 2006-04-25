@@ -65,13 +65,13 @@ public class RtspTransportList
 	@Override
     public String toString()
 	{
-		final StringBuilder buf = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		int i = 0;
 		for ( RtspTransport transport : transportList ) {
 			if ( i++ != 0 )
-				buf.append( ',' );
-			buf.append( transport.toString() );
+				sb.append( ',' );
+			sb.append( transport.toString() );
 		}
-		return buf.toString();
+		return sb.toString();
 	}
 }

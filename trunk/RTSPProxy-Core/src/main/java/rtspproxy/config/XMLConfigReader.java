@@ -10,9 +10,9 @@
  ***************************************************************************/
 
 /*
- * $Id: Main.java 378 2006-01-06 20:36:11Z rbieniek $
+ * $Id$
  * 
- * $URL: https://svn.berlios.de/svnroot/repos/rtspproxy/trunk/RTSPProxy-App/src/main/java/rtspproxy/Main.java $
+ * $URL$
  * 
  */
 package rtspproxy.config;
@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.NoSuchElementException;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.dom4j.DocumentException;
@@ -35,13 +36,15 @@ import org.slf4j.LoggerFactory;
  * This class implements a parser for XML configuration files.
  * 
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
- * @todo validate the parsed configuration file by a schema.
  */
-public class XMLConfigReader
+public final class XMLConfigReader
 {
 
-    // logger
     private static final Logger log = LoggerFactory.getLogger( XMLConfigReader.class );
+
+   
+    private static final XMLConfiguration configuration = new XMLConfiguration(); 
+
 
     /**
      * read the configuration file.
@@ -53,9 +56,9 @@ public class XMLConfigReader
      * @throws DocumentException
      *             parsing the config file failed.
      */
-    public final void readConfig( String fileName ) throws FileNotFoundException
+    public void readConfig( String fileName ) throws FileNotFoundException
     {
-        log.debug( "Reading configuration file={}", fileName );
+        log.debug( "Reading configuration file='{}'", fileName );
         File file = new File( fileName );
 
         if ( file.canRead() ) {
@@ -69,9 +72,8 @@ public class XMLConfigReader
      * @param is
      *            the input stream to read the configuration from.
      */
-    public final void readConfig( Reader reader )
+    public void readConfig( Reader reader )
     {
-        XMLConfiguration configuration = new XMLConfiguration();
         try {
             configuration.load( reader );
         } catch ( ConfigurationException e ) {
@@ -92,5 +94,10 @@ public class XMLConfigReader
         }
 
         Config.updateDebugSettings();
+    }
+    
+    public static Configuration getConfiguration()
+    {
+    	return configuration;    
     }
 }

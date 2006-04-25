@@ -5,7 +5,7 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- *   Copyright (C) 2005 - Matteo Merli - matteo.merli@gmail.com            *
+ *   Copyright (C) 2006 - Matteo Merli - matteo.merli@gmail.com            *
  *                                                                         *
  ***************************************************************************/
 
@@ -17,11 +17,17 @@
  */
 package rtspproxy.config;
 
+import org.apache.commons.configuration.Configuration;
+
 /**
  * @author Matteo Merli
  * 
  */
 public interface ListElementParameter
 {
+
+    public boolean readConfiguration( Configuration configuration, String prefix );
+    
+    public String toString();
     
 }

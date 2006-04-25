@@ -11,91 +11,13 @@
 		<groupId>net.merlimat</groupId>
 		<artifactId>rtspproxy</artifactId>
 		<version>3.0-ALPHA5-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 
 	<name>RTSP Proxy core</name>
-	<groupId>net.merlimat</groupId>
-	<artifactId>RTSPProxy-Core</artifactId>
-	<version>3.0-ALPHA5-SNAPSHOT</version>
-	<url>http://rtspproxy.berlios.de</url>
-	<inceptionYear>2003</inceptionYear>
-
-	<dependencies>
-
-		<dependency>
-			<groupId>org.apache.directory.mina</groupId>
-			<artifactId>mina-core</artifactId>
-			<version>0.9.3</version>
-		</dependency>
-
-		<dependency>
-			<groupId>mx4j</groupId>
-			<artifactId>mx4j-tools</artifactId>
-			<version>2.1.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.0-rc3</version>
-		</dependency>
-
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.9</version>
-		</dependency>
- 
-		<dependency>
-			<groupId>commons-pool</groupId>
-			<artifactId>commons-pool</artifactId>
-			<version>1.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>1.2</version>
-		</dependency>
-		
-		<!-- Included here to disambiguate the version number -->
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-
-	<repositories>
-
-		<repository>
-			<id>Apache repository</id>
-			<url>http://svn.apache.org/repository/</url>
-		</repository>
-
-		<!-- For snapshots (no release jars or non-apache jars)           -->
-		<repository>
-			<id>apache.snapshots</id>
-			<name>Apache Snapshot Repository</name>
-			<url>http://cvs.apache.org/maven-snapshot-repository</url>
-		</repository>
-
-		<!--
-			<repository>
-			<id>ibilio maven2</id>
-			<url>http://www.ibiblio.org/maven2/</url>
-			</repository>
-		-->
-	</repositories>
+	<artifactId>RTSPProxy-Core</artifactId>	
 
 	<build>
 		<defaultGoal>assembly:directory</defaultGoal>
@@ -106,18 +28,6 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
-
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
-					<showWarnings>true</showWarnings>
-				</configuration>
-			</plugin>
-		</plugins>
 	</build>
 
 </project>

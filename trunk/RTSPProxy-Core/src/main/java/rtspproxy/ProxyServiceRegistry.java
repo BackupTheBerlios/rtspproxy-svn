@@ -53,278 +53,291 @@ import rtspproxy.lib.Singleton;
 public final class ProxyServiceRegistry extends Singleton implements Observer
 {
 
-	private static Logger log = LoggerFactory.getLogger( ProxyServiceRegistry.class );
+    private static Logger log = LoggerFactory.getLogger( ProxyServiceRegistry.class );
 
-	public static final String threadPoolFilterNAME = "threadPoolFilter";
+    public static final String threadPoolFilterNAME = "threadPoolFilter";
 
-	/** Thread pool instance that will be added to all acceptors. */
-	private final ThreadPoolFilter threadPoolFilter = new ThreadPoolFilter("sharedThreadPoolFilter");
+    /** Thread pool instance that will be added to all acceptors. */
+    private final ThreadPoolFilter threadPoolFilter = new ThreadPoolFilter(
+            "sharedThreadPoolFilter" );
 
-	/** All the services, mapped by name. */
-	private final ConcurrentMap<String, ProxyService> services = new ConcurrentHashMap<String, ProxyService>();
+    /** All the services, mapped by name. */
+    private final ConcurrentMap<String, ProxyService> services = new ConcurrentHashMap<String, ProxyService>();
 
-	/** Map a ProxyService to all its bound addresses. */
-	private final ConcurrentMap<ProxyService, Set<SocketAddress>> addresses = new ConcurrentHashMap<ProxyService, Set<SocketAddress>>();
+    /** Map a ProxyService to all its bound addresses. */
+    private final ConcurrentMap<ProxyService, Set<SocketAddress>> addresses = new ConcurrentHashMap<ProxyService, Set<SocketAddress>>();
 
-	/** Map a ProxyService to its own IoAcceptor. */
-	private final ConcurrentMap<ProxyService, IoAcceptor> acceptors = new ConcurrentHashMap<ProxyService, IoAcceptor>();
+    /** Map a ProxyService to its own IoAcceptor. */
+    private final ConcurrentMap<ProxyService, IoAcceptor> acceptors = new ConcurrentHashMap<ProxyService, IoAcceptor>();
 
-	/**
-	 * Construct a new ProxyServiceRegistry. This class is a Singleton, so there
-	 * can be only one instance.
-	 */
-	public ProxyServiceRegistry()
-	{
-		int poolMaxSize = Config.threadPoolSize.getValue();
-		threadPoolFilter.setMaximumPoolSize( poolMaxSize );
+    /**
+     * Construct a new ProxyServiceRegistry. This class is a Singleton, so there
+     * can be only one instance.
+     */
+    public ProxyServiceRegistry()
+    {
+        int poolMaxSize = Config.threadPoolSize.getValue();
+        threadPoolFilter.setMaximumPoolSize( poolMaxSize );
 
-		// Subscribe to thread pool size changes notification
-		Config.threadPoolSize.addObserver( this );
-	}
+        // Subscribe to thread pool size changes notification
+        Config.threadPoolSize.addObserver( this );
+    }
 
-	/**
-	 * Bind a Service to a local address and specify the IoHandler that will
-	 * manage ingoing and outgoing messages.
-	 * 
-	 * @param service
-	 *            the ProxyService
-	 * @param ioHandler
-	 *            the IoHandler that will handle the messages
-	 * @param address
-	 *            the local address to bind on
-	 * @throws IOException
-	 */
-	public void bind( ProxyService service, IoHandler ioHandler, InetSocketAddress address )
-			throws IOException
-	{
-		bind( service, ioHandler, address, null );
-	}
+    /**
+     * Bind a Service to a local address and specify the IoHandler that will
+     * manage ingoing and outgoing messages.
+     * 
+     * @param service
+     *            the ProxyService
+     * @param ioHandler
+     *            the IoHandler that will handle the messages
+     * @param address
+     *            the local address to bind on
+     * @throws IOException
+     */
+    public void bind( ProxyService service, IoHandler ioHandler, InetSocketAddress address )
+            throws IOException
+    {
+        bind( service, ioHandler, address, null );
+    }
 
-	/**
-	 * Bind a Service to a local address and specify the IoHandler that will
-	 * manage ingoing and outgoing messages.
-	 * <p>
-	 * In addition it should be specified an IoFilterChainBuilder. This builder
-	 * will be associated with the IoAcceptor itself (which is unique per
-	 * ProxyService) and not for every IoSession created.
-	 * 
-	 * @param service
-	 *            the ProxyService
-	 * @param ioHandler
-	 *            the IoHandler that will handle the messages
-	 * @param address
-	 *            the local address to bind on
-	 * @param filterChainBuilder
-	 *            the IoFilterChainBuilder instance
-	 * @throws IOException
-	 */
-	public void bind( ProxyService service, IoHandler ioHandler,
-			InetSocketAddress address, IoFilterChainBuilder filterChainBuilder )
-			throws IOException
-	{
-		IoAcceptor acceptor = newAcceptor( service );
-		
-		IoFilterChainBuilder builder = new IoFilterChainBuilderWrapper( service,
-				filterChainBuilder );
-		acceptor.setFilterChainBuilder( builder );
-		acceptor.bind( address, ioHandler );
+    /**
+     * Bind a Service to a local address and specify the IoHandler that will
+     * manage ingoing and outgoing messages.
+     * <p>
+     * In addition it should be specified an IoFilterChainBuilder. This builder
+     * will be associated with the IoAcceptor itself (which is unique per
+     * ProxyService) and not for every IoSession created.
+     * 
+     * @param service
+     *            the ProxyService
+     * @param ioHandler
+     *            the IoHandler that will handle the messages
+     * @param address
+     *            the local address to bind on
+     * @param filterChainBuilder
+     *            the IoFilterChainBuilder instance
+     * @throws IOException
+     */
+    public void bind( ProxyService service, IoHandler ioHandler,
+            InetSocketAddress address, IoFilterChainBuilder filterChainBuilder )
+            throws IOException
+    {
+        IoAcceptor acceptor = newAcceptor( service );
 
-		services.put( service.getName(), service );
+        IoFilterChainBuilder builder = new IoFilterChainBuilderWrapper( service,
+                filterChainBuilder );
+        acceptor.setFilterChainBuilder( builder );
+        acceptor.bind( address, ioHandler );
 
-		if ( addresses.get( service ) == null )
-			addresses.put( service, new HashSet<SocketAddress>() );
-		addresses.get( service ).add( address );
-	}
+        services.put( service.getName(), service );
 
-	/**
-	 * Unbind the service from all of its bound addresses.
-	 * 
-	 * @param service
-	 *            the ProxyService
-	 * @throws Exception
-	 */
-	public synchronized void unbind( ProxyService service ) throws Exception
-	{
-		IoAcceptor acceptor = acceptors.get( service );
-		for ( SocketAddress address : addresses.get( service ) ) {
-			try {
-				acceptor.unbind( address );
-			} catch ( Exception e ) {
-				// ignore
-			}
-		}
+        if ( addresses.get( service ) == null )
+            addresses.put( service, new HashSet<SocketAddress>() );
+        addresses.get( service ).add( address );
+    }
 
-		if ( service.isRunning() ) {
-			service.stop();
-		}
+    public void unbind( ProxyService service ) throws Exception
+    {
+        unbind( service, true );
+    }
 
-		services.remove( service.getName() );
-		acceptors.remove( service );
-		addresses.remove( service );
-	}
+    /**
+     * Unbind the service from all of its bound addresses.
+     * 
+     * @param service
+     *            the ProxyService
+     * @throws Exception
+     */
+    public synchronized void unbind( ProxyService service, boolean stopService )
+            throws Exception
+    {
+        IoAcceptor acceptor = acceptors.get( service );
+        for ( SocketAddress address : addresses.get( service ) ) {
+            try {
+                acceptor.unbind( address );
+            } catch ( Exception e ) {
+                // log.debug( "Error unbinding {}", service.getName() );
+                // Exceptions.logStackTrace( e );
+                // ignore
+            }
+        }
 
-	/**
-	 * Unbind all the services registered in the ProxyServiceRegistry, from all
-	 * of they bound addresses.
-	 * 
-	 * @throws Exception
-	 */
-	public synchronized void unbindAll() throws Exception
-	{
-		Set<ProxyService> serviceList = new HashSet<ProxyService>( services.values() );
-		for ( ProxyService service : serviceList ) {
-			unbind( service );
-		}
-	}
+        if ( stopService && service.isRunning() ) {
+            service.stop();
+        }
 
-	/**
-	 * @return a Set containing all the registered services.
-	 */
-	public Set<ProxyService> getAllServices()
-	{
-		return new HashSet<ProxyService>( services.values() );
-	}
+        services.remove( service.getName() );
+        acceptors.remove( service );
+        addresses.remove( service );
+    }
 
-	/**
-	 * Return the instance of a ProxyService.
-	 * 
-	 * @param name
-	 *            the name of the ProxyService
-	 * @return the instance of the ProxyService
-	 */
-	public ProxyService getService( String name )
-	{
-		return services.get( name );
-	}
+    /**
+     * Unbind all the services registered in the ProxyServiceRegistry, from all
+     * of they bound addresses.
+     * 
+     * @throws Exception
+     */
+    public synchronized void unbindAll() throws Exception
+    {
+        for ( ProxyService service : services.values() ) {
+            unbind( service );
+        }
+    }
 
-	/**
-	 * Returns a reference to the IoAcceptor used by the specified ProxyService.
-	 * 
-	 * @param serviceName
-	 *            the name of the ProxyService
-	 * @return the IoAcceptor associated with the service or null if the
-	 *         serviceName is invalid
-	 */
-	public IoAcceptor getAcceptor( String serviceName )
-	{
-		ProxyService service = services.get( serviceName );
-		if ( service == null )
-			return null;
-		else
-			return acceptors.get( service );
-	}
+    /**
+     * @return a Set containing all the registered services.
+     */
+    public Set<ProxyService> getAllServices()
+    {
+        return new HashSet<ProxyService>( services.values() );
+    }
 
-	/**
-	 * Returns a reference to the IoAcceptor used by the specified ProxyService.
-	 * 
-	 * @param service
-	 *            the ProxyService
-	 * @return the IoAcceptor associated with the service
-	 */
-	public IoAcceptor getAcceptor( ProxyService service )
-	{
-		return acceptors.get( service );
-	}
+    /**
+     * Return the instance of a ProxyService.
+     * 
+     * @param name
+     *            the name of the ProxyService
+     * @return the instance of the ProxyService
+     */
+    public ProxyService getService( String name )
+    {
+        return services.get( name );
+    }
 
-	/**
-	 * Gets a new IoAcceptor suitable for the specified ProxyService
-	 * 
-	 * @param service
-	 *            the ProxyService
-	 * @return a reference to the IoAcceptor
-	 */
-	private IoAcceptor newAcceptor( ProxyService service )
-	{
-		// First check if there's already an acceptor
-		IoAcceptor acceptor = acceptors.get( service );
-		if ( acceptor != null )
-			return acceptor;
+    /**
+     * Returns a reference to the IoAcceptor used by the specified ProxyService.
+     * 
+     * @param serviceName
+     *            the name of the ProxyService
+     * @return the IoAcceptor associated with the service or null if the
+     *         serviceName is invalid
+     */
+    public IoAcceptor getAcceptor( String serviceName )
+    {
+        ProxyService service = services.get( serviceName );
+        if ( service == null )
+            return null;
 
-		// Create a new one
-		TransportType transportType = service.getTransportType();
-		if ( transportType == TransportType.SOCKET )
-			acceptor = new SocketAcceptor(); // socketAcceptor;
-		else if ( transportType == TransportType.DATAGRAM )
-			acceptor = new DatagramAcceptor(); // datagramAcceptor;
-		else
-			acceptor = null;
+        return acceptors.get( service );
+    }
 
-		// Save the acceptor
-		acceptors.put( service, acceptor );
-		return acceptor;
-	}
+    /**
+     * Returns a reference to the IoAcceptor used by the specified ProxyService.
+     * 
+     * @param service
+     *            the ProxyService
+     * @return the IoAcceptor associated with the service
+     */
+    public IoAcceptor getAcceptor( ProxyService service )
+    {
+        return acceptors.get( service );
+    }
 
-	/**
-	 * Gets notification of changed parameters.
-	 * 
-	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
-	 */
-	public void update( Observable o, Object arg )
-	{
-		if ( !(o instanceof Parameter) )
-			throw new IllegalArgumentException( "Only observe parameters" );
+    /**
+     * Gets a new IoAcceptor suitable for the specified ProxyService
+     * 
+     * @param service
+     *            the ProxyService
+     * @return a reference to the IoAcceptor
+     */
+    private IoAcceptor newAcceptor( ProxyService service )
+    {
+        // First check if there's already an acceptor
+        IoAcceptor acceptor = acceptors.get( service );
+        if ( acceptor != null )
+            return acceptor;
 
-		if ( o == Config.threadPoolSize ) {
-			// Update the thread pool size
-			threadPoolFilter.setMaximumPoolSize( Config.threadPoolSize.getValue() );
-			log.info( "Changed ThreadPool size. New max size: "
-					+ threadPoolFilter.getMaximumPoolSize() );
-		}
-	}
+        // Create a new one
+        TransportType transportType = service.getTransportType();
+        if ( transportType == TransportType.SOCKET )
+            acceptor = new SocketAcceptor(); // socketAcceptor;
+        else if ( transportType == TransportType.DATAGRAM )
+            acceptor = new DatagramAcceptor(); // datagramAcceptor;
+        else
+            acceptor = null;
 
-	/**
-	 * @param service 
-	 * @param service 
-	 * @return the shared thread pool filter instance
-	 */
-	public IoFilter getThreadPoolFilterInstance(ProxyService service)
-	{
-		ThreadPoolFilter filter = service.getThreadPoolFilter();
+        // Save the acceptor
+        acceptors.put( service, acceptor );
+        return acceptor;
+    }
 
-		if(filter == null)
-			filter = threadPoolFilter;
-		return filter;
-	}
+    /**
+     * Gets notification of changed parameters.
+     * 
+     * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+     */
+    public void update( Observable o, Object arg )
+    {
+        if ( !(o instanceof Parameter) )
+            throw new IllegalArgumentException( "Only observe parameters" );
 
-	/**
-	 * @return a reference to the (unique) ProxyServiceRegistry instance
-	 */
-	public static ProxyServiceRegistry getInstance()
-	{
-		return (ProxyServiceRegistry) Singleton.getInstance( ProxyServiceRegistry.class );
-	}
+        if ( o == Config.threadPoolSize ) {
+            // Update the thread pool size
+            threadPoolFilter.setMaximumPoolSize( Config.threadPoolSize.getValue() );
+            log.info( "Changed ThreadPool size. New max size: "
+                    + threadPoolFilter.getMaximumPoolSize() );
+        }
+    }
 
-	/**
-	 * Wrapper class for the IoFilterChainBuilder that always add the thread
-	 * pool filter as the filter in the chain.
-	 * <p>
-	 * The thread pool filter will be shared by all the services and acceptors.
-	 */
-	protected static class IoFilterChainBuilderWrapper implements IoFilterChainBuilder
-	{
+    /**
+     * @param service
+     * @param service
+     * @return the shared thread pool filter instance
+     */
+    public IoFilter getThreadPoolFilterInstance( ProxyService service )
+    {
+        ThreadPoolFilter filter = service.getThreadPoolFilter();
 
-		private final ProxyService service;
+        if ( filter == null )
+            filter = threadPoolFilter;
+        return filter;
+    }
 
-		private final IoFilterChainBuilder originalBuilder;
+    /**
+     * @return a reference to the (unique) ProxyServiceRegistry instance
+     */
+    public static ProxyServiceRegistry getInstance()
+    {
+        return (ProxyServiceRegistry) Singleton.getInstance( ProxyServiceRegistry.class );
+    }
 
-		public IoFilterChainBuilderWrapper( ProxyService service,
-				IoFilterChainBuilder originalBuilder )
-		{
-			this.service = service;
-			this.originalBuilder = originalBuilder;
-		}
+    /**
+     * Wrapper class for the IoFilterChainBuilder that always add the thread
+     * pool filter as the filter in the chain.
+     * <p>
+     * The thread pool filter will be shared by all the services and acceptors.
+     */
+    protected static class IoFilterChainBuilderWrapper implements IoFilterChainBuilder
+    {
 
-		public void buildFilterChain( IoFilterChain chain ) throws Exception
-		{
-			chain.getSession().setAttribute( ProxyService.SERVICE, service );
+        private final ProxyService service;
 
-			if(service.wantThreadPoolFilter()) {
-				IoFilter threadPoolFilter = ProxyServiceRegistry.getInstance()
-				.getThreadPoolFilterInstance(service);
-				chain.addFirst( threadPoolFilterNAME, threadPoolFilter );
-			}
-			originalBuilder.buildFilterChain( chain );
-		}
-	}
+        private final IoFilterChainBuilder originalBuilder;
+
+        public IoFilterChainBuilderWrapper( ProxyService service,
+                IoFilterChainBuilder originalBuilder )
+        {
+            this.service = service;
+            this.originalBuilder = originalBuilder;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.apache.mina.common.IoFilterChainBuilder#buildFilterChain(org.apache.mina.common.IoFilterChain)
+         */
+        public void buildFilterChain( IoFilterChain chain ) throws Exception
+        {
+            chain.getSession().setAttribute( ProxyService.SERVICE, service );
+
+            if ( service.wantThreadPoolFilter() ) {
+                IoFilter threadPoolFilter = ProxyServiceRegistry.getInstance()
+                        .getThreadPoolFilterInstance( service );
+                chain.addFirst( threadPoolFilterNAME, threadPoolFilter );
+            }
+            originalBuilder.buildFilterChain( chain );
+        }
+    }
 
 }

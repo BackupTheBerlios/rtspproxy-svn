@@ -21,12 +21,15 @@ package rtspproxy.filter.ipaddress;
 import java.net.InetAddress;
 
 import rtspproxy.filter.GenericProvider;
+import rtspproxy.lib.Side;
 
 /**
  * @author Matteo Merli
  */
 public interface IpAddressProvider extends GenericProvider
 {
+    
+    public void setSide( Side side );
 
 	public boolean isBlocked( InetAddress address );
 	

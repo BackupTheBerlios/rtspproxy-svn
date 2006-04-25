@@ -18,11 +18,8 @@
 
 package rtspproxy.config;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
@@ -31,7 +28,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.log4j.Appender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -78,18 +74,18 @@ public class Config extends Singleton implements Observer
 
     public static final IntegerParameter threadPoolSize = new IntegerParameter(
             "threadPoolSize", // name
-            new Integer( 0 ), // min value
-            new Integer( 2147483647 ), // max value
-            new Integer( 10 ), // default value
+            0, // min value
+            2147483647, // max value
+            10, // default value
             true, // mutable
             "Maximum size of the thread pool. The thread pool is shared "
                     + "between all services found in RtspProxy." );
 
     public static final IntegerParameter proxyRtspPort = new IntegerParameter(
             "proxy.rtspPort", // name
-            new Integer( 0 ), // min value
-            new Integer( 65536 ), // max value
-            new Integer( Handler.DEFAULT_RTSP_PORT ), // default value
+            0, // min value
+            65536, // max value
+            Handler.DEFAULT_RTSP_PORT, // default value
             true, // mutable
             "This is the port which the proxy will listen for "
                     + "RTSP connection. The default is 554, like normal RTSP servers." );
@@ -120,17 +116,17 @@ public class Config extends Singleton implements Observer
 
     public static final IntegerParameter proxyServerRtpPort = new IntegerParameter(
             "proxy.server.rtpPort", // name
-            new Integer( 0 ), // min value
-            new Integer( 65536 ), // max value
-            new Integer( 8000 ), // default value
+            0, // min value
+            65536, // max value
+            8000, // default value
             true, // mutable
             "Port to listen for RTP packets arriving from servers." );
 
     public static final IntegerParameter proxyServerRtcpPort = new IntegerParameter(
             "proxy.server.rtcp.port", // name
-            new Integer( 0 ), // min value
-            new Integer( 65536 ), // max value
-            new Integer( 8001 ), // default value
+            0, // min value
+            65536, // max value
+            8001, // default value
             true, // mutable
             "Port to listen for RTCP packets arriving from servers." );
 
@@ -142,73 +138,73 @@ public class Config extends Singleton implements Observer
 
     public static final IntegerParameter proxyServerRtpMinPort = new IntegerParameter(
             "proxy.server.rtpPortrange.minPort", // name
-            new Integer( 0 ), // min value
-            new Integer( 65536 ), // max value
-            new Integer( 9000 ), // default value
+            0, // min value
+            65536, // max value
+            9000, // default value
             true, // mutable
             "Port to listen for RTP packets arriving from servers." );
 
     public static final IntegerParameter proxyServerRtpMaxPort = new IntegerParameter(
             "proxy.server.rtpPortrange.maxPort", // name
-            new Integer( 0 ), // min value
-            new Integer( 65536 ), // max value
-            new Integer( 9100 ), // default value
+            0, // min value
+            65536, // max value
+            9100, // default value
             true, // mutable
             "Port to listen for RTP packets arriving from servers." );
 
     public static final IntegerParameter proxyServerRtpIdleTimeout = new IntegerParameter(
             "proxy.server.rtpPortrange.idleTimeout", // name
-            new Integer( 0 ), // min value
-            new Integer( 86400 ), // max value
-            new Integer( 3600 ), // default value
+            0, // min value
+            86400, // max value
+            3600, // default value
             true, // mutable
             "Timeout an open RTP server port may linger around." );
 
     public static final IntegerParameter proxyServerRtpIdleScanInterval = new IntegerParameter(
             "proxy.server.rtpPortrange.idleScanInterval", // name
-            new Integer( 0 ), // min value
-            new Integer( 86400 ), // max value
-            new Integer( 1800 ), // default value
+            0, // min value
+            86400, // max value
+            1800, // default value
             true, // mutable
             "Scan interval on idle RTP server ports." );
 
     public static final IntegerParameter proxyServerRtpThreadPoolSize = new IntegerParameter(
             "proxy.server.rtpPortrange.threadPoolSize", // name
-            new Integer( 0 ), // min value
-            new Integer( 2147483647 ), // max value
-            new Integer( 10 ), // default value
+            0, // min value
+            2147483647, // max value
+            10, // default value
             true, // mutable
             "Scan interval on idle RTP server ports." );
 
     public static final IntegerParameter proxyClientRtpPort = new IntegerParameter(
             "proxy.client.rtpPort", // name
-            new Integer( 0 ), // min value
-            new Integer( 65536 ), // max value
-            new Integer( 8002 ), // default value
+            0, // min value
+            65536, // max value
+            8002, // default value
             true, // mutable
             "Port to listen for RTP packets arriving from clients." );
 
     public static final IntegerParameter proxyClientRtcpPort = new IntegerParameter(
             "proxy.client.rtcpPort", // name
-            new Integer( 0 ), // min value
-            new Integer( 65536 ), // max value
-            new Integer( 8003 ), // default value
+            0, // min value
+            65536, // max value
+            8003, // default value
             true, // mutable
             "Port to listen for RTCP packets arriving from clients." );
 
     public static final IntegerParameter proxyServerRdtPort = new IntegerParameter(
             "proxy.server.rdtPort", // name
-            new Integer( 0 ), // min value
-            new Integer( 65536 ), // max value
-            new Integer( 8020 ), // default value
+            0, // min value
+            65536, // max value
+            8020, // default value
             true, // mutable
             "Port to listen for RDT packets arriving from servers." );
 
     public static final IntegerParameter proxyClientRdtPort = new IntegerParameter(
             "proxy.client.rdtPort", // name
-            new Integer( 0 ), // min value
-            new Integer( 65536 ), // max value
-            new Integer( 8022 ), // default value
+            0, // min value
+            65536, // max value
+            8022, // default value
             true, // mutable
             "Port to listen for RDT packets arriving from clients." );
 
@@ -300,9 +296,9 @@ public class Config extends Singleton implements Observer
 
     public static final IntegerParameter jmxWebPort = new IntegerParameter(
             "jmx.web.port", // name
-            new Integer( 0 ), // min value
-            new Integer( 65536 ), // max value
-            new Integer( 8000 ), // default value
+            0, // min value
+            65536, // max value
+            8000, // default value
             false, // mutable
             "TCP port to be used for the Web Console." );
 
@@ -311,6 +307,80 @@ public class Config extends Singleton implements Observer
             false, // default value
             false, // mutable
             "Controls the activation of the JMX connector server." );
+
+    // /////////////////////////////////////////////////////////
+
+    // Authentication filter
+
+    public static final BooleanParameter filtersAuthenticationEnable = new BooleanParameter(
+            "filters.authentication.enable", // name
+            false, // default value
+            false, // mutable
+            "Controls the activation of the Authentication system" );
+
+    public static final StringParameter filtersAuthenticationImplClass = new StringParameter(
+            "filters.authentication.implClass", // name
+            "rtspproxy.filter.authentication.SimpleAuthenticationProvider", // default
+            // value
+            false, // mutable
+            "Implementation class for the authentication filter." );
+
+    public static final StringParameter filtersAuthenticationScheme = new StringParameter(
+            "filters.authentication.scheme", // name
+            "Basic", // default value
+            false, // mutable
+            "Authentication scheme to be used. Can be 'Basic' or 'Digest'." );
+
+    // /////////////////////////////////////////////////////////
+
+    // IP address filter
+
+	public static final BooleanParameter filtersIpAddressEnable = new BooleanParameter(
+            "filters.ipaddress.enable", // name
+            false, // default value
+            false, // mutable
+            "Controls the activation of the IP address filter." );
+
+    public static final StringParameter filtersIpAddressImplClass = new StringParameter(
+            "filters.ipaddress.implClass", // name
+            "rtspproxy.filter.ipaddress.SimpleIpAddressProvider", // default
+                                                                    // value
+            false, // mutable
+            "Implementation class for the IP address filter." );
+
+    // /////////////////////////////////////////////////////////
+
+    // Accounting filter
+
+    public static final BooleanParameter filtersAccountingEnable = new BooleanParameter(
+            "filters.accounting.enable", // name
+            false, // default value
+            false, // mutable
+            "Controls the activation of the Accounting system" );
+
+    public static final StringParameter filtersAccountingImplClass = new StringParameter(
+            "filters.accounting.implClass", // name
+            "rtspproxy.filter.accounting.SimpleAccountingProvider", // default value
+            false, // mutable
+            "Implementation class for the accounting filter." );
+
+
+    // /////////////////////////////////////////////////////////
+
+    // Rewrite filter
+
+    public static final BooleanParameter filtersRewriteEnable = new BooleanParameter(
+            "filters.rewrite.enable", // name
+            false, // default value
+            true, // mutable
+            "Controls the activation of the Rewrite system" );
+
+    public static final StringParameter filtersRewriteImplClass = new StringParameter(
+            "filters.rewrite.implClass", // name
+            "rtspproxy.filter.authentication.SimpleAuthenticationProvider", // default
+            // value
+            true, // mutable
+            "Implementation class for the authentication filter." );
 
     // /////////////////////////////////////////////////////////
 
@@ -323,72 +393,6 @@ public class Config extends Singleton implements Observer
     private static String proxySignature;
 
     private static Date startDate;
-
-    // /////////////////////////////////////////////////////////
-
-    // filter configurations from XML
-    private static List<AAAConfig> authenticationFilters = new ArrayList<AAAConfig>();
-
-    // filter configurations from XML
-    private static List<AAAConfig> ipAddressFilters = new ArrayList<AAAConfig>();
-
-    // filter configurations from XML
-    private static List<AAAConfig> accountingFilters = new ArrayList<AAAConfig>();
-
-    // filter configurations from XML
-    private static List<AAAConfig> urlRewritingFilters = new ArrayList<AAAConfig>();
-
-    private static List<AAAConfig> controlFilters = new ArrayList<AAAConfig>();
-
-    static void addAuthenticationFilter( AAAConfig config )
-    {
-        authenticationFilters.add( config );
-    }
-
-    static void addIpAddressFilter( AAAConfig config )
-    {
-        ipAddressFilters.add( config );
-    }
-
-    static void addAccountingFilter( AAAConfig config )
-    {
-        accountingFilters.add( config );
-    }
-
-    static void addUrlRewritingFilter( AAAConfig config )
-    {
-        urlRewritingFilters.add( config );
-    }
-
-    public static void addControlFilter( AAAConfig aaa )
-    {
-        controlFilters.add( aaa );
-    }
-
-    public static List<AAAConfig> getAuthenticationFilters()
-    {
-        return Collections.unmodifiableList( authenticationFilters );
-    }
-
-    public static List<AAAConfig> getIpAddressFilters()
-    {
-        return Collections.unmodifiableList( ipAddressFilters );
-    }
-
-    public static List<AAAConfig> getAccountingFilters()
-    {
-        return Collections.unmodifiableList( accountingFilters );
-    }
-
-    public static List<AAAConfig> getUrlRewritingFilters()
-    {
-        return Collections.unmodifiableList( urlRewritingFilters );
-    }
-
-    public static List<AAAConfig> getControlFilters()
-    {
-        return Collections.unmodifiableList( controlFilters );
-    }
 
     // /////////////////////////////////////////////////////////
 

@@ -3,13 +3,15 @@ package rtspproxy.filter.accounting;
 import java.net.InetSocketAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.configuration.Configuration;
 import org.apache.mina.common.IoSession;
-import org.dom4j.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import rtspproxy.config.AAAConfigurable;
+import rtspproxy.config.StringParameter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.rtsp.RtspMessage;
 import rtspproxy.rtsp.RtspRequest;
@@ -18,26 +20,58 @@ import rtspproxy.rtsp.RtspRequest;
  * @author Matteo Merli
  */
 public class SimpleAccountingProvider extends AccountingProviderAdapter implements
-        AccountingProvider, AAAConfigurable
+        Observer
 {
 
-    private static SimpleDateFormat format = new SimpleDateFormat(
+    private static final SimpleDateFormat format = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss Z" );
 
+    private static Logger log = LoggerFactory.getLogger( SimpleAccountingProvider.class );
+
     // This is not static since it's a separate log
-    private Logger accessLog;
+    private Logger accessLog = null;
+
+    private final StringParameter loggerCatergory;
 
     public SimpleAccountingProvider()
     {
-        accessLog = Logger.getLogger( "accessLog" );
+        loggerCatergory = new StringParameter( "filters.accounting.category", // name
+                "accessLog", // default value
+                true, // mutable
+                "Log4j category name for the accounting log." );
+        
+        loggerCatergory.addObserver( this );
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.GenericProvider#start()
+     */
+    public void start() throws Exception
+    {
+        accessLog = LoggerFactory.getLogger( loggerCatergory.getValue() );
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.GenericProvider#stop()
+     */
+    public void stop()
+    {
+        accessLog = null;
     }
 
     @Override
     public void messageReceived( IoSession session, RtspMessage message )
     {
+        if ( accessLog == null )
+            return;
+
         StringBuilder logMessage = new StringBuilder();
         if ( message instanceof RtspRequest ) {
-            logMessage.append( ((RtspRequest) message).getVerb() ).append( " " );
+            logMessage.append( ((RtspRequest) message).getVerb() ).append( ' ' );
             logMessage.append( ((RtspRequest) message).getUrl() );
         }
         accessLog.info( buildLogMessage( session, message, logMessage ) );
@@ -46,6 +80,9 @@ public class SimpleAccountingProvider extends AccountingProviderAdapter implemen
     @Override
     public void messageSent( IoSession session, RtspMessage message )
     {
+        if ( accessLog == null )
+            return;
+
         StringBuilder logMessage = new StringBuilder();
         accessLog.info( buildLogMessage( session, message, logMessage ) );
     }
@@ -54,7 +91,7 @@ public class SimpleAccountingProvider extends AccountingProviderAdapter implemen
             StringBuilder logMessage )
     {
         StringBuilder sb = new StringBuilder( 150 );
-        String userName = (String) session.getAttribute( AuthenticationFilter.ATTR );
+        String userName = (String) session.getAttribute( AuthenticationFilter.getAttrName() );
         String userAgent = message.getHeader( "User-Agent" );
         Date now = new Date();
         String dateString = format.format( now );
@@ -72,17 +109,31 @@ public class SimpleAccountingProvider extends AccountingProviderAdapter implemen
         return sb.toString();
     }
 
-    public void configure( List<Element> configElements ) throws Exception
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.GenericProvider#configure(org.apache.commons.configuration.Configuration)
+     */
+    public void configure( Configuration configuration ) throws Exception
     {
-        for ( Element el : configElements ) {
-            if ( el.getName().equals( "category" ) ) {
-                String category = el.getTextTrim();
+        loggerCatergory.readConfiguration( configuration );
+    }
 
-                if ( category == null || category.length() == 0 )
-                    throw new IllegalArgumentException( "invalid log category given" );
-
-                accessLog = Logger.getLogger( category );
-            }
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+     */
+    public void update( Observable o, Object arg )
+    {
+        if ( o != loggerCatergory )
+            return;
+        
+        try {
+            stop();
+            start();
+        } catch ( Exception e ) {
+            log.error( "Error restarting SimpleAccountingProvider" );
         }
     }
 }

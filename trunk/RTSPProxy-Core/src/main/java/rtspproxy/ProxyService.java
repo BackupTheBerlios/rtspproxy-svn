@@ -142,6 +142,8 @@ public abstract class ProxyService extends Singleton implements Observer
             return;
         }
 
+        Reactor.getRegistry().unbind( this, false );
+
         log.info( getName() + " Stopped" );
         isRunning = false;
     }

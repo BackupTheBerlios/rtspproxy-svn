@@ -3,156 +3,167 @@
  */
 package rtspproxy.filter.rewrite;
 
-import org.apache.log4j.Logger;
-
 import java.net.MalformedURLException;
 import java.net.SocketAddress;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.dom4j.Element;
+import org.apache.commons.configuration.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import rtspproxy.config.AAAConfigurable;
-import rtspproxy.filter.GenericProviderAdapter;
+import rtspproxy.config.ListParameter;
 import rtspproxy.rtsp.RtspRequest;
-import rtspproxy.rtsp.RtspRequest.Verb;
 
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
- *
+ * 
  */
-public class SimpleUrlRewritingProvider extends GenericProviderAdapter
-		implements UrlRewritingProvider, AAAConfigurable {
-	
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = Logger
-			.getLogger(SimpleUrlRewritingProvider.class);
+public class SimpleUrlRewritingProvider implements UrlRewritingProvider
+{
 
-	// map with url from-->to prefix mapping (used in rewriting request URL)
-	private HashMap<String, String> forwardMappings = new HashMap<String, String>();
-	
-	// map with url from-->to prefix mapping (used in rewriting request URL)
-	private HashMap<URL, URL> optionsForwardMappings = new HashMap<URL, URL>();
-	
-	// map with url to-->from prefix mapping (used in rewriting response URL)
-	private HashMap<String, String> reverseMappings = new HashMap<String, String>();
-	
-	/* (non-Javadoc)
-	 * @see rtspproxy.filter.rewrite.UrlRewritingProvider#rewriteRequestUrl(java.net.URL)
-	 */
-	public UrlRewritingResult rewriteRequestUrl(URL request, RtspRequest.Verb verb, SocketAddress client,
-			Map<String, String> requestHeaders, Map<String, Object> exposedSessionAttributes) {
-		UrlRewritingResult result = null;
-		URL rewritten = null;
-		String req = request.toString();
-		
-		logger.debug("checking request URL: " + req + ", verb=" + verb);
-		
-		if(verb == RtspRequest.Verb.OPTIONS) {
-			logger.debug("handling OPTIONS request");
-			
-			if((rewritten = this.optionsForwardMappings.get(request)) != null) {
-				logger.debug("found special OPTIONS rewrite URL: " + rewritten);
-				
-				return new UrlRewritingResult(rewritten);
-			}
-		}
-		for(String prefix : this.forwardMappings.keySet()) {
-			if(req.startsWith(prefix)) {
-				logger.debug("found prefix match on " + prefix);
-				try {
-					rewritten = new URL(this.forwardMappings.get(prefix) 
-							+ req.substring(prefix.length()));
-				} catch(MalformedURLException mue) {
-					logger.error("request prefix rewriting caused invalid URL", mue);
-				}
-			}
-		}
-		logger.debug("rewritten URL: " + rewritten);
-		
-		if(rewritten != null)
-			result = new UrlRewritingResult(rewritten);
-		
-		return result;
-	}
+    private static final Logger log = LoggerFactory
+            .getLogger( SimpleUrlRewritingProvider.class );
 
-	/* (non-Javadoc)
-	 * @see rtspproxy.filter.rewrite.UrlRewritingProvider#rewriteResponseHeaderUrl(java.net.URL)
-	 */
-	public URL rewriteResponseHeaderUrl(URL response) {
-		URL rewritten = null;
-		String resp = response.toString();
-		
-		logger.debug("checking response URL: " + resp);
-		for(String prefix : this.reverseMappings.keySet()) {
-			if(resp.startsWith(prefix)) {
-				logger.debug("found prefix match on " + prefix);
-				try {
-					rewritten = new URL(this.reverseMappings.get(prefix) 
-							+ resp.substring(prefix.length()));
-				} catch(MalformedURLException mue) {
-					logger.error("response prefix rewriting caused invalid URL", mue);
-				}
-			}
-		}
-		logger.debug("rewritten URL: " + rewritten);
-		
-		return rewritten;
-	}
+    /** map with url from-->to prefix mapping (used in rewriting request URL) */
+    private Map<String, String> forwardMappings = new HashMap<String, String>();
 
-	public void configure(List<Element> configElements) throws Exception {
-		for(Element el : configElements) {
-			if(el.getName().equals("mapping")) {
-				Element fromEl = el.element("from");
-				Element toEl = el.element("to");
-				
-				if(fromEl == null || toEl == null)
-					throw new IllegalArgumentException("no from or to element in mapping configuration");
-				
-				String from = fromEl.getTextTrim();
-				String to = toEl.getTextTrim();
-				
-				if(from == null || from.length() == 0 || to == null || to.length() == 0)
-					throw new IllegalArgumentException("invalid from or to element in mapping configuration");
-				
-				if(from.endsWith("/"))
-					from = from.substring(0, from.length()-1);
-				if(to.endsWith("/"))
-					to = to.substring(0, to.length()-1);
+    // /** map with url from-->to prefix mapping (used in rewriting request URL)
+    // */
+    // private Map<URL, URL> optionsForwardMappings = new HashMap<URL, URL>();
 
-				this.forwardMappings.put(from, to);
-				this.reverseMappings.put(to, from);
-			} else if(el.getName().equals("map-options")) {
-				Element fromEl = el.element("from");
-				Element toEl = el.element("to");
-				
-				if(fromEl == null || toEl == null)
-					throw new IllegalArgumentException("no from or to element in mapping configuration");
-				
-				String from = fromEl.getTextTrim();
-				String to = toEl.getTextTrim();
-				
-				if(from == null || from.length() == 0 || to == null || to.length() == 0)
-					throw new IllegalArgumentException("invalid from or to element in mapping configuration");
-				
-				URL fromUrl = new URL(from);
-				URL toUrl = new URL(to);
-				
-				this.optionsForwardMappings.put(new URL(fromUrl.getProtocol(), fromUrl.getHost(), 
-						fromUrl.getPort(), "/"),
-						new URL(toUrl.getProtocol(), toUrl.getHost(), 
-								toUrl.getPort(), "/"));
-			}
-		}
-	}
+    /** map with url to-->from prefix mapping (used in rewriting response URL) */
+    private Map<String, String> reverseMappings = new HashMap<String, String>();
 
-	public String[] getWantedSessionAttributes() {
-		// no attributes wanted
-		return null;
-	}
+    private final ListParameter<RewriteMapping> rewriteRules;
+
+    public SimpleUrlRewritingProvider()
+    {
+        rewriteRules = new ListParameter<RewriteMapping>(
+                "filters.rewrite.rules.mapping", // name
+                false, // mutable
+                RewriteMapping.class, // parameter class
+                "Rewriting rules" );
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.rewrite.UrlRewritingProvider#rewriteRequestUrl(java.net.URL)
+     */
+    public UrlRewritingResult rewriteRequestUrl( URL request, RtspRequest.Verb verb,
+            SocketAddress client, Map<String, String> requestHeaders,
+            Map<String, Object> exposedSessionAttributes )
+    {
+        UrlRewritingResult result = null;
+        URL rewritten = null;
+        String req = request.toString();
+
+        log.debug( "checking request URL: {}, verb={}", req, verb );
+
+        // TODO: OPTIONS mapping
+        /*
+         * if ( verb == RtspRequest.Verb.OPTIONS ) { log.debug( "handling
+         * OPTIONS request" );
+         * 
+         * if ( (rewritten = this.optionsForwardMappings.get( request )) != null ) {
+         * log.debug( "found special OPTIONS rewrite URL: {}", rewritten );
+         * 
+         * return new UrlRewritingResult( rewritten ); } }
+         */
+        for ( String prefix : forwardMappings.keySet() ) {
+            if ( req.startsWith( prefix ) ) {
+                log.debug( "found prefix match on {}", prefix );
+                try {
+                    rewritten = new URL( forwardMappings.get( prefix )
+                            + req.substring( prefix.length() ) );
+
+                } catch ( MalformedURLException mue ) {
+                    log.error( "request prefix rewriting caused invalid URL", mue );
+                }
+            }
+        }
+        log.debug( "rewritten URL: {}", rewritten );
+
+        if ( rewritten != null )
+            result = new UrlRewritingResult( rewritten );
+
+        return result;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.GenericProvider#start()
+     */
+    public void start() throws Exception
+    {
+        for ( RewriteMapping rewriteMap : rewriteRules.getElementsList() ) {
+            forwardMappings.put( rewriteMap.getFrom(), rewriteMap.getTo() );
+            reverseMappings.put( rewriteMap.getTo(), rewriteMap.getFrom() );
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.GenericProvider#stop()
+     */
+    public void stop()
+    {
+        forwardMappings.clear();
+        reverseMappings.clear();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.rewrite.UrlRewritingProvider#rewriteResponseHeaderUrl(java.net.URL)
+     */
+    public URL rewriteResponseHeaderUrl( URL response )
+    {
+        URL rewritten = null;
+        String resp = response.toString();
+
+        log.debug( "checking response URL: {}", resp );
+
+        for ( String prefix : reverseMappings.keySet() ) {
+            if ( resp.startsWith( prefix ) ) {
+                log.debug( "found prefix match on {}", prefix );
+                String url = reverseMappings.get( prefix )
+                        + resp.substring( prefix.length() );
+                try {
+                    rewritten = new URL( url );
+                } catch ( MalformedURLException mue ) {
+                    log.error( "response prefix rewriting caused invalid URL: {}", url );
+                }
+            }
+        }
+
+        log.info( "rewritten URL: {}", rewritten );
+        return rewritten;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.GenericProvider#configure(org.apache.commons.configuration.Configuration)
+     */
+    public void configure( Configuration configuration ) throws Exception
+    {
+        rewriteRules.readConfiguration( configuration );
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see rtspproxy.filter.rewrite.UrlRewritingProvider#getWantedSessionAttributes()
+     */
+    public String[] getWantedSessionAttributes()
+    {
+        // no attributes wanted
+        return null;
+    }
 
 }

@@ -1,90 +1,67 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <parent>
-    <groupId>net.merlimat</groupId>
-    <artifactId>rtspproxy</artifactId>
-    <version>3.0-ALPHA5-SNAPSHOT</version>
-  </parent>
-  
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>net.merlimat</groupId>
-  <artifactId>RTSPProxy-OSGi</artifactId>
-  <packaging>osgi-bundle</packaging>
-  <version>3.0-ALPHA5-SNAPSHOT</version>
-  <name>RTSP Proxy OSGi bundle</name>
-  <url>http://rtspproxy.berlios.de</url>
-  <inceptionYear>2003</inceptionYear>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		
+	<!-- $Id$
+	     $URL$
+	 -->
+	
+	<parent>
+		<groupId>net.merlimat</groupId>
+		<artifactId>rtspproxy</artifactId>
+		<version>3.0-ALPHA5-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
 
-  <dependencies>
+	<modelVersion>4.0.0</modelVersion>
 
-    <dependency>
-      <groupId>net.merlimat</groupId>
-      <artifactId>RTSPProxy-Core</artifactId>
-      <version>3.0-ALPHA5-SNAPSHOT</version>
-    </dependency>
+	<artifactId>RTSPProxy-OSGi</artifactId>
+	<packaging>osgi-bundle</packaging>
+	<name>RTSP Proxy OSGi bundle</name>
 
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi</artifactId>
-      <version>3.0</version>
-      <scope>provided</scope>
-    </dependency>
+	<dependencies>
+		<dependency>
+			<groupId>net.merlimat</groupId>
+			<artifactId>RTSPProxy-Core</artifactId>
+			<version>3.0-ALPHA5-SNAPSHOT</version>
+		</dependency>
 
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi</artifactId>
+			<version>3.0</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
 
-  </dependencies>
+	<build>
+		<defaultGoal>package</defaultGoal>
 
-  <build>
-    <defaultGoal>assembly:directory</defaultGoal>
-    
-    <resources>
-      <resource>
-	<directory>src/main/resources</directory>
-	<filtering>true</filtering>
-      </resource>
-    </resources>
-    
-    <plugins>
-      <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-compiler-plugin</artifactId>
-	<configuration>
-	  <source>1.5</source>
-	  <target>1.5</target>
-	  <showWarnings>true</showWarnings>
-	</configuration>
-      </plugin>
+		<plugins>
 
-      <!-- see http://docs.safehaus.org/display/OSGI/OSGi+Plugin+for+Maven+2.0 for further instructions -->
-      <plugin>
-        <groupId>org.apache.felix.plugins</groupId>
-        <artifactId>maven-osgi-plugin</artifactId>
-        <extensions>true</extensions>
-        <version>0.3.0</version>
-        <configuration>
-          <osgiManifest>
-            <bundleActivator>rtspproxy.bundle.Activator</bundleActivator>
-            <bundleName>RTSP Proxy bundle</bundleName>
-            <bundleDescription>RTSP Proxy bundle</bundleDescription>
-            <bundleVendor>rbieniek</bundleVendor>
-	    <importPackage>org.osgi.service.log</importPackage>
-          </osgiManifest>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
-  <repositories>
-    <repository>
-      <id>safehaus-repository</id>
-      <name>Safehaus Repository</name>
-      <url>http://m2.safehaus.org</url>
-    </repository>
-  </repositories>
+			<!-- see http://docs.safehaus.org/display/OSGI/OSGi+Plugin+for+Maven+2.0 for further instructions -->
+			<plugin>
+				<groupId>org.apache.felix.plugins</groupId>
+				<artifactId>maven-osgi-plugin</artifactId>
+				<extensions>true</extensions>
+				<version>0.3.0</version>
+				<configuration>
+					<osgiManifest>
+						<bundleActivator>
+							rtspproxy.bundle.Activator
+						</bundleActivator>
+						<bundleName>RTSP Proxy bundle</bundleName>
+						<bundleDescription>
+							RTSP Proxy bundle
+						</bundleDescription>
+						<bundleVendor>rbieniek</bundleVendor>
+						<importPackage>
+							org.osgi.service.log
+						</importPackage>
+					</osgiManifest>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

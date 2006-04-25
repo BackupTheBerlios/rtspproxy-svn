@@ -35,8 +35,8 @@ public class RtspServerFilters extends RtspFilters
 		addIpAddressFilter( chain, Side.Server );
 		addRtspCodecFilter( chain );
 		addRewriteFilter( chain, Side.Server );
-		addAccountingFilter( chain, Side.Server );
-		addControlFilter ( chain, Side.Server );
+		addAccountingFilter( chain );
+		addControlFilter ( chain );
 	}
 
 }

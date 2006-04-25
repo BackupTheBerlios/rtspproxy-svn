@@ -5,52 +5,98 @@ package rtspproxy.filter.control;
 
 import java.util.List;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.mina.common.IoSession;
-import org.dom4j.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.filter.FilterBase;
+import rtspproxy.lib.Side;
+import rtspproxy.rtsp.RtspRequest;
+import rtspproxy.rtsp.RtspResponse;
 
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
- *
+ * 
  */
-public class ControlFilter extends FilterBase 
-{	
-	public static final String FilterNAME = "controlFilter";
+public class ControlFilter extends FilterBase<ControlProvider>
+{
 
-	protected ControlProvider provider;
-	
-	/**
-	 * @param filterName
-	 * @param className
-	 * @param typeName
-	 */
-	protected ControlFilter(String className, List<Element> configElements, String typeName) {
-		super(FilterNAME, className, typeName);
-		
-		this.provider = (ControlProvider)loadConfigInitProvider(className, ControlProvider.class, configElements);
-	}
+    private static Logger log = LoggerFactory.getLogger( ControlFilter.class );
 
-	/* (non-Javadoc)
-	 * @see org.apache.mina.common.IoFilterAdapter#sessionClosed(org.apache.mina.common.IoFilter.NextFilter, org.apache.mina.common.IoSession)
-	 */
-	@Override
-	public void sessionClosed(NextFilter nextFilter, IoSession session) throws Exception {
-		if ( provider != null  && isRunning())
-			provider.sessionClosed( session );
+    public static final String FilterNAME = "controlFilter";
 
-		nextFilter.sessionClosed(session);
-	}
+    private List<ControlProvider> providers;
 
-	/* (non-Javadoc)
-	 * @see org.apache.mina.common.IoFilterAdapter#sessionOpened(org.apache.mina.common.IoFilter.NextFilter, org.apache.mina.common.IoSession)
-	 */
-	@Override
-	public void sessionOpened(NextFilter nextFilter, IoSession session) throws Exception {
-		if ( provider != null && isRunning() )
-			provider.sessionOpened( session );
+    private Side side = Side.Client;
 
-		nextFilter.sessionOpened(session);
-	}
+    @Override
+    public String getName()
+    {
+        return FilterNAME;
+    }
+
+    public ControlFilter( Side side )
+    {
+        this.side = side;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.mina.common.IoFilterAdapter#sessionClosed(org.apache.mina.common.IoFilter.NextFilter,
+     *      org.apache.mina.common.IoSession)
+     */
+    @Override
+    public void sessionClosed( NextFilter nextFilter, IoSession session )
+            throws Exception
+    {
+        for ( ControlProvider provider : providers )
+            provider.sessionClosed( session );
+
+        nextFilter.sessionClosed( session );
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.mina.common.IoFilterAdapter#sessionOpened(org.apache.mina.common.IoFilter.NextFilter,
+     *      org.apache.mina.common.IoSession)
+     */
+    @Override
+    public void sessionOpened( NextFilter nextFilter, IoSession session )
+            throws Exception
+    {
+        for ( ControlProvider provider : providers )
+            provider.sessionOpened( session );
+
+        nextFilter.sessionOpened( session );
+    }
+
+    @Override
+    public void messageReceived( NextFilter nextFilter, IoSession session, Object message )
+            throws Exception
+    {
+        if ( message instanceof RtspRequest ) {
+            for ( ControlProvider provider : providers )
+                provider.receivedRequest( session, (RtspRequest) message );
+        } else if ( message instanceof RtspResponse ) {
+            for ( ControlProvider provider : providers )
+                provider.receivedResponse( session, (RtspResponse) message );
+        } else {
+            log.error( "Expecting a RtspRequest. Received a {}", message.getClass()
+                    .getName() );
+        }
+
+        // Forward message
+        nextFilter.messageReceived( session, message );
+    }
+
+    @Override
+    public void doConfigure( Configuration configuration )
+    {
+        log.debug( "Configuring control filter." );
+        // TODO: implement it!
+    }
 
 }
