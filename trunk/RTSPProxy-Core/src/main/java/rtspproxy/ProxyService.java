@@ -122,7 +122,7 @@ public abstract class ProxyService extends Singleton implements Observer
 
             }
         } catch ( IOException e ) {
-            log.error( "Can't start {}: {}", getName(), e );
+            log.error( "Can't start {} ({}): " + e.getMessage(), getName(), socketAddress  );
             throw e;
         }
         log.info( "{} Started - Listening on: {}", getName(), socketAddress );
@@ -142,7 +142,11 @@ public abstract class ProxyService extends Singleton implements Observer
             return;
         }
 
-        Reactor.getRegistry().unbind( this, false );
+        try {
+            Reactor.getRegistry().unbind( this, false );
+        } catch ( Exception e ) {
+            log.debug( "Exception unbinding service: {}", e.getMessage() );
+        }
 
         log.info( getName() + " Stopped" );
         isRunning = false;

@@ -33,10 +33,14 @@ import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
+import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
 import org.apache.mina.filter.ThreadPoolFilter;
 import org.apache.mina.transport.socket.nio.DatagramAcceptor;
+import org.apache.mina.transport.socket.nio.DatagramAcceptorConfig;
+import org.apache.mina.transport.socket.nio.DatagramSessionConfig;
 import org.apache.mina.transport.socket.nio.SocketAcceptor;
+import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +73,10 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
 
     /** Map a ProxyService to its own IoAcceptor. */
     private final ConcurrentMap<ProxyService, IoAcceptor> acceptors = new ConcurrentHashMap<ProxyService, IoAcceptor>();
+
+    private SocketAcceptor socketAcceptor = null;
+
+    private DatagramAcceptor datagramAcceptor = null;
 
     /**
      * Construct a new ProxyServiceRegistry. This class is a Singleton, so there
@@ -153,8 +161,18 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
             throws Exception
     {
         IoAcceptor acceptor = acceptors.get( service );
+
         for ( SocketAddress address : addresses.get( service ) ) {
             try {
+                // Disconnect all clients
+                Set sessions = acceptor.getManagedSessions( address );
+                log.debug( "{} has {} connected clients.", service.getName(), sessions
+                        .size() );
+                for ( Object obj : sessions ) {
+                    IoSession session = (IoSession) obj;
+                    session.close();
+                }
+
                 acceptor.unbind( address );
             } catch ( Exception e ) {
                 // log.debug( "Error unbinding {}", service.getName() );
@@ -250,12 +268,30 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
 
         // Create a new one
         TransportType transportType = service.getTransportType();
-        if ( transportType == TransportType.SOCKET )
-            acceptor = new SocketAcceptor(); // socketAcceptor;
-        else if ( transportType == TransportType.DATAGRAM )
-            acceptor = new DatagramAcceptor(); // datagramAcceptor;
-        else
-            acceptor = null;
+        if ( transportType == TransportType.SOCKET ) {
+            if ( socketAcceptor == null ) {
+                socketAcceptor = new SocketAcceptor();
+                SocketAcceptorConfig config = (SocketAcceptorConfig) socketAcceptor
+                        .getDefaultConfig();
+                config.setReuseAddress( true );
+            }
+            acceptor = socketAcceptor;
+
+        } else if ( transportType == TransportType.DATAGRAM ) {
+            if ( datagramAcceptor == null ) {
+                datagramAcceptor = new DatagramAcceptor(); // datagramAcceptor;
+                DatagramAcceptorConfig config = (DatagramAcceptorConfig) datagramAcceptor
+                        .getDefaultConfig();
+                DatagramSessionConfig sessionConfig = (DatagramSessionConfig) config
+                        .getSessionConfig();
+                sessionConfig.setReuseAddress( true );
+            }
+            acceptor = datagramAcceptor;
+
+        } else {
+            log.debug( "Unrecognized transport type: {}", transportType );
+            return null;
+        }
 
         // Save the acceptor
         acceptors.put( service, acceptor );
@@ -275,8 +311,8 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
         if ( o == Config.threadPoolSize ) {
             // Update the thread pool size
             threadPoolFilter.setMaximumPoolSize( Config.threadPoolSize.getValue() );
-            log.info( "Changed ThreadPool size. New max size: "
-                    + threadPoolFilter.getMaximumPoolSize() );
+            log.info( "Changed ThreadPool size. New max size: {}", threadPoolFilter
+                    .getMaximumPoolSize() );
         }
     }
 

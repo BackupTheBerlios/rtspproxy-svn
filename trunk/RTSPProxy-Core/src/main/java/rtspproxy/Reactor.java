@@ -35,95 +35,96 @@ import rtspproxy.rtp.range.PortrangeRtpServerSessionFactory;
 public class Reactor
 {
 
-	private static Logger log = LoggerFactory.getLogger( Reactor.class );
+    private static Logger log = LoggerFactory.getLogger( Reactor.class );
 
-	private static ProxyServiceRegistry registry = null;
+    private static ProxyServiceRegistry registry = null;
 
-	private static JmxAgent jmxAgent = null;
+    private static JmxAgent jmxAgent = null;
+    
+    private static boolean isStandalone = false;
+    
+    private static FilterRegistry filterRegistry = null;
 
-	private static boolean isStandalone = false;
-	
-	private static FilterRegistry filterRegistry = null;
+    public static void setStandalone( boolean standalone )
+    {
+        isStandalone = standalone;
+    }
 
-	public static void setStandalone( boolean standalone )
-	{
-		isStandalone = standalone;
-	}
+    /**
+     * Constructor. Creates a new Reactor and starts it.
+     * The reactor relies on configuration info that has to be provided 
+     * <b>before</b> starting the reactor.
+     * @exception Exception reactor startup failed.
+     */
+    static public void start() throws Exception
+    {
+        log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
 
-	/**
-	 * Constructor. Creates a new Reactor and starts it.
-	 * The reactor relies on configuration info that has to be provided 
-	 * <b>before</b> starting the reactor.
-	 * @exception Exception reactor startup failed.
-	 */
-	static public void start() throws Exception
-	{
-		log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
+        registry = new ProxyServiceRegistry();
 
-		registry = new ProxyServiceRegistry();
+        // Register the "rtsp://" protocol scheme
+        System.setProperty( "java.protocol.handler.pkgs", "rtspproxy" );
 
-		// Register the "rtsp://" protocol scheme
-		System.setProperty( "java.protocol.handler.pkgs", "rtspproxy" );
+        ProxyService rtspService = new RtspService();
+        rtspService.start();
+        
+        ProxyService rtpClientService = new RtpClientService();
+        rtpClientService.start();
+        
+        ProxyService rtcpClientService = new RtcpClientService();
+        rtcpClientService.start();
 
-		ProxyService rtspService = new RtspService();
-		rtspService.start();
+        ProxyService rtpServerService = new RtpServerService();
+        rtpServerService.start();
+                
+        ProxyService rtcpServerService = new RtcpServerService();
+        rtcpServerService.start();
 
-		ProxyService rtpClientService = new RtpClientService();
-		rtpClientService.start();
+        ProxyService rdtClientService = new RdtClientService();
+        rdtClientService.start();
 
-		ProxyService rtcpClientService = new RtcpClientService();
-		rtcpClientService.start();
+        ProxyService rdtServerService = new RdtServerService();
+        rdtServerService.start();
 
-		ProxyService rtpServerService = new RtpServerService();
-		rtpServerService.start();
+        boolean enableJmx = Config.jmxEnable.getValue();
+        if ( enableJmx )
+            jmxAgent = new JmxAgent();
 
-		ProxyService rtcpServerService = new RtcpServerService();
-		rtcpServerService.start();
-
-		ProxyService rdtClientService = new RdtClientService();
-		rdtClientService.start();
-
-		ProxyService rdtServerService = new RdtServerService();
-		rdtServerService.start();
-
-		boolean enableJmx = Config.jmxEnable.getValue();
-		if ( enableJmx )
-			jmxAgent = new JmxAgent();
-
-		filterRegistry = new FilterRegistry();
-		filterRegistry.populateRegistry();		
+        filterRegistry = new FilterRegistry();
+        filterRegistry.populateRegistry();		
 		
-		PortrangeRtpServerSessionFactory portrangeFactory = new PortrangeRtpServerSessionFactory();
-		portrangeFactory.setLocalAddress(rtpServerService.getAddress());
-		portrangeFactory.start();
-		
-	}
+        PortrangeRtpServerSessionFactory portrangeFactory = new PortrangeRtpServerSessionFactory();
+        portrangeFactory.setLocalAddress(rtpServerService.getAddress());
+        portrangeFactory.start();
+        
+    }
 
-	static public void stop()
-	{
-		try {
-			PortrangeRtpServerSessionFactory.getInstance().stop();
-			
-			if ( jmxAgent != null )
-				jmxAgent.stop();
+    static public void stop()
+    {
+        try {
+            // TODO: check why null pointer exception
+            // PortrangeRtpServerSessionFactory.getInstance().stop();
+            
+            if ( jmxAgent != null )
+                jmxAgent.stop();
+            
+            if ( registry != null )
+                registry.unbindAll();
+            
+            log.info( "Shutdown completed" );
 
-			if ( registry != null )
-				registry.unbindAll();
-			
-			log.info( "Shutdown completed" );
+        } catch ( Exception e ) {
+            log.warn( "Error shutting down: {}", (Object)e );
+            Exceptions.logStackTrace( e );
+        }
 
-		} catch ( Exception e ) {
-			log.warn( "Error shutting down: " + e );
-			Exceptions.logStackTrace( e );
-		}
+        if ( isStandalone )
+            Runtime.getRuntime().halt( 0 );
+    }
 
-		if ( isStandalone )
-			Runtime.getRuntime().halt( 0 );
-	}
-
-	protected static ProxyServiceRegistry getRegistry()
-	{
-		return registry;
-	}
+    protected static ProxyServiceRegistry getRegistry()
+    {        
+        return registry;
+    }
 
 }

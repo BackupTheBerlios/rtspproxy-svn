@@ -32,20 +32,19 @@ import rtspproxy.lib.Exceptions;
 public class ShutdownHandler extends Thread
 {
 
-	private static Logger log = LoggerFactory.getLogger( ShutdownHandler.class );
-
-	@Override
+    private static Logger log = LoggerFactory.getLogger( ShutdownHandler.class );
+    
+    @Override
     public void run()
-	{
-		log.info( "Shutting down" );
-		try {
-			log.info( "Stopping {} {}", Config.getName(), Config.getVersion() );
-			Reactor.stop();
+    {
+        log.info( "Shutting down" );
+        try {
+            log.info( "Stopping {} {}", Config.getName(), Config.getVersion() );
+            Reactor.stop();
 
-		} catch ( Exception e ) {
-			log.error( "Exception in the reactor: ", e );
-			Exceptions.logStackTrace( e );
-		}
-	}
-
+        } catch ( Exception e ) {
+            log.error( "Exception in the reactor: ", e );
+            Exceptions.logStackTrace( e );
+        }
+    }
 }
