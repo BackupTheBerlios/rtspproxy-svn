@@ -17,7 +17,7 @@
 			</action>
 
 			<action dev="rbieniek" type="add">
-				Added support for XML based comfiguration files.
+				Added support for XML based configuration files.
 			</action>
 
 			<action dev="rbieniek" type="update">
@@ -40,7 +40,7 @@
 			<action dev="rbieniek" type="add">
 				Added a concept of filters being applied to the upstream
 				(remote server) connection and the downstream client
-				connection. This allows for example IP addess based
+				connection. This allows for example IP address based
 				filters which might constrain access to either the
 				streaming proxy, to remote streaming servers or both.
 			</action>
@@ -48,7 +48,7 @@
 			<action dev="rbieniek" type="add">
 				Made installed filters manageable through JMX. An
 				individual filter can be suspended or resumed via JMX
-				and may provide addtional management capabilites by
+				and may provide additional management capabilities by
 				exposing an linked MBean.
 			</action>
 

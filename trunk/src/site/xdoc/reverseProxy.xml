@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<document>
+	<!-- $Id$
+	     $URL$
+	-->
+
+	<properties>
+		<author email="matteo.merli@gmail.com">Matteo Merli</author>
+		<title>Reverse Proxy</title>
+	</properties>
+
+	<body>
+		<section name="Reverse Proxy">
+			<p>A reverse proxy works very similarly as the normal proxy 
+			operating mode, but with a few important differences.
+			</p>
+			<p>First, instead of being tightly coupled with clients, the
+			reverse proxy it's coupled with servers and it's transparent
+			to clients.
+			</p>
+			<p>The primary purpose of a reverse proxy is to serve as 
+			a "<i>frontend</i>" for one or more RTSP servers. The proxy will
+			act as a public façade for the server.
+			</p>
+			<div align="center">
+				<img src="images/reverseProxy.png" alt="Reverse proxy schema" />
+			</div>
+
+			<subsection name="Benefits">
+				<p>A real world example would the case of a IP web-cam with
+				RTSP capabilities. Generally these IP cams are running an
+				embedded RTSP server wich can safely serve the stream to
+				no more than very few simultaneous clients.
+				</p>
+				<p>The media server can be in an internal network segment and
+				being not accessible from public networks.
+				</p>
+			</subsection>
+
+			<subsection name="Configuration">
+				<p>Configuring the RTSP-Proxy to act as a reverse proxy
+				it's simply a matter of using the 
+				<a href="rewriteFilter.html">Rewrite Filter</a> and
+				setup a few url rewriting rules.
+				</p>
+				<p>As in the above figure example, the rewrite rule would be:
+				</p>
+				<source>&lt;rules&gt;
+    &lt;mapping&gt;
+        &lt;from&gt;rtsp://domain.com:554/path&lt;/from&gt;
+        &lt;to&gt;rtsp://10.0.0.2:1554/newPath&lt;/to&gt;
+    &lt;/mapping&gt;
+&lt;/rules&gt;</source>
+			<p>The rewriting filter will take care of rewriting the media url in
+			RTSP requests and responses so that nor the client or the server
+			will note something strange.
+			</p>
+			<p>The client does not need to be <i>proxy-aware</i>, in the sense 
+			that it will simply connect to the host specified in the url of 
+			the media resource, thinking it is talking with a regular RTSP server.
+			</p>
+			</subsection>
+                </section>
+        </body>
+</document>
+
+

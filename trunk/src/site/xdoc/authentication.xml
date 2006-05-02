@@ -9,7 +9,10 @@
 	<body>
 		<section name="Authentication">
 			<p>
-				<b>Beware: The authentication support is still a work in progress.</b>
+				<b>Beware:</b><br />
+				 The proxy authentication support in mainstream media players is 
+				somewhat inexistant, only Windows Media Player behaves well 
+				when the the proxy ask for authentication.
 			</p>
 			<p>
 				The RTSP specification foresees the optional presence of
@@ -18,12 +21,10 @@
 				authentication.
 
 			</p>
-			
-							<p>
-					The default implementation of this filter reads the
-					users from a plain text file located in
-					<code>conf/users.txt</code>.
-				</p>
+			<p>The default implementation of this filter reads the
+			users from a plain text file located in
+			<code>conf/users.properties</code>.
+			</p>
 
 
 				<table>
@@ -76,12 +77,14 @@
 					</tbody>
 				</table>
 
-				<subsection name="Plain text Implementation">
+				<subsection name="Default Implementation">
 					<p>
-						This is the default implementation of the authentication
-						 filter. The users and associated password 
+						The default implementation of the authentication
+						 filter use a very simple system to store user
+						informations.
+						The users and associated passwords
 						 should be contained into a a text file, by default
-						 located in <code>conf/users.txt</code>.
+						 located in <code>conf/users.properties</code>.
 					</p>
 					<p>
 						The users file will contain one user per line:
@@ -122,7 +125,7 @@ bill : passwd</source>
 				<subsection
 					name="Using an alternative implementation">
 					<p>
-						The PlainTextAuthenticationProvider is a very basic 
+						The SimpleAuthenticationProvider is a very basic 
 						backend system, mostly meant as a guideline. 
 						In real world situations users will be kept in a 
 						relational database, LDAP, etc..
@@ -136,13 +139,14 @@ bill : passwd</source>
 						interface.
 					</p>
 					<source>public interface AuthenticationProvider 
-{ 
-	public void init() throws Exception; 
-	public void shutdown() throws Exception; 
-	public boolean isAuthenticated( Credentials credentials );
+{  
+    public void start() throws Exception; 
+    public void stop() throws Exception; 
+    public boolean isAuthenticated( Credentials credentials );
+    public String getPassword( String username );
 }</source>
 					<p>
-						This interface is only composed of three
+						This interface is only composed of four
 						methods:
 					</p>
 					<table>
@@ -154,16 +158,16 @@ bill : passwd</source>
 						</thead>
 						<tbody>
 							<tr>
-								<td>init()</td>
+								<td>start()</td>
 								<td>
-									Called at startup. Should be used to
+									Called at filter startup. Should be used to
 									properly setup the subsystem.
 								</td>
 							</tr>
 							<tr>
-								<td>shutdown()</td>
+								<td>stop()</td>
 								<td>
-									Called before the proxy shutdown.
+									Called before the filter shutdown.
 									Should be used close opened
 									connections...
 								</td>
@@ -175,11 +179,18 @@ bill : passwd</source>
 								<td>
 									This method must return
 									<code>true</code>
-									if the user identificated with 
+									if the user identified with 
 									<code>credentials</code> has the right
 									to access to the RtspProxy system
 									and <code>false</code>
 									otherwise.
+								</td>
+							</tr>
+							<tr>
+								<td>
+									public String getPassword( String username )
+								</td>
+								<td>
 								</td>
 							</tr>
 						</tbody>

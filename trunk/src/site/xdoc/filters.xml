@@ -12,7 +12,7 @@
 				<p>
 					The RtspProxy is capable of restricting access only
 					to authorized clients. This access control scheme is
-					completeley separated from the server access control
+					completely separated from the server access control
 					because it's proxy specific.
 				</p>
 				<p>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<document>
+
+	<properties>
+		<author email="matteo.merli@gmail.com">Matteo Merli</author>
+		<title>RTSP-Proxy management interface</title>
+	</properties>
+
+	<body>
+		<section name="Monitoring and management">
+			<p>RTSP-Proxy has the ability to expose its internal state through
+			a standardized interface with the purpose of enable the remote 
+			monitoring and management of the running system.
+			</p> 
+			<p>This is achieved with the adoption of the JMX standard
+			(see <a href="http://java.sun.com/jmx">http://java.sun.com/jmx</a>).
+			</p>
+		</section>
+	
+		<subsection name="Web Console">
+			<p>
+			</p>	
+		</subsection>
+	</body>
+</document>
