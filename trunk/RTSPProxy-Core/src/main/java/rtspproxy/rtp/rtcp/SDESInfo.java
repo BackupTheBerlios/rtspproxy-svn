@@ -88,7 +88,6 @@ public class SDESInfo implements RtcpInfo
 	 */
 	public ByteBuffer toBuffer()
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 
