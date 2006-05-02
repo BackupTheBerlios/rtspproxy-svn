@@ -1,11 +1,10 @@
-
 <!-- $Id$ -->
 
 <rtspproxy>
 
 	<!-- Enable or disable debug output. 
-	     A more fine-grained configuration can be done in the log4j 
-	     properties file. -->
+		A more fine-grained configuration can be done in the log4j 
+		properties file. -->
 	<debug>true</debug>
 
 	<!-- Thread pool configuration. Number of active threads. -->
@@ -18,16 +17,16 @@
 
 		<!-- Server-side configuration -->
 		<server>
-	
-			<!-- If specified, bound the proxy on a specifed network
-                             interface. -->
-                        <!-- <address>127.0.0.1</address> -->
 
-                        <!-- Same as for the address, but specifying the
-                             network interface name. On Linux they are called 'eth0', 'eth1'...
-                             On  MacOS X they are 'en0', 'en1', .. -->
-                        <!-- <interface>eth0</interface> -->
-		
+			<!-- If specified, bound the proxy on a specifed network
+				interface. -->
+			<!-- <address>127.0.0.1</address> -->
+
+			<!-- Same as for the address, but specifying the
+				network interface name. On Linux they are called 'eth0', 'eth1'...
+				On  MacOS X they are 'en0', 'en1', .. -->
+			<!-- <interface>eth0</interface> -->
+
 			<!-- RTP port used with servers -->
 			<!-- <rtpPort>6970</rtpPort> -->
 
@@ -53,13 +52,13 @@
 		<!-- Client-side configuration -->
 		<client>
 			<!-- If specified, bound the proxy on a specifed network 
-			     interface. -->
+				interface. -->
 			<address>127.0.0.1</address>
 
 			<!-- Same as for the address, but specifying the 
-			     network interface name. On Linux they are called 'eth0', 'eth1'...
-			     On  MacOS X they are 'en0', 'en1', .. -->
-                        <!-- <interface>eth0</interface> -->
+				network interface name. On Linux they are called 'eth0', 'eth1'...
+				On  MacOS X they are 'en0', 'en1', .. -->
+			<!-- <interface>eth0</interface> -->
 
 			<!-- Rtp port used with clients -->
 			<!-- <rtpPort>6970</rtpPort> -->
@@ -105,7 +104,7 @@
 		<!-- JMX web console -->
 		<web>
 			<enable>true</enable>
-			
+
 			<!-- HTTP port -->
 			<port>8080</port>
 		</web>
@@ -125,7 +124,7 @@
 		<!-- Authentication filter -->
 		<authentication>
 			<!-- Enable or disable the authentication filter -->
-			<enable>true</enable>
+			<enable>false</enable>
 
 			<implClass>
 				rtspproxy.filter.authentication.SimpleAuthenticationProvider
@@ -134,27 +133,27 @@
 			<!-- Authentication Scheme: 
 				can be 'Basic' or 'Digest'
 			-->
-			<scheme>Digest</scheme>
+			<scheme>Basic</scheme>
 
 			<!-- The SimpleAuthenticationProvider uses a Property file 
-			     to keep a user db. In this file, keys are the usernames 
-			     and values are the passwords. -->
+				to keep a user db. In this file, keys are the usernames 
+				and values are the passwords. -->
 			<usersFile>conf/users.properties</usersFile>
 		</authentication>
 
 		<!-- Filter clients using theyr IP address -->
 		<ipaddress>
-			
+
 			<!-- Enable or disable the ipaddress filter -->
-                        <enable>true</enable>
+			<enable>false</enable>
 
 			<implClass>
 				rtspproxy.filter.ipaddress.SimpleIpAddressProvider
 			</implClass>
 
 			<!-- Access rules for clients -->
-			<client-rules>	
-				<rule type="deny"  pattern="*" />
+			<client-rules>
+				<rule type="deny" pattern="*" />
 				<rule type="allow" pattern="127.0.0.1" />
 				<rule type="allow" pattern="10.0.0.*" />
 				<rule type="allow" pattern="*.some.domain" />
@@ -192,8 +191,8 @@
 			</implClass>
 
 			<!-- SimpleUrlRewritingProvider uses the following rules 
-		 	     to rewrite the URLs.	
-                          -->
+				to rewrite the URLs.	
+			-->
 			<rules>
 				<mapping>
 					<from>rtsp://10.0.0.1:554/</from>
@@ -208,14 +207,12 @@
 
 		<control>
 			<enable>false</enable>
-			
+
 			<filters>
-				<filter side="Client" 
-					name="testFilter" 
+				<filter side="Client" name="testFilter"
 					implClass="path.to.Class" />
 
-				<filter side="Server" 
-					name="testFilterServer"
+				<filter side="Server" name="testFilterServer"
 					implClass="other.path.class" />
 			</filters>
 		</control>

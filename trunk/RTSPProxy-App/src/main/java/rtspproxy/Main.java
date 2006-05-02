@@ -116,7 +116,7 @@ public class Main
             Reactor.start();
 
         } catch ( Exception e ) {
-            log.fatal( "Exception in the reactor: ", e );
+            log.fatal( "Exception in the reactor: " + e );
             Exceptions.logStackTrace( e );
             System.exit( -1 );
         }

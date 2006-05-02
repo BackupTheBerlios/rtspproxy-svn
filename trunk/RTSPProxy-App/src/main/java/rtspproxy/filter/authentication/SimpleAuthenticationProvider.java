@@ -37,7 +37,7 @@ import rtspproxy.filter.authentication.scheme.Credentials;
 public class SimpleAuthenticationProvider implements AuthenticationProvider, Observer
 {
 
-    private static Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger( SimpleAuthenticationProvider.class );
 
     private final StringParameter usersDbParameter;
@@ -47,7 +47,7 @@ public class SimpleAuthenticationProvider implements AuthenticationProvider, Obs
     public SimpleAuthenticationProvider()
     {
         usersDbParameter = new StringParameter( "filters.authentication.usersFile", // name
-                "conf/user.properties", // default value
+                "conf/users.properties", // default value
                 true, // mutable
                 "" );
 
@@ -63,7 +63,7 @@ public class SimpleAuthenticationProvider implements AuthenticationProvider, Obs
             usersDb.load( is );
 
         } catch ( Exception e ) {
-            log.error( "Error reading users DB: " + e );
+            log.error( "Error reading users DB: " + e.getMessage() );
         }
     }
 

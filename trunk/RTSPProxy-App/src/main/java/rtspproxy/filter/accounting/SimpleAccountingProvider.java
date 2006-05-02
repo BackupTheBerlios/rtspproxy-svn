@@ -20,13 +20,14 @@ import rtspproxy.rtsp.RtspRequest;
  * @author Matteo Merli
  */
 public class SimpleAccountingProvider extends AccountingProviderAdapter implements
-        Observer
+        AccountingProvider, Observer
 {
 
-    private static final SimpleDateFormat format = new SimpleDateFormat(
-            "yyyy-MM-dd HH:mm:ss Z" );
+    private static final SimpleDateFormat format = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss Z" );
 
     private static Logger log = LoggerFactory.getLogger( SimpleAccountingProvider.class );
+
+    private static final String requestMessageATTR = SimpleAccountingProvider.class.getName() + "requestATTR";
 
     // This is not static since it's a separate log
     private Logger accessLog = null;
@@ -36,7 +37,7 @@ public class SimpleAccountingProvider extends AccountingProviderAdapter implemen
     public SimpleAccountingProvider()
     {
         loggerCatergory = new StringParameter( "filters.accounting.category", // name
-                "accessLog", // default value
+                "accounting.rtspproxy", // default value
                 true, // mutable
                 "Log4j category name for the accounting log." );
         
