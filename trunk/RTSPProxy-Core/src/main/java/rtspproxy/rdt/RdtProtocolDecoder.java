@@ -50,7 +50,6 @@ public class RdtProtocolDecoder implements ProtocolDecoder {
 	 * @see org.apache.mina.filter.codec.ProtocolDecoder#dispose(org.apache.mina.common.IoSession)
 	 */
 	public void dispose(IoSession arg0) throws Exception {
-		// TODO Auto-generated method stub
 
 	}
 

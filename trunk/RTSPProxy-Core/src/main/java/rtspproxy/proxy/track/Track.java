@@ -84,7 +84,6 @@ public abstract class Track
     protected static final String ATTR = Track.class.toString() + "Attr";
 
     /** Maps a client address to a Track */
-    // TODO: bring back to protected
     protected static Map<InetSocketAddress, Track> clientAddressMap = new ConcurrentHashMap<InetSocketAddress, Track>();
 
     /** Maps a server address to a Track */
@@ -176,6 +175,16 @@ public abstract class Track
     public void setUrl( String url )
     {
         this.url = url;
+    }
+
+    public InetAddress getClientAddress()
+    {
+        return clientAddress;
+    }
+
+    public InetAddress getServerAddress()
+    {
+        return serverAddress;
     }
 
     public abstract void close();
