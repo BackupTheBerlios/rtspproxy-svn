@@ -81,6 +81,8 @@ public class JmxAgent extends Singleton
     public static final String PROXY_SESSION_DOMAIN = "RtspProxy.Sessions.Proxy";
 
     public static final String RTP_DYNAMIC_SESSION_DOMAIN = "RtspProxy.Sessions.RTP.dynamic";
+    
+    public static final String LOGGER_DOMAIN = "RtspProxy.Logger";
 
     private MBeanServer mbeanServer = null;
 
@@ -124,6 +126,13 @@ public class JmxAgent extends Singleton
                 mbeanServer.registerMBean( new Service( proxyService ), objectName );
             }
 
+            // ProxySessionList
+            Object proxySessionList = mbeanServer.instantiate( ProxySessionList.class
+                    .getName() );
+            ObjectName proxySessionListName = ObjectName.getInstance( DOMAIN
+                    + ":name=ProxySessionList" );
+            mbeanServer.registerMBean( proxySessionList, proxySessionListName );
+
             startWebConsole();
             startConnectorServer();
 
@@ -135,6 +144,7 @@ public class JmxAgent extends Singleton
 
     public void stop()
     {
+        log.info( "Shutting down JMX Agent" );
         // TODO: Handle the shutdown of the JMX agent
     }
 
@@ -216,15 +226,14 @@ public class JmxAgent extends Singleton
      */
     public void registerFilter( FilterBase filter )
     {
-        boolean enabled = Config.jmxConnectorServiceEnable.getValue();
+        boolean enabled = Config.jmxEnable.getValue();
         if ( !enabled )
             return;
 
         try {
             Filter mbean = new Filter( filter );
 
-            mbeanServer.registerMBean( mbean, mbean.getName() );
-            filter.setMbeanName( mbean.getName() );
+            mbeanServer.registerMBean( mbean, mbean.getObjectName() );
             if ( filter instanceof JmxManageable )
                 ((JmxManageable) filter).setMBeanServer( mbeanServer );
         } catch ( Exception e ) {
@@ -255,35 +264,9 @@ public class JmxAgent extends Singleton
             ObjectName name = mbean.buildName();
 
             mbeanServer.registerMBean( mbean, name );
-            session.setObjectName( name );
         } catch ( Exception e ) {
             log.error( "failed to register proxy session MBean: session=" + session, e );
         }
-    }
-
-    /**
-     * unregister a proxy session
-     */
-    public void unregisterProxySession( ProxySession session )
-    {
-        boolean enabled = Config.jmxConnectorServiceEnable.getValue();
-        if ( !enabled )
-            return;
-
-        try {
-            ObjectName name = session.getObjectName();
-
-            if ( name != null ) {
-                mbeanServer.unregisterMBean( name );
-                session.setObjectName( null );
-            }
-        } catch ( InstanceNotFoundException infe ) {
-            log.debug( "internal problem: MBean not found, name={}", session
-                    .getObjectName(), infe );
-        } catch ( Exception e ) {
-            log.error( "failed to register proxy session MBean: session={}", session, e );
-        }
-
     }
 
     /**

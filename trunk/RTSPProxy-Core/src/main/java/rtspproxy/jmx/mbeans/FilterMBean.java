@@ -13,6 +13,8 @@ import javax.management.ObjectName;
 public interface FilterMBean {
 
 	public ObjectName getDetailMBean();
+    
+    public String getName();
 	
 	public boolean isRunning();
 
