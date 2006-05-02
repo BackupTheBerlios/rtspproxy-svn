@@ -22,28 +22,36 @@ public abstract class FilterBase<T extends GenericProvider> extends IoFilterAdap
     private static Logger log = LoggerFactory.getLogger( FilterBase.class );
 
     /** running flag */
-    private boolean isRunning = true;
-
-    /** MBean name assigned by JMX interface */
-    private ObjectName mbeanName;
+    private boolean isRunning = false;
 
     /** chain name of filter */
     private String chainName;
 
+    private T providerReference = null;
+
     // Abstract methods
     public abstract String getName();
 
-    public String getProviderClassName() { return null; }
+    public String getProviderClassName()
+    {
+        return null;
+    }
 
-    protected Class<T> getProviderInterface() { return null; }
+    protected Class<T> getProviderInterface()
+    {
+        return null;
+    }
 
-    protected void setProvider( T provider ) {}
+    protected void setProvider( T provider )
+    {
+    }
 
     /**
      * Subclasses can overload the method to read theyr own configuration
      * parameters.
      * 
-     * @param configuration A {Configuration} object to read from.
+     * @param configuration
+     *            A {Configuration} object to read from.
      */
     protected void doConfigure( Configuration configuration )
     {
@@ -62,6 +70,9 @@ public abstract class FilterBase<T extends GenericProvider> extends IoFilterAdap
      */
     public final void suspend()
     {
+        if ( providerReference != null )
+            providerReference.stop();
+
         isRunning = false;
         log.info( "{} suspended", getChainName() );
     }
@@ -71,6 +82,14 @@ public abstract class FilterBase<T extends GenericProvider> extends IoFilterAdap
      */
     public final void resume()
     {
+        if ( providerReference != null ) {
+            try {
+                providerReference.start();
+            } catch ( Exception e ) {
+                log.error( "Error starting {}: {}", getProviderClassName(), e.getMessage() );
+                return;
+            }
+        }
         isRunning = true;
         log.info( "{} resumed", getChainName() );
     }
@@ -81,28 +100,6 @@ public abstract class FilterBase<T extends GenericProvider> extends IoFilterAdap
     public ObjectName getDetailMBean()
     {
         return null;
-    }
-
-    /**
-     * @return Returns the mbeanName.
-     */
-    public ObjectName getMbeanName()
-    {
-        return mbeanName;
-    }
-
-    /**
-     * Set the name of the MBean used for filter management. This property is
-     * write-once.
-     * 
-     * @param mbeanName
-     *            The mbeanName to set.
-     */
-    public void setMbeanName( ObjectName mbeanName )
-    {
-        // once set it can not change
-        if ( this.mbeanName == null )
-            this.mbeanName = mbeanName;
     }
 
     /**
@@ -133,12 +130,12 @@ public abstract class FilterBase<T extends GenericProvider> extends IoFilterAdap
         doConfigure( configuration );
 
         Class providerClass;
-	String className = getProviderClassName(); 
-	if ( className == null ) {
-		// The filter does not have a provider 
-		// system. Ignore it.
-		return;
-	}
+        String className = getProviderClassName();
+        if ( className == null ) {
+            // The filter does not have a provider
+            // system. Ignore it.
+            return;
+        }
 
         try {
             providerClass = Class.forName( className );
@@ -166,10 +163,11 @@ public abstract class FilterBase<T extends GenericProvider> extends IoFilterAdap
             return;
         }
 
-	// Instanciate the provider and configure it.
+        // Instanciate the provider and configure it.
         try {
             T provider = (T) providerClass.newInstance();
             setProvider( provider );
+            providerReference = provider;
             provider.configure( configuration );
             provider.start();
 

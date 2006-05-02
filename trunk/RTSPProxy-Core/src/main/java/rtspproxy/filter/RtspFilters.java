@@ -76,15 +76,15 @@ public abstract class RtspFilters implements IoFilterChainBuilder
     protected void addIpAddressFilter( IoFilterChain chain, Side side )
     {
         IpAddressFilter filter;
-	if ( side == Side.Client )
-		filter = FilterRegistry.getInstance().getClientAddressFilter();
-	else
-		filter = FilterRegistry.getInstance().getServerAddressFilter();
+        if ( side == Side.Client )
+            filter = FilterRegistry.getInstance().getClientAddressFilter();
+        else
+            filter = FilterRegistry.getInstance().getServerAddressFilter();
 
-	if ( filter == null )
-		return;
+        if ( filter == null || !filter.isRunning() )
+            return;
 
-	chain.addAfter( ProxyServiceRegistry.threadPoolFilterNAME, filter.getChainName(),
+        chain.addAfter( ProxyServiceRegistry.threadPoolFilterNAME, filter.getChainName(),
                 filter );
     }
 
@@ -105,35 +105,35 @@ public abstract class RtspFilters implements IoFilterChainBuilder
         AuthenticationFilter filter = FilterRegistry.getInstance()
                 .getAuthenticationFilter();
 
-	if ( filter == null )
-		return;
+        if ( !filter.isRunning() )
+            return;
 
         chain.addAfter( rtspCodecNAME, filter.getChainName(), filter );
     }
 
     protected void addAccountingFilter( IoFilterChain chain )
     {
-	AccountingFilter filter = FilterRegistry.getInstance().getAccountingFilter();
-    
-	if ( filter == null )
-		return;
-    
-	chain.addAfter( rtspCodecNAME, filter.getChainName(), filter ); 
+        AccountingFilter filter = FilterRegistry.getInstance().getAccountingFilter();
+
+        if ( !filter.isRunning() )
+            return;
+
+        chain.addAfter( rtspCodecNAME, filter.getChainName(), filter );
     }
 
     protected void addRewriteFilter( IoFilterChain chain, Side side )
     {
-	UrlRewritingFilter filter;
-	
-	if ( side == Side.Client )
-		filter = FilterRegistry.getInstance().getClientRewritingFilter();
-	else
-		filter = FilterRegistry.getInstance().getServerRewritingFilter();
-	
-	if ( filter == null )
-		return;
-          
-         chain.addAfter( rtspCodecNAME, filter.getChainName(), filter ); 
+        UrlRewritingFilter filter;
+
+        if ( side == Side.Client )
+            filter = FilterRegistry.getInstance().getClientRewritingFilter();
+        else
+            filter = FilterRegistry.getInstance().getServerRewritingFilter();
+
+        if ( !filter.isRunning() )
+            return;
+
+        chain.addAfter( rtspCodecNAME, filter.getChainName(), filter );
     }
 
     protected void addControlFilter( IoFilterChain chain )

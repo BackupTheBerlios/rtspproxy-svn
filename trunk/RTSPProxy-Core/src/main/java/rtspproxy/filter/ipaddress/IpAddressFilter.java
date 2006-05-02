@@ -45,7 +45,7 @@ public class IpAddressFilter extends FilterBase<IpAddressProvider>
 
     public IpAddressFilter( Side side )
     {
-	this.side = side;
+        this.side = side;
     }
 
     /*
@@ -90,14 +90,14 @@ public class IpAddressFilter extends FilterBase<IpAddressProvider>
     protected void setProvider( IpAddressProvider provider )
     {
         this.provider = provider;
-	this.provider.setSide( side );
+        this.provider.setSide( side );
     }
 
     @Override
     public void messageReceived( NextFilter nextFilter, IoSession session, Object message )
             throws Exception
     {
-	log.debug( "Testing address: {}", session.getRemoteAddress() );
+        log.debug( "Testing address: {}", session.getRemoteAddress() );
 
         if ( !isRunning() ) {
             // forward because filter is suspended
@@ -126,7 +126,7 @@ public class IpAddressFilter extends FilterBase<IpAddressProvider>
         if ( !isRunning() ) {
             // forward because filter is suspended
             nextFilter.sessionCreated( session );
-            
+
         } else if ( !provider.isBlocked( ((InetSocketAddress) session.getRemoteAddress())
                 .getAddress() ) ) {
             // forward if not blocked

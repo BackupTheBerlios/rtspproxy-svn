@@ -81,23 +81,27 @@ public class FilterRegistry extends Singleton
 
         Configuration config = XMLConfigReader.getConfiguration();
 
-        if ( Config.filtersAuthenticationEnable.getValue() ) {
+        try {
+            
             authenticationFilter = new AuthenticationFilter();
             authenticationFilter.configure( config );
             registerFilterMBean( authenticationFilter );
-        }
+            if ( Config.filtersAuthenticationEnable.getValue() ) {
+                authenticationFilter.resume();
+            }
 
-        if ( Config.filtersIpAddressEnable.getValue() ) {
             clientAddressFilter = new IpAddressFilter( Side.Client );
             clientAddressFilter.configure( config );
             registerFilterMBean( clientAddressFilter );
 
             serverAddressFilter = new IpAddressFilter( Side.Server );
             serverAddressFilter.configure( config );
-            registerFilterMBean( serverAddressFilter );         
-        }
+            registerFilterMBean( serverAddressFilter );
+            if ( Config.filtersIpAddressEnable.getValue() ) {
+                clientAddressFilter.resume();
+                serverAddressFilter.resume();
+            }
 
-        if ( Config.filtersRewriteEnable.getValue() ) {
             clientRewritingFilter = new UrlRewritingFilter( Side.Client );
             clientRewritingFilter.configure( config );
             registerFilterMBean( clientRewritingFilter );
@@ -105,10 +109,17 @@ public class FilterRegistry extends Singleton
             serverRewritingFilter = new UrlRewritingFilter( Side.Server );
             serverRewritingFilter.configure( config );
             registerFilterMBean( serverRewritingFilter );
-        }
+            if ( Config.filtersRewriteEnable.getValue() ) {
+                clientRewritingFilter.resume();
+                serverRewritingFilter.resume();
+            }
 
-        try {
-            // TODO: XXXXX
+            accountingFilter = new AccountingFilter();
+            accountingFilter.configure( config );
+            registerFilterMBean( accountingFilter );
+            if ( Config.filtersAccountingEnable.getValue() ) {
+                accountingFilter.resume();
+            }
 
         } catch ( Throwable t ) {
             log.error( "Failed to populate filter registry", t );
@@ -116,7 +127,7 @@ public class FilterRegistry extends Singleton
             Reactor.stop();
         }
 
-        this.populated = true;
+        populated = true;
     }
 
     private void registerFilterMBean( FilterBase filter )
