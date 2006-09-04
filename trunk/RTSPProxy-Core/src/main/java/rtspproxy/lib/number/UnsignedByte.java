@@ -75,12 +75,12 @@ public final class UnsignedByte extends UnsignedNumber {
 
 	@Override
 	public double doubleValue() {
-		return (double) value;
+		return value;
 	}
 
 	@Override
 	public float floatValue() {
-		return (float) value;
+		return value;
 	}
 
 	@Override
@@ -121,7 +121,7 @@ public final class UnsignedByte extends UnsignedNumber {
 	
 	@Override
 	public int hashCode() { 
-		return (int)value;
+		return value;
 	}
 
 	@Override
