@@ -18,36 +18,14 @@
 
 package rtspproxy.rtsp;
 
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
-
-/**
- * Register the "rtsp://" scheme as a valid protocol.
- */
-public class Handler extends URLStreamHandler
+class RtspAttr
 {
 
-	public static final int DEFAULT_RTSP_PORT = 554;
-	
+    static final String readStateATTR = RtspAttr.class.getName() + "readState";
 
-	/* (non-Javadoc)
-	 * @see java.net.URLStreamHandler#openConnection(java.net.URL)
-	 */
-	@Override
-	protected URLConnection openConnection( URL url ) throws IOException
-	{
-		return null;
-	}
+    static final String rtspMessageATTR = RtspAttr.class.getName() + "rtspMessage";
 
-	/**
-	 * @return the default RTSP port
-	 */
-	@Override
-	protected int getDefaultPort()
-	{
-		return DEFAULT_RTSP_PORT;
-	}
-
+    private RtspAttr()
+    {
+    }
 }

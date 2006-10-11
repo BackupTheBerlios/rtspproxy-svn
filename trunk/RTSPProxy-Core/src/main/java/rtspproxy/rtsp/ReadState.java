@@ -18,36 +18,25 @@
 
 package rtspproxy.rtsp;
 
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
-
 /**
- * Register the "rtsp://" scheme as a valid protocol.
+ * State enumerator that indicates the reached state in the RTSP message
+ * decoding process.
  */
-public class Handler extends URLStreamHandler
-{
-
-	public static final int DEFAULT_RTSP_PORT = 554;
-	
-
-	/* (non-Javadoc)
-	 * @see java.net.URLStreamHandler#openConnection(java.net.URL)
-	 */
-	@Override
-	protected URLConnection openConnection( URL url ) throws IOException
-	{
-		return null;
-	}
-
-	/**
-	 * @return the default RTSP port
-	 */
-	@Override
-	protected int getDefaultPort()
-	{
-		return DEFAULT_RTSP_PORT;
-	}
-
+enum ReadState {
+    /** Unrecoverable error occurred */
+    Failed,
+    /** Trying to resync */
+    Sync,
+    /** Waiting for a command */
+    Ready,
+    /** Reading interleaved packet */
+    Packet,
+    /** Reading command (request or command line) */
+    Command,
+    /** Reading headers */
+    Header,
+    /** Reading body (entity) */
+    Body,
+    /** Fully formed message */
+    Dispatch
 }

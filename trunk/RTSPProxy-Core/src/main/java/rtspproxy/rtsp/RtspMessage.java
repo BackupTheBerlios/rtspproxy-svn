@@ -25,6 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.mina.common.ByteBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rtspproxy.config.Config;
 
@@ -35,10 +37,13 @@ import rtspproxy.config.Config;
  */
 public abstract class RtspMessage
 {
-
-    public static final String lastRequestVerbATTR = RtspMessage.class.toString()
+    
+    final static Logger log = LoggerFactory.getLogger( RtspMessage.class );
+    
+    public static final String lastRequestVerbATTR = RtspMessage.class
+            .toString()
             + "lastRequestVerb";
-
+    
     /**
      * RTSP Message Type
      */
@@ -50,13 +55,13 @@ public abstract class RtspMessage
         /** Response message */
         TypeResponse
     };
-
+    
     private int sequenceNumber;
-
+    
     private Map<String, String> headers;
-
+    
     private StringBuffer buffer;
-
+    
     /**
      * Constructor.
      */
@@ -66,7 +71,7 @@ public abstract class RtspMessage
         headers = new LinkedHashMap<String, String>();
         buffer = new StringBuffer();
     }
-
+    
     /**
      * @return the RTSP type of the message
      */
@@ -74,7 +79,7 @@ public abstract class RtspMessage
     {
         return Type.TypeNone;
     }
-
+    
     /**
      * Adds a new header to the RTSP message.
      * 
@@ -86,13 +91,16 @@ public abstract class RtspMessage
     public void setHeader( String key, String value )
     {
         // Handle some bad formatted headers
-        if ( key.compareToIgnoreCase( "content-length" ) == 0 ) {
+        if ( key.compareToIgnoreCase( "content-length" ) == 0 )
+        {
             headers.put( "Content-Length", value );
-        } else {
+        }
+        else
+        {
             headers.put( key, value );
         }
     }
-
+    
     /**
      * @param key
      *            Header name
@@ -102,18 +110,19 @@ public abstract class RtspMessage
     {
         return headers.get( key );
     }
-
+    
     /**
      * Test if a specific header is present in the message.
      * 
-     * @param key name of the RTSP header
+     * @param key
+     *            name of the RTSP header
      * @return true if the message has the header, false otherwise
      */
     public boolean hasHeader( String key )
     {
-        return headers.get( key ) != null;
+        return headers.containsKey( key );
     }
-
+    
     /**
      * @param key
      *            Header name
@@ -125,12 +134,11 @@ public abstract class RtspMessage
     public String getHeader( String key, String defaultValue )
     {
         String value = getHeader( key );
-        if ( value == null )
-            return defaultValue;
-
+        if ( value == null ) return defaultValue;
+        
         return value;
     }
-
+    
     /**
      * Remove an header from the message headers collection
      * 
@@ -141,14 +149,14 @@ public abstract class RtspMessage
     {
         headers.remove( key );
     }
-
+    
     /**
      * Formats all the headers into a string ready to be sent in a RTSP message.
      * 
      * <pre>
-     *      Header1: Value1
-     *      Header2: value 2
-     *      ... 
+     *          Header1: Value1
+     *          Header2: value 2
+     *          ... 
      * </pre>
      * 
      * @return a string containing the serialzed headers
@@ -156,12 +164,14 @@ public abstract class RtspMessage
     public String getHeadersString()
     {
         StringBuilder buf = new StringBuilder();
-        for ( String key : headers.keySet() ) {
-            buf.append( key ).append( ": " ).append( headers.get( key ) ).append( CRLF );
+        for ( String key : headers.keySet() )
+        {
+            buf.append( key ).append( ": " ).append( headers.get( key ) )
+                    .append( CRLF );
         }
         return buf.toString();
     }
-
+    
     /**
      * get a map of all headers set in the request
      * 
@@ -171,10 +181,10 @@ public abstract class RtspMessage
     {
         if ( this.headers != null )
             return Collections.unmodifiableMap( this.headers );
-
+        
         return Collections.unmodifiableMap( new HashMap<String, String>() );
     }
-
+    
     /**
      * @return the number of headers owned by the message
      */
@@ -182,39 +192,41 @@ public abstract class RtspMessage
     {
         return headers.size();
     }
-
+    
     /**
      * Sets common headers like <code>Server</code> and <code>Via</code>.
      */
     public void setCommonHeaders()
     {
         String proxy = Config.getProxySignature();
-        if ( getHeader( "Server" ) == null )
-            setHeader( "Server", proxy );
-
-        if ( Config.proxyClientAddress.getStringValue() != null ) {
+        if ( getHeader( "Server" ) == null ) setHeader( "Server", proxy );
+        
+        if ( Config.proxyClientAddress.getStringValue() != null )
+        {
             String via = getHeader( "Via" );
             StringBuilder newVia = new StringBuilder();
-
-            if ( via != null && via.length() > 0 ) {
+            
+            if ( via != null && via.length() > 0 )
+            {
                 newVia.append( via );
                 newVia.append( ", " );
             }
             newVia.append( "RTSP/1.0 " );
-
+            
             String clientAddr = Config.proxyClientAddress.getStringValue();
             String serverAddr = Config.proxyServerAddress.getStringValue();
-
+            
             newVia.append( clientAddr );
-            if ( serverAddr != null && !serverAddr.equals( clientAddr ) ) {
+            if ( serverAddr != null && !serverAddr.equals( clientAddr ) )
+            {
                 newVia.append( ", RTSP/1.0 " );
                 newVia.append( serverAddr );
             }
-
+            
             setHeader( "Via", newVia.toString() );
         }
     }
-
+    
     /**
      * @param buffer
      *            StringBuffer containing the contents
@@ -223,7 +235,7 @@ public abstract class RtspMessage
     {
         this.buffer = buffer;
     }
-
+    
     /**
      * @param other
      *            buffer with content to be appended
@@ -237,11 +249,14 @@ public abstract class RtspMessage
      * @param other
      *            buffer with content to be appended
      */
-    public void appendToBuffer( ByteBuffer other )
+    public void appendToBuffer( ByteBuffer other, int size )
     {
-        this.buffer.append( other );
+        for ( int i = 0; i < size; i++ )
+        {
+            buffer.append( (char)other.get() );
+        }
     }
-
+    
     /**
      * @param other
      *            buffer with content to be appended
@@ -250,7 +265,7 @@ public abstract class RtspMessage
     {
         this.buffer.append( other );
     }
-
+    
     /**
      * @param other
      *            buffer with content to be appended
@@ -259,7 +274,7 @@ public abstract class RtspMessage
     {
         this.buffer.append( other );
     }
-
+    
     /**
      * @return the content buffer
      */
@@ -267,7 +282,7 @@ public abstract class RtspMessage
     {
         return buffer;
     }
-
+    
     /**
      * @return the size of the content buffer
      */
@@ -275,10 +290,10 @@ public abstract class RtspMessage
     {
         return buffer.length();
     }
-
+    
     // CRLF
     public static final String CRLF = "\r\n";
-
+    
     /**
      * get the sequence number. If the sequence has not been set, the value from
      * the <b>CSeq</b> header is scaned (if the header is set)
@@ -288,18 +303,21 @@ public abstract class RtspMessage
      */
     public int getSequenceNumber()
     {
-        if ( sequenceNumber == 0 ) {
-            try {
+        if ( sequenceNumber == 0 )
+        {
+            try
+            {
                 if ( headers.containsKey( "CSeq" ) )
                     sequenceNumber = Integer.parseInt( headers.get( "CSeq" ) );
-            } catch ( Exception e ) {
-                  // Do nothing
+            } catch ( Exception e )
+            {
+                // Do nothing
             }
         }
-
+        
         return sequenceNumber;
     }
-
+    
     /**
      * Set the sequence number. As a by-product it also sets the CSeq header
      * field to this value.
