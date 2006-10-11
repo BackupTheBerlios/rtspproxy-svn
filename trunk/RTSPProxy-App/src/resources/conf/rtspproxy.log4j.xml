@@ -14,8 +14,7 @@
 	| owebsite: http://jakarta.apache.org/log4j
 -->
 
-<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/"
-	debug="false">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
 
 	<!-- ================================= -->
 	<!-- Preserve messages in a local file -->
@@ -28,8 +27,7 @@
 
 		<layout class="org.apache.log4j.PatternLayout">
 			<!-- The default pattern: Date Priority [Category] Message\n -->
-			<param name="ConversionPattern"
-				value="%9r %5p [%t] %c - %m%n" />
+			<param name="ConversionPattern" value="%9r %5p [%t] %c - %m%n" />
 
 			<!-- The full pattern: Date MS Priority [Category] (Thread:NDC) Message\n
 				<param name="ConversionPattern" value="%d %-5r %-5p [%c] (%t:%x) %m%n"/>
@@ -57,8 +55,7 @@
 
 		<layout class="org.apache.log4j.PatternLayout">
 			<!-- The default pattern: Date Priority [Category] Message\n -->
-			<param name="ConversionPattern"
-				value="%9r %5p [%t] %c - %m%n" />
+			<param name="ConversionPattern" value="%9r %5p [%t] %c - %m%n" />
 		</layout>
 	</appender>
 
@@ -66,8 +63,16 @@
 		<priority value="INFO" />
 		<appender-ref ref="ACCOUNTING" />
 	</category>
-	
+
 	<category name="rtspproxy.ProxyService">
+		<priority value="INFO" />
+	</category>
+
+	<category name="rtspproxy.rtsp.RtspHeaderDecoder">
+		<priority value="INFO" />
+	</category>
+
+	<category name="org.apache.mina">
 		<priority value="INFO" />
 	</category>
 
@@ -77,7 +82,7 @@
 
 	<root>
 		<priority value="INFO" />
-		
+
 		<appender-ref ref="CONSOLE" />
 		<!-- appender-ref ref="FILE" / -->
 	</root>
