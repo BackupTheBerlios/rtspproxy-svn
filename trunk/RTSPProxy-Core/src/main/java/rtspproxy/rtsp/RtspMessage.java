@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.mina.common.ByteBuffer;
+
 import rtspproxy.config.Config;
 
 /**
@@ -99,6 +101,17 @@ public abstract class RtspMessage
     public String getHeader( String key )
     {
         return headers.get( key );
+    }
+
+    /**
+     * Test if a specific header is present in the message.
+     * 
+     * @param key name of the RTSP header
+     * @return true if the message has the header, false otherwise
+     */
+    public boolean hasHeader( String key )
+    {
+        return headers.get( key ) != null;
     }
 
     /**
@@ -181,7 +194,7 @@ public abstract class RtspMessage
 
         if ( Config.proxyClientAddress.getStringValue() != null ) {
             String via = getHeader( "Via" );
-            StringBuffer newVia = new StringBuffer();
+            StringBuilder newVia = new StringBuilder();
 
             if ( via != null && via.length() > 0 ) {
                 newVia.append( via );
@@ -216,6 +229,15 @@ public abstract class RtspMessage
      *            buffer with content to be appended
      */
     public void appendToBuffer( StringBuffer other )
+    {
+        this.buffer.append( other );
+    }
+    
+    /**
+     * @param other
+     *            buffer with content to be appended
+     */
+    public void appendToBuffer( ByteBuffer other )
     {
         this.buffer.append( other );
     }
@@ -266,10 +288,10 @@ public abstract class RtspMessage
      */
     public int getSequenceNumber()
     {
-        if ( this.sequenceNumber == 0 ) {
+        if ( sequenceNumber == 0 ) {
             try {
-                if ( this.headers.containsKey( "CSeq" ) )
-                    this.sequenceNumber = Integer.parseInt( this.headers.get( "CSeq" ) );
+                if ( headers.containsKey( "CSeq" ) )
+                    sequenceNumber = Integer.parseInt( headers.get( "CSeq" ) );
             } catch ( Exception e ) {
                   // Do nothing
             }
@@ -290,4 +312,7 @@ public abstract class RtspMessage
         this.sequenceNumber = sequenceNumber;
         this.headers.put( "CSeq", String.valueOf( this.sequenceNumber ) );
     }
+    
+    @Override
+    public abstract String toString();
 }
