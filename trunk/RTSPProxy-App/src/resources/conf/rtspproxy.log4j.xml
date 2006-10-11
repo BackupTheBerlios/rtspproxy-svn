@@ -23,7 +23,7 @@
 
 	<!-- A time/date based rolling appender -->
 	<appender name="FILE" class="org.apache.log4j.FileAppender">
-		<param name="File" value="/tmp/rtspproxy.log" />
+		<param name="File" value="log/rtspproxy.log" />
 		<param name="Append" value="false" />
 
 		<layout class="org.apache.log4j.PatternLayout">
@@ -39,7 +39,7 @@
 
 	<!-- A time/date based rolling appender -->
 	<appender name="ACCOUNTING" class="org.apache.log4j.FileAppender">
-		<param name="File" value="/tmp/rtspproxy-accounting.log" />
+		<param name="File" value="log/access.log" />
 		<param name="Append" value="true" />
 
 		<layout class="org.apache.log4j.PatternLayout">
@@ -65,10 +65,6 @@
 	<category name="accounting.rtspproxy">
 		<priority value="INFO" />
 		<appender-ref ref="ACCOUNTING" />
-	</category>
-	
-	<category name="rtspproxy.rtsp.RtspDecoder">
-		<priority value="INFO" />
 	</category>
 	
 	<category name="rtspproxy.ProxyService">
