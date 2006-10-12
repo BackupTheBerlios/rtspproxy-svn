@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
+import org.apache.mina.common.IoServiceConfig;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
 import org.apache.mina.filter.executor.ExecutorExecutor;
@@ -67,9 +68,6 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
     /** Map a ProxyService to all its bound addresses. */
     private final ConcurrentMap<ProxyService, Set<SocketAddress>> addresses = new ConcurrentHashMap<ProxyService, Set<SocketAddress>>();
     
-    /** Map a ProxyService to its own IoAcceptor. */
-    private final ConcurrentMap<ProxyService, IoAcceptor> acceptors = new ConcurrentHashMap<ProxyService, IoAcceptor>();
-    
     private SocketAcceptor socketAcceptor = null;
     
     private DatagramAcceptor datagramAcceptor = null;
@@ -82,7 +80,20 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
      */
     public ProxyServiceRegistry()
     {
-        /// int poolMaxSize = Config.threadPoolSize.getValue();
+        ExecutorExecutor executorProxy = new ExecutorExecutor( executor );
+        socketAcceptor = new SocketAcceptor( 2, executorProxy );
+        SocketAcceptorConfig config = (SocketAcceptorConfig) socketAcceptor
+                .getDefaultConfig();
+        config.setReuseAddress( true );
+        
+        datagramAcceptor = new DatagramAcceptor( executorProxy );
+        DatagramAcceptorConfig datagramConfig = (DatagramAcceptorConfig) datagramAcceptor
+                .getDefaultConfig();
+        DatagramSessionConfig sessionConfig = (DatagramSessionConfig) datagramConfig
+                .getSessionConfig();
+        sessionConfig.setReuseAddress( true );
+        
+        // int poolMaxSize = Config.threadPoolSize.getValue();
         
         // Subscribe to thread pool size changes notification
         Config.threadPoolSize.addObserver( this );
@@ -128,10 +139,19 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
             InetSocketAddress address, IoFilterChainBuilder filterChainBuilder )
             throws IOException
     {
-        IoAcceptor acceptor = newAcceptor( service );
+        IoAcceptor acceptor = getAcceptor( service );
         
-        acceptor.setFilterChainBuilder( filterChainBuilder );
-        acceptor.bind( address, ioHandler );
+        if ( filterChainBuilder != IoFilterChainBuilder.NOOP )
+        {
+            IoServiceConfig config = (IoServiceConfig) acceptor
+                    .getDefaultConfig().clone();
+            config.setFilterChainBuilder( filterChainBuilder );
+            acceptor.bind( address, ioHandler, config );
+        }
+        else
+        {
+            acceptor.bind( address, ioHandler );
+        }
         
         services.put( service.getName(), service );
         
@@ -155,7 +175,8 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
     public synchronized void unbind( ProxyService service, boolean stopService )
             throws Exception
     {
-        IoAcceptor acceptor = acceptors.get( service );
+        IoAcceptor acceptor = service.getTransportType() == TransportType.SOCKET ? socketAcceptor
+                : datagramAcceptor;
         
         for ( SocketAddress address : addresses.get( service ) )
         {
@@ -186,7 +207,6 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
         }
         
         services.remove( service.getName() );
-        acceptors.remove( service );
         addresses.remove( service );
     }
     
@@ -235,10 +255,9 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
     public IoAcceptor getAcceptor( String serviceName )
     {
         ProxyService service = services.get( serviceName );
-        if ( service == null )
-            return null;
+        if ( service == null ) return null;
         
-        return acceptors.get( service );
+        return getAcceptor( service );
     }
     
     /**
@@ -250,60 +269,8 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
      */
     public IoAcceptor getAcceptor( ProxyService service )
     {
-        return acceptors.get( service );
-    }
-    
-    /**
-     * Gets a new IoAcceptor suitable for the specified ProxyService
-     * 
-     * @param service
-     *            the ProxyService
-     * @return a reference to the IoAcceptor
-     */
-    private IoAcceptor newAcceptor( ProxyService service )
-    {
-        // First check if there's already an acceptor
-        IoAcceptor acceptor = acceptors.get( service );
-        if ( acceptor != null )
-            return acceptor;
-        
-        // Create a new one
-        TransportType transportType = service.getTransportType();
-        if ( transportType == TransportType.SOCKET )
-        {
-            if ( socketAcceptor == null )
-            {
-                socketAcceptor = new SocketAcceptor( 1, new ExecutorExecutor(
-                        executor ) );
-                SocketAcceptorConfig config = (SocketAcceptorConfig) socketAcceptor
-                        .getDefaultConfig();
-                config.setReuseAddress( true );
-            }
-            acceptor = socketAcceptor;
-            
-        } else if ( transportType == TransportType.DATAGRAM )
-        {
-            if ( datagramAcceptor == null )
-            {
-                datagramAcceptor = new DatagramAcceptor( 
-                        new ExecutorExecutor( executor ) ); 
-                DatagramAcceptorConfig config = (DatagramAcceptorConfig) datagramAcceptor
-                        .getDefaultConfig();
-                DatagramSessionConfig sessionConfig = (DatagramSessionConfig) config
-                        .getSessionConfig();
-                sessionConfig.setReuseAddress( true );
-            }
-            acceptor = datagramAcceptor;
-            
-        } else
-        {
-            log.debug( "Unrecognized transport type: {}", transportType );
-            return null;
-        }
-        
-        // Save the acceptor
-        acceptors.put( service, acceptor );
-        return acceptor;
+        return service.getTransportType() == TransportType.SOCKET ? socketAcceptor
+                : datagramAcceptor;
     }
     
     public Executor getExecutor()
@@ -325,10 +292,10 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
         {
             // Update the thread pool size
             // XXX: Refactor this: the thread pool should have no fixed upper
-            //      limit
+            // limit
             // executor.setMaximumPoolSize( Config.threadPoolSize.getValue() );
             // log.info( "Changed ThreadPool size. New max size: {}",
-            //        executor.getMaximumPoolSize() );
+            // executor.getMaximumPoolSize() );
         }
     }
     
