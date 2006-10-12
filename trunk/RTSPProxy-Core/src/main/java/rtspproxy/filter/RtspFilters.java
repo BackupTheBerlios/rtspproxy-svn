@@ -21,19 +21,14 @@ package rtspproxy.filter;
 import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.codec.ProtocolDecoder;
-import org.apache.mina.filter.codec.ProtocolEncoder;
 
-import rtspproxy.ProxyServiceRegistry;
 import rtspproxy.filter.accounting.AccountingFilter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
 import rtspproxy.filter.rewrite.UrlRewritingFilter;
 import rtspproxy.lib.Side;
-import rtspproxy.rtsp.RtspDecoder;
-import rtspproxy.rtsp.RtspEncoder;
+import rtspproxy.rtsp.RtspCodecFactory;
 
 /**
  * Base class for filter chains based on configuration settings.
@@ -43,26 +38,8 @@ import rtspproxy.rtsp.RtspEncoder;
 public abstract class RtspFilters implements IoFilterChainBuilder
 {
 
-    private static ProtocolCodecFactory codecFactory = new ProtocolCodecFactory()
-    {
-
-        // Decoders can be shared
-        private final ProtocolEncoder rtspEncoder = new RtspEncoder();
-
-        private final ProtocolDecoder rtspDecoder = new RtspDecoder();
-
-        public ProtocolEncoder getEncoder()
-        {
-            return rtspEncoder;
-        }
-
-        public ProtocolDecoder getDecoder()
-        {
-            return rtspDecoder;
-        }
-    };
-
-    private static final IoFilter codecFilter = new ProtocolCodecFilter( codecFactory );
+    private static final IoFilter codecFilter = new ProtocolCodecFilter( RtspCodecFactory
+            .getInstance() );
 
     private static final String rtspCodecNAME = "rtspCodec";
 
@@ -84,8 +61,7 @@ public abstract class RtspFilters implements IoFilterChainBuilder
         if ( filter == null || !filter.isRunning() )
             return;
 
-        chain.addAfter( ProxyServiceRegistry.threadPoolFilterNAME, filter.getChainName(),
-                filter );
+        chain.addFirst( filter.getChainName(), filter );
     }
 
     /**

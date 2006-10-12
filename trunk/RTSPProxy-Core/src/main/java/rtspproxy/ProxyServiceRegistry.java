@@ -27,15 +27,16 @@ import java.util.Observer;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.mina.common.IoAcceptor;
-import org.apache.mina.common.IoFilter;
-import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
-import org.apache.mina.filter.ThreadPoolFilter;
+import org.apache.mina.filter.executor.ExecutorExecutor;
 import org.apache.mina.transport.socket.nio.DatagramAcceptor;
 import org.apache.mina.transport.socket.nio.DatagramAcceptorConfig;
 import org.apache.mina.transport.socket.nio.DatagramSessionConfig;
@@ -56,41 +57,37 @@ import rtspproxy.lib.Singleton;
  */
 public final class ProxyServiceRegistry extends Singleton implements Observer
 {
-
-    private static Logger log = LoggerFactory.getLogger( ProxyServiceRegistry.class );
-
-    public static final String threadPoolFilterNAME = "threadPoolFilter";
-
-    /** Thread pool instance that will be added to all acceptors. */
-    private final ThreadPoolFilter threadPoolFilter = new ThreadPoolFilter(
-            "sharedThreadPoolFilter" );
-
+    
+    private static Logger log = LoggerFactory
+            .getLogger( ProxyServiceRegistry.class );
+    
     /** All the services, mapped by name. */
     private final ConcurrentMap<String, ProxyService> services = new ConcurrentHashMap<String, ProxyService>();
-
+    
     /** Map a ProxyService to all its bound addresses. */
     private final ConcurrentMap<ProxyService, Set<SocketAddress>> addresses = new ConcurrentHashMap<ProxyService, Set<SocketAddress>>();
-
+    
     /** Map a ProxyService to its own IoAcceptor. */
     private final ConcurrentMap<ProxyService, IoAcceptor> acceptors = new ConcurrentHashMap<ProxyService, IoAcceptor>();
-
+    
     private SocketAcceptor socketAcceptor = null;
-
+    
     private DatagramAcceptor datagramAcceptor = null;
-
+    
+    private ExecutorService executor = Executors.newCachedThreadPool();
+    
     /**
      * Construct a new ProxyServiceRegistry. This class is a Singleton, so there
      * can be only one instance.
      */
     public ProxyServiceRegistry()
     {
-        int poolMaxSize = Config.threadPoolSize.getValue();
-        threadPoolFilter.setMaximumPoolSize( poolMaxSize );
-
+        /// int poolMaxSize = Config.threadPoolSize.getValue();
+        
         // Subscribe to thread pool size changes notification
         Config.threadPoolSize.addObserver( this );
     }
-
+    
     /**
      * Bind a Service to a local address and specify the IoHandler that will
      * manage ingoing and outgoing messages.
@@ -103,12 +100,12 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
      *            the local address to bind on
      * @throws IOException
      */
-    public void bind( ProxyService service, IoHandler ioHandler, InetSocketAddress address )
-            throws IOException
+    public void bind( ProxyService service, IoHandler ioHandler,
+            InetSocketAddress address ) throws IOException
     {
         bind( service, ioHandler, address, null );
     }
-
+    
     /**
      * Bind a Service to a local address and specify the IoHandler that will
      * manage ingoing and outgoing messages.
@@ -132,24 +129,22 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
             throws IOException
     {
         IoAcceptor acceptor = newAcceptor( service );
-
-        IoFilterChainBuilder builder = new IoFilterChainBuilderWrapper( service,
-                filterChainBuilder );
-        acceptor.setFilterChainBuilder( builder );
+        
+        acceptor.setFilterChainBuilder( filterChainBuilder );
         acceptor.bind( address, ioHandler );
-
+        
         services.put( service.getName(), service );
-
+        
         if ( addresses.get( service ) == null )
             addresses.put( service, new HashSet<SocketAddress>() );
         addresses.get( service ).add( address );
     }
-
+    
     public void unbind( ProxyService service ) throws Exception
     {
         unbind( service, true );
     }
-
+    
     /**
      * Unbind the service from all of its bound addresses.
      * 
@@ -161,35 +156,40 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
             throws Exception
     {
         IoAcceptor acceptor = acceptors.get( service );
-
-        for ( SocketAddress address : addresses.get( service ) ) {
-            try {
+        
+        for ( SocketAddress address : addresses.get( service ) )
+        {
+            try
+            {
                 // Disconnect all clients
                 Set sessions = acceptor.getManagedSessions( address );
-                log.debug( "{} has {} connected clients.", service.getName(), sessions
-                        .size() );
-                for ( Object obj : sessions ) {
+                log.debug( "{} has {} connected clients.", service.getName(),
+                        sessions.size() );
+                for ( Object obj : sessions )
+                {
                     IoSession session = (IoSession) obj;
                     session.close();
                 }
-
+                
                 acceptor.unbind( address );
-            } catch ( Exception e ) {
+            } catch ( Exception e )
+            {
                 // log.debug( "Error unbinding {}", service.getName() );
                 // Exceptions.logStackTrace( e );
                 // ignore
             }
         }
-
-        if ( stopService && service.isRunning() ) {
+        
+        if ( stopService && service.isRunning() )
+        {
             service.stop();
         }
-
+        
         services.remove( service.getName() );
         acceptors.remove( service );
         addresses.remove( service );
     }
-
+    
     /**
      * Unbind all the services registered in the ProxyServiceRegistry, from all
      * of they bound addresses.
@@ -198,11 +198,12 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
      */
     public synchronized void unbindAll() throws Exception
     {
-        for ( ProxyService service : services.values() ) {
+        for ( ProxyService service : services.values() )
+        {
             unbind( service );
         }
     }
-
+    
     /**
      * @return a Set containing all the registered services.
      */
@@ -210,7 +211,7 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
     {
         return new HashSet<ProxyService>( services.values() );
     }
-
+    
     /**
      * Return the instance of a ProxyService.
      * 
@@ -222,7 +223,7 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
     {
         return services.get( name );
     }
-
+    
     /**
      * Returns a reference to the IoAcceptor used by the specified ProxyService.
      * 
@@ -236,10 +237,10 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
         ProxyService service = services.get( serviceName );
         if ( service == null )
             return null;
-
+        
         return acceptors.get( service );
     }
-
+    
     /**
      * Returns a reference to the IoAcceptor used by the specified ProxyService.
      * 
@@ -251,7 +252,7 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
     {
         return acceptors.get( service );
     }
-
+    
     /**
      * Gets a new IoAcceptor suitable for the specified ProxyService
      * 
@@ -265,21 +266,27 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
         IoAcceptor acceptor = acceptors.get( service );
         if ( acceptor != null )
             return acceptor;
-
+        
         // Create a new one
         TransportType transportType = service.getTransportType();
-        if ( transportType == TransportType.SOCKET ) {
-            if ( socketAcceptor == null ) {
-                socketAcceptor = new SocketAcceptor();
+        if ( transportType == TransportType.SOCKET )
+        {
+            if ( socketAcceptor == null )
+            {
+                socketAcceptor = new SocketAcceptor( 1, new ExecutorExecutor(
+                        executor ) );
                 SocketAcceptorConfig config = (SocketAcceptorConfig) socketAcceptor
                         .getDefaultConfig();
                 config.setReuseAddress( true );
             }
             acceptor = socketAcceptor;
-
-        } else if ( transportType == TransportType.DATAGRAM ) {
-            if ( datagramAcceptor == null ) {
-                datagramAcceptor = new DatagramAcceptor(); // datagramAcceptor;
+            
+        } else if ( transportType == TransportType.DATAGRAM )
+        {
+            if ( datagramAcceptor == null )
+            {
+                datagramAcceptor = new DatagramAcceptor( 
+                        new ExecutorExecutor( executor ) ); 
                 DatagramAcceptorConfig config = (DatagramAcceptorConfig) datagramAcceptor
                         .getDefaultConfig();
                 DatagramSessionConfig sessionConfig = (DatagramSessionConfig) config
@@ -287,17 +294,23 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
                 sessionConfig.setReuseAddress( true );
             }
             acceptor = datagramAcceptor;
-
-        } else {
+            
+        } else
+        {
             log.debug( "Unrecognized transport type: {}", transportType );
             return null;
         }
-
+        
         // Save the acceptor
         acceptors.put( service, acceptor );
         return acceptor;
     }
-
+    
+    public Executor getExecutor()
+    {
+        return executor;
+    }
+    
     /**
      * Gets notification of changed parameters.
      * 
@@ -307,73 +320,25 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
     {
         if ( !(o instanceof Parameter) )
             throw new IllegalArgumentException( "Only observe parameters" );
-
-        if ( o == Config.threadPoolSize ) {
+        
+        if ( o == Config.threadPoolSize )
+        {
             // Update the thread pool size
-            threadPoolFilter.setMaximumPoolSize( Config.threadPoolSize.getValue() );
-            log.info( "Changed ThreadPool size. New max size: {}", threadPoolFilter
-                    .getMaximumPoolSize() );
+            // XXX: Refactor this: the thread pool should have no fixed upper
+            //      limit
+            // executor.setMaximumPoolSize( Config.threadPoolSize.getValue() );
+            // log.info( "Changed ThreadPool size. New max size: {}",
+            //        executor.getMaximumPoolSize() );
         }
     }
-
-    /**
-     * @param service
-     * @param service
-     * @return the shared thread pool filter instance
-     */
-    public IoFilter getThreadPoolFilterInstance( ProxyService service )
-    {
-        ThreadPoolFilter filter = service.getThreadPoolFilter();
-
-        if ( filter == null )
-            filter = threadPoolFilter;
-        return filter;
-    }
-
+    
     /**
      * @return a reference to the (unique) ProxyServiceRegistry instance
      */
     public static ProxyServiceRegistry getInstance()
     {
-        return (ProxyServiceRegistry) Singleton.getInstance( ProxyServiceRegistry.class );
+        return (ProxyServiceRegistry) Singleton
+                .getInstance( ProxyServiceRegistry.class );
     }
-
-    /**
-     * Wrapper class for the IoFilterChainBuilder that always add the thread
-     * pool filter as the filter in the chain.
-     * <p>
-     * The thread pool filter will be shared by all the services and acceptors.
-     */
-    protected static class IoFilterChainBuilderWrapper implements IoFilterChainBuilder
-    {
-
-        private final ProxyService service;
-
-        private final IoFilterChainBuilder originalBuilder;
-
-        public IoFilterChainBuilderWrapper( ProxyService service,
-                IoFilterChainBuilder originalBuilder )
-        {
-            this.service = service;
-            this.originalBuilder = originalBuilder;
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.apache.mina.common.IoFilterChainBuilder#buildFilterChain(org.apache.mina.common.IoFilterChain)
-         */
-        public void buildFilterChain( IoFilterChain chain ) throws Exception
-        {
-            chain.getSession().setAttribute( ProxyService.SERVICE, service );
-
-            if ( service.wantThreadPoolFilter() ) {
-                IoFilter threadPoolFilter = ProxyServiceRegistry.getInstance()
-                        .getThreadPoolFilterInstance( service );
-                chain.addFirst( threadPoolFilterNAME, threadPoolFilter );
-            }
-            originalBuilder.buildFilterChain( chain );
-        }
-    }
-
+    
 }

@@ -30,14 +30,14 @@ import rtspproxy.lib.Side;
 public class RtspClientFilters extends RtspFilters
 {
 
-	public void buildFilterChain( IoFilterChain chain ) throws Exception
-	{
-		addIpAddressFilter( chain, Side.Client );
-		addRtspCodecFilter( chain );
-		addAuthenticationFilter( chain );
-		addRewriteFilter( chain, Side.Client );
-		addAccountingFilter( chain );
-		addControlFilter( chain );
-	}
+    public void buildFilterChain( IoFilterChain chain ) throws Exception
+    {
+        addIpAddressFilter( chain, Side.Client );
+        addRtspCodecFilter( chain );
+        addAuthenticationFilter( chain );
+        addRewriteFilter( chain, Side.Client );
+        addAccountingFilter( chain );
+        addControlFilter( chain );
+    }
 
 }
