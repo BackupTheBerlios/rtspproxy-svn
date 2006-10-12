@@ -92,6 +92,8 @@ public class ProxyHandler implements IoFutureListener
     
     private Queue<RtspMessage> outgoingMessages;
     
+    private WriteListener writeListener = new WriteListener( this );
+    
     /**
      * Creates a new ProxyHandler from a client side protocol session.
      * 
@@ -651,17 +653,17 @@ public class ProxyHandler implements IoFutureListener
         log.debug( "Server session: {}", serverSession.getAttributeKeys() );
         
         // Send pending outgoing messages
-        while ( ! outgoingMessages.isEmpty() )
+        while ( !outgoingMessages.isEmpty() )
         {
             RtspMessage message = outgoingMessages.poll();
-            if (message.getType() == RtspMessage.Type.TypeRequest )
+            if ( message.getType() == RtspMessage.Type.TypeRequest )
             {
-                RtspRequest request = (RtspRequest)message;
+                RtspRequest request = (RtspRequest) message;
                 if ( request.getVerb() == RtspRequest.Verb.SETUP )
                 {
                     passSetupRequestToServer( request );
                     return;
-                }   
+                }
             }
             
             passToServer( message );
@@ -727,13 +729,7 @@ public class ProxyHandler implements IoFutureListener
     private void sendMessage( IoSession session, RtspMessage message )
     {
         message.setCommonHeaders();
-        try
-        {
-            session.write( message );
-        } catch ( Exception e )
-        {
-            log.error( "exception sending RTSP message", e.getCause() );
-        }
+        session.write( message ).addListener( writeListener );
     }
     
     /**
@@ -746,15 +742,57 @@ public class ProxyHandler implements IoFutureListener
      */
     private void sendError( IoSession session, RtspCode errorCode )
     {
-        try
+        WriteFuture future =
+                session.write( RtspResponse.errorResponse( errorCode ) );
+        future.addListener( new CloseAllListener( this ) );        
+    }
+    
+    private static class WriteListener implements IoFutureListener
+    {
+        private ProxyHandler proxyHandler;
+        
+        public WriteListener( ProxyHandler proxyHandler )
         {
-            WriteFuture future =
-                    session.write( RtspResponse.errorResponse( errorCode ) );
-            future.addListener( CLOSE );
-        } catch ( Exception e )
-        {
-            log.error( "exception sending RTSP error message", e.getCause() );
+            this.proxyHandler = proxyHandler;
         }
+        
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.apache.mina.common.IoFutureListener#operationComplete(org.apache.mina.common.IoFuture)
+         */
+        public void operationComplete( IoFuture future )
+        {
+            WriteFuture writeFuture = (WriteFuture) future;
+            if ( !writeFuture.isWritten() )
+            {
+                log.debug( "Writing operation failed." );
+                proxyHandler.closeAll();
+            }
+        }
+        
+    }
+    
+    private static class CloseAllListener implements IoFutureListener
+    {
+        
+        private ProxyHandler proxyHandler;
+        
+        public CloseAllListener( ProxyHandler proxyHandler )
+        {
+            this.proxyHandler = proxyHandler;
+        }
+        
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.apache.mina.common.IoFutureListener#operationComplete(org.apache.mina.common.IoFuture)
+         */
+        public void operationComplete( IoFuture future )
+        {
+            proxyHandler.closeAll();
+        }
+        
     }
     
 }
