@@ -25,13 +25,16 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoFuture;
 import org.apache.mina.common.IoFutureListener;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TrafficMask;
+import org.apache.mina.common.WriteFuture;
 import org.apache.mina.filter.executor.ExecutorExecutor;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 import org.apache.mina.transport.socket.nio.SocketSessionConfig;
@@ -87,6 +90,8 @@ public class ProxyHandler implements IoFutureListener
     private ConcurrentHashMap<String, Object> sharedSessionObjects =
             new ConcurrentHashMap<String, Object>();
     
+    private Queue<RtspMessage> outgoingMessages;
+    
     /**
      * Creates a new ProxyHandler from a client side protocol session.
      * 
@@ -94,6 +99,7 @@ public class ProxyHandler implements IoFutureListener
      */
     public ProxyHandler( IoSession clientSession )
     {
+        outgoingMessages = new ConcurrentLinkedQueue<RtspMessage>();
         this.clientSession = clientSession;
         this.clientSession.setAttribute(
                                          ProxyConstants.RSTP_SHARED_SESSION_ATTRIBUTE,
@@ -107,20 +113,16 @@ public class ProxyHandler implements IoFutureListener
         {
             ProxySession proxySession =
                     ProxySession.getByClientSessionID( message.getHeader( "Session" ) );
-            if ( proxySession != null )
-            {
-                // Session is Ok
-                message.setHeader( "Session", proxySession.getServerSessionId() );
-            }
-            else
+            if ( proxySession == null )
             {
                 // Error. The client specified a session ID but it's
                 // not valid
-                sendMessage(
-                             clientSession,
-                             RtspResponse.errorResponse( RtspCode.SessionNotFound ) );
+                sendError( clientSession, RtspCode.SessionNotFound );
                 return;
             }
+            
+            // Session is Ok
+            message.setHeader( "Session", proxySession.getServerSessionId() );
         }
         
         if ( serverSession == null
@@ -135,7 +137,7 @@ public class ProxyHandler implements IoFutureListener
             RtspRequest request = (RtspRequest) message;
             try
             {
-                connectServerSide( request.getUrl() );
+                connectServerSide( request );
                 
             } catch ( IOException e )
             {
@@ -143,6 +145,7 @@ public class ProxyHandler implements IoFutureListener
                 // closeAll();
             } finally
             {
+                log.debug( "Server session != null: {}", serverSession != null );
                 if ( serverSession == null ) return;
             }
         }
@@ -173,12 +176,8 @@ public class ProxyHandler implements IoFutureListener
         {
             ProxySession proxySession =
                     ProxySession.getByServerSessionID( message.getHeader( "Session" ) );
-            if ( proxySession != null )
-            {
-                // Session is Ok
-                message.setHeader( "Session", proxySession.getClientSessionId() );
-            }
-            else
+            
+            if ( proxySession == null )
             {
                 if ( message.getType() == RtspMessage.Type.TypeResponse )
                 {
@@ -198,12 +197,13 @@ public class ProxyHandler implements IoFutureListener
                 {
                     // Error. The client specified a session ID but it's
                     // not valid
-                    sendMessage(
-                                 clientSession,
-                                 RtspResponse.errorResponse( RtspCode.SessionNotFound ) );
+                    sendError( clientSession, RtspCode.SessionNotFound );
                     return;
                 }
             }
+            
+            // Session is Ok
+            message.setHeader( "Session", proxySession.getClientSessionId() );
         }
         
         switch ( message.getType() )
@@ -253,9 +253,7 @@ public class ProxyHandler implements IoFutureListener
                 // not valid
                 log.debug( "Invalid sessionId: {}",
                            request.getHeader( "Session" ) );
-                sendMessage(
-                             clientSession,
-                             RtspResponse.errorResponse( RtspCode.SessionNotFound ) );
+                sendError( clientSession, RtspCode.SessionNotFound );
                 return;
             }
         }
@@ -270,7 +268,7 @@ public class ProxyHandler implements IoFutureListener
              */
             try
             {
-                connectServerSide( request.getUrl() );
+                connectServerSide( request );
             } catch ( IOException e )
             {
                 log.error( "I/O exception", e );
@@ -298,9 +296,7 @@ public class ProxyHandler implements IoFutureListener
              * transports set.
              */
             log.debug( "No supported transport was found." );
-            sendMessage(
-                         clientSession,
-                         RtspResponse.errorResponse( RtspCode.UnsupportedTransport ) );
+            sendError( clientSession, RtspCode.UnsupportedTransport );
             return;
         }
         
@@ -350,9 +346,8 @@ public class ProxyHandler implements IoFutureListener
                                       "failed to allocate local RTP/RTCP ports",
                                       ioe );
                             
-                            sendMessage(
-                                         clientSession,
-                                         RtspResponse.errorResponse( RtspCode.InternalServerError ) );
+                            sendError( clientSession,
+                                       RtspCode.InternalServerError );
                             return;
                         }
                     }
@@ -562,9 +557,7 @@ public class ProxyHandler implements IoFutureListener
         }
         else
         {
-            sendMessage(
-                         clientSession,
-                         RtspResponse.errorResponse( RtspCode.UnsupportedTransport ) );
+            sendError( clientSession, RtspCode.UnsupportedTransport );
             return;
         }
         
@@ -583,8 +576,11 @@ public class ProxyHandler implements IoFutureListener
      *            the URI of the server
      * @throws IOException
      */
-    private void connectServerSide( URL url ) throws IOException
+    private void connectServerSide( RtspRequest request ) throws IOException
     {
+        URL url = request.getUrl();
+        outgoingMessages.add( request );
+        
         log.debug( "Connect to Server url: {}", url );
         String host = url.getHost();
         int port = url.getPort();
@@ -602,9 +598,7 @@ public class ProxyHandler implements IoFutureListener
         if ( addr.isUnresolved() )
         {
             log.warn( "Cannot resolve hostname: {}", host );
-            sendMessage(
-                         clientSession,
-                         RtspResponse.errorResponse( RtspCode.DestinationUnreachable ) );
+            sendError( clientSession, RtspCode.DestinationUnreachable );
             clientSession.close();
             return;
         }
@@ -630,9 +624,7 @@ public class ProxyHandler implements IoFutureListener
         {
             log.warn( "Destination unreachable: {}",
                       connectFuture.getSession().getRemoteAddress() );
-            sendMessage(
-                         clientSession,
-                         RtspResponse.errorResponse( RtspCode.DestinationUnreachable ) );
+            sendError( clientSession, RtspCode.DestinationUnreachable );
             clientSession.close();
             return;
         }
@@ -657,6 +649,23 @@ public class ProxyHandler implements IoFutureListener
                                     sharedSessionObjects );
         
         log.debug( "Server session: {}", serverSession.getAttributeKeys() );
+        
+        // Send pending outgoing messages
+        while ( ! outgoingMessages.isEmpty() )
+        {
+            RtspMessage message = outgoingMessages.poll();
+            if (message.getType() == RtspMessage.Type.TypeRequest )
+            {
+                RtspRequest request = (RtspRequest)message;
+                if ( request.getVerb() == RtspRequest.Verb.SETUP )
+                {
+                    passSetupRequestToServer( request );
+                    return;
+                }   
+            }
+            
+            passToServer( message );
+        }
     }
     
     /**
@@ -724,6 +733,27 @@ public class ProxyHandler implements IoFutureListener
         } catch ( Exception e )
         {
             log.error( "exception sending RTSP message", e.getCause() );
+        }
+    }
+    
+    /**
+     * Sends an RTSP error message response
+     * 
+     * @param session
+     *            current IoSession
+     * @param errorCode
+     *            the message
+     */
+    private void sendError( IoSession session, RtspCode errorCode )
+    {
+        try
+        {
+            WriteFuture future =
+                    session.write( RtspResponse.errorResponse( errorCode ) );
+            future.addListener( CLOSE );
+        } catch ( Exception e )
+        {
+            log.error( "exception sending RTSP error message", e.getCause() );
         }
     }
     
