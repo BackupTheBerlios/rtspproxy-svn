@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
 
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoFuture;
@@ -35,13 +36,12 @@ import org.apache.mina.common.IoFutureListener;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TrafficMask;
 import org.apache.mina.common.WriteFuture;
-import org.apache.mina.filter.executor.ExecutorExecutor;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 import org.apache.mina.transport.socket.nio.SocketSessionConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rtspproxy.ProxyServiceRegistry;
+import rtspproxy.IProxyServiceRegistry;
 import rtspproxy.RdtClientService;
 import rtspproxy.RdtServerService;
 import rtspproxy.RtcpClientService;
@@ -62,6 +62,8 @@ import rtspproxy.rtsp.RtspTransport;
 import rtspproxy.rtsp.RtspTransportList;
 import rtspproxy.rtsp.RtspTransport.LowerTransport;
 import rtspproxy.rtsp.RtspTransport.TransportProtocol;
+
+import com.google.inject.Inject;
 
 /**
  * @author Matteo Merli
@@ -93,6 +95,9 @@ public class ProxyHandler implements IoFutureListener
     private Queue<RtspMessage> outgoingMessages;
     
     private WriteListener writeListener = new WriteListener( this );
+    
+    @Inject
+    private IProxyServiceRegistry serviceRegistry;
     
     /**
      * Creates a new ProxyHandler from a client side protocol session.
@@ -589,9 +594,7 @@ public class ProxyHandler implements IoFutureListener
         if ( port == -1 ) port = url.getDefaultPort();
         
         // Create TCP/IP connector.
-        ExecutorExecutor executor =
-                new ExecutorExecutor(
-                        ProxyServiceRegistry.getInstance().getExecutor() );
+        Executor executor = serviceRegistry.getExecutor();
         SocketConnector connector = new SocketConnector( 1, executor );
         connector.setFilterChainBuilder( new RtspServerFilters() );
         
@@ -744,7 +747,7 @@ public class ProxyHandler implements IoFutureListener
     {
         WriteFuture future =
                 session.write( RtspResponse.errorResponse( errorCode ) );
-        future.addListener( new CloseAllListener( this ) );        
+        future.addListener( new CloseAllListener( this ) );
     }
     
     private static class WriteListener implements IoFutureListener

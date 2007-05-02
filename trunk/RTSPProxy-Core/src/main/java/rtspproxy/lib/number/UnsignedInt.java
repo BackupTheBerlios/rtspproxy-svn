@@ -32,15 +32,15 @@ public final class UnsignedInt extends UnsignedNumber {
 	private long value;
 
 	public UnsignedInt(byte c) {
-		value = c;
+		value = c & 0xFF;
 	}
 
 	public UnsignedInt(short c) {
-		value = c;
+		value = c & 0xFFFF;
 	}
 
 	public UnsignedInt(int c) {
-		value = c;
+		value = c & 0xFFFFFFFFL;
 	}
 
 	public UnsignedInt(long c) {

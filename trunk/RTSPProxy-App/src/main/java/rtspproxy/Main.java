@@ -30,6 +30,9 @@ import rtspproxy.config.Config;
 import rtspproxy.config.XMLConfigReader;
 import rtspproxy.lib.Exceptions;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 /**
  * 
  */
@@ -40,6 +43,9 @@ public class Main
 
     public static void main( String[] args )
     {
+        Injector injector = Guice.createInjector();
+        IReactor reactor = injector.getInstance( IReactor.class );
+        
         // Configure the logger with default settings
         // useful to track pre-config file errors
         BasicConfigurator.configure();
@@ -112,11 +118,11 @@ public class Main
                 log.debug( Config.debugParameters() );
             }
 
-            Reactor.setStandalone( true );
-            Reactor.start();
+            reactor.setStandalone( true );
+            reactor.start();
 
         } catch ( Exception e ) {
-            log.fatal( "Exception in the reactor: " + e );
+            log.fatal( "Exception in the reactor: ", e );
             Exceptions.logStackTrace( e );
             System.exit( -1 );
         }

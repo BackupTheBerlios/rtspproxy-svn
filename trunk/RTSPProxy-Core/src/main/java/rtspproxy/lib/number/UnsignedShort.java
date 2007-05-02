@@ -28,11 +28,11 @@ public final class UnsignedShort extends UnsignedNumber {
 	private int value;
 
 	public UnsignedShort(byte c) {
-		value = c;
+		value = c & 0xFF;
 	}
 
 	public UnsignedShort(short c) {
-		value = c;
+		value = c & 0xFFFF;
 	}
 
 	public UnsignedShort(int c) {

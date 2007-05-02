@@ -28,7 +28,7 @@ public final class UnsignedByte extends UnsignedNumber {
 	private short value;
 
 	public UnsignedByte(byte c) {
-		value = c;
+		value = (short) (c & 0xFF);
 	}
 
 	public UnsignedByte(short c) {

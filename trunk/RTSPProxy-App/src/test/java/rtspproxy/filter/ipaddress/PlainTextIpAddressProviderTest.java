@@ -17,18 +17,17 @@
  */
 package rtspproxy.filter.ipaddress;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
 /**
  * @author Matteo Merli
  */
-public class PlainTextIpAddressProviderTest extends TestCase
+public class PlainTextIpAddressProviderTest
 {
 	// TODO: Rewrite this test using the xml based configuration
 
-	private static final String CRLF = "\r\n";
-
-	public void test1() throws Exception
+	@Test
+    public void test1() throws Exception
 	{
 	/*
 		// prepare
@@ -47,7 +46,8 @@ public class PlainTextIpAddressProviderTest extends TestCase
 	*/
 	}
 	
-	public void test2() throws Exception
+	@Test
+    public void test2() throws Exception
 	{
 	/*
 		// prepare

@@ -18,7 +18,6 @@
 
 package rtspproxy.jmx;
 
-import java.lang.reflect.Constructor;
 import java.util.Set;
 
 import javax.management.Attribute;
@@ -27,7 +26,6 @@ import javax.management.AttributeNotFoundException;
 import javax.management.DynamicMBean;
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanConstructorInfo;
 import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.ReflectionException;

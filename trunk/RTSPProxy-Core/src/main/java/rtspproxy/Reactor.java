@@ -21,8 +21,12 @@ package rtspproxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 import rtspproxy.config.Config;
 import rtspproxy.filter.FilterRegistry;
+import rtspproxy.filter.IFilterRegistry;
 import rtspproxy.jmx.JmxAgent;
 import rtspproxy.lib.Exceptions;
 import rtspproxy.rtp.range.PortrangeRtpServerSessionFactory;
@@ -32,35 +36,36 @@ import rtspproxy.rtp.range.PortrangeRtpServerSessionFactory;
  * The reactor expects a valid configuration before startup eg the global configuration must
  * have been filled before starting the reactor.
  */
-public class Reactor
+@Singleton
+public class Reactor implements IReactor
 {
 
     private static Logger log = LoggerFactory.getLogger( Reactor.class );
 
-    private static ProxyServiceRegistry registry = null;
+    @Inject
+    private IProxyServiceRegistry serviceRegistry;
 
-    private static JmxAgent jmxAgent = null;
+    private JmxAgent jmxAgent;
     
-    private static boolean isStandalone = false;
+    @Inject
+    private IFilterRegistry filterRegistry;
     
-    private static FilterRegistry filterRegistry = null;
-
-    public static void setStandalone( boolean standalone )
+    private boolean isStandalone = false;
+    
+    /* (non-Javadoc)
+     * @see rtspproxy.IReactor#setStandalone(boolean)
+     */
+    public void setStandalone( boolean standalone )
     {
         isStandalone = standalone;
     }
 
-    /**
-     * Constructor. Creates a new Reactor and starts it.
-     * The reactor relies on configuration info that has to be provided 
-     * <b>before</b> starting the reactor.
-     * @exception Exception reactor startup failed.
+    /* (non-Javadoc)
+     * @see rtspproxy.IReactor#start()
      */
-    static public void start() throws Exception
+    public void start() throws Exception
     {
         log.info( "Starting " + Config.getName() + " " + Config.getVersion() );
-
-        registry = new ProxyServiceRegistry();
 
         // Register the "rtsp://" protocol scheme
         System.setProperty( "java.protocol.handler.pkgs", "rtspproxy" );
@@ -87,8 +92,8 @@ public class Reactor
         rdtServerService.start();
 
         boolean enableJmx = Config.jmxEnable.getValue();
-        if ( enableJmx )
-            jmxAgent = new JmxAgent();
+         if ( enableJmx )
+             jmxAgent = new JmxAgent();
 
         filterRegistry = new FilterRegistry();
         filterRegistry.populateRegistry();		
@@ -99,7 +104,10 @@ public class Reactor
         
     }
 
-    static public void stop()
+    /* (non-Javadoc)
+     * @see rtspproxy.IReactor#stop()
+     */
+    public void stop()
     {
         try {
             // TODO: check why null pointer exception
@@ -108,8 +116,8 @@ public class Reactor
             if ( jmxAgent != null )
                 jmxAgent.stop();
             
-            if ( registry != null )
-                registry.unbindAll();
+            if ( serviceRegistry != null )
+                serviceRegistry.unbindAll();
             
             log.info( "Shutdown completed" );
 
@@ -120,11 +128,6 @@ public class Reactor
 
         if ( isStandalone )
             Runtime.getRuntime().halt( 0 );
-    }
-
-    protected static ProxyServiceRegistry getRegistry()
-    {        
-        return registry;
     }
 
 }

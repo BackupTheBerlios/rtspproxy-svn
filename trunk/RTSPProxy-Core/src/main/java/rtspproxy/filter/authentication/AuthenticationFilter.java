@@ -25,6 +25,9 @@ import org.apache.mina.common.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+
+import rtspproxy.IReactor;
 import rtspproxy.Reactor;
 import rtspproxy.config.Config;
 import rtspproxy.filter.FilterBase;
@@ -42,32 +45,39 @@ import rtspproxy.rtsp.RtspResponse;
  */
 public class AuthenticationFilter extends FilterBase<AuthenticationProvider>
 {
-
-    private static Logger log = LoggerFactory.getLogger( AuthenticationFilter.class );
-
+    
+    private static Logger log =
+            LoggerFactory.getLogger( AuthenticationFilter.class );
+    
     private static final String FilterNAME = "authenticationFilter";
-
-    private static final String ATTR = AuthenticationFilter.class.getName() + "Attr";
-
-    private static final Map<String, Class> schemeRegistry = new HashMap<String, Class>();
-
-    static {
+    
+    private static final String ATTR =
+            AuthenticationFilter.class.getName() + "Attr";
+    
+    private static final Map<String, Class<? extends AuthenticationScheme>> schemeRegistry =
+            new HashMap<String, Class<? extends AuthenticationScheme>>();
+    
+    @Inject
+    private IReactor reactor;
+    
+    static
+    {
         // Fill in known schemes
         schemeRegistry.put( "basic", BasicAuthentication.class );
         schemeRegistry.put( "digest", DigestAuthentication.class );
     }
-
+    
     /** Backend provider. */
     private AuthenticationProvider provider;
-
+    
     /** Different authentication schemes implementation */
     private AuthenticationScheme scheme = null;
-
-	public static String getAttrName()
-	{
-		return ATTR;
-	}
-
+    
+    public static String getAttrName()
+    {
+        return ATTR;
+    }
+    
     /**
      * Construct a new AuthenticationFilter. Looks at the configuration to load
      * the choseen backend implementation.
@@ -76,23 +86,28 @@ public class AuthenticationFilter extends FilterBase<AuthenticationProvider>
     {
         // Validate the choosen authentication scheme
         String schemeName = Config.filtersAuthenticationScheme.getValue();
-        Class schemeClass = schemeRegistry.get( schemeName.toLowerCase() );
-        if ( schemeClass == null ) {
+        Class<? extends AuthenticationScheme> schemeClass =
+                schemeRegistry.get( schemeName.toLowerCase() );
+        if ( schemeClass == null )
+        {
             // scheme not found
-            log.error( "Authentication Scheme not found: {}. Valid values are: {}",
-                    schemeName, schemeRegistry.keySet() );
-            Reactor.stop();
+            log.error(
+                       "Authentication Scheme not found: {}. Valid values are: {}",
+                       schemeName, schemeRegistry.keySet() );
+            reactor.stop();
             return;
         }
-
+        
         // Instanciate the selected scheme
-        try {
-            scheme = (AuthenticationScheme) schemeClass.newInstance();
-        } catch ( Exception e ) {
+        try
+        {
+            scheme = schemeClass.newInstance();
+        } catch ( Exception e )
+        {
             log.error( "Error instanciating class: {}", schemeClass );
         }
     }
-
+    
     /*
      * (non-Javadoc)
      * 
@@ -103,7 +118,7 @@ public class AuthenticationFilter extends FilterBase<AuthenticationProvider>
     {
         return FilterNAME;
     }
-
+    
     /*
      * (non-Javadoc)
      * 
@@ -114,7 +129,7 @@ public class AuthenticationFilter extends FilterBase<AuthenticationProvider>
     {
         return Config.filtersAuthenticationImplClass.getValue();
     }
-
+    
     /*
      * (non-Javadoc)
      * 
@@ -125,7 +140,7 @@ public class AuthenticationFilter extends FilterBase<AuthenticationProvider>
     {
         return AuthenticationProvider.class;
     }
-
+    
     /*
      * (non-Javadoc)
      * 
@@ -136,7 +151,7 @@ public class AuthenticationFilter extends FilterBase<AuthenticationProvider>
     {
         this.provider = provider;
     }
-
+    
     /*
      * (non-Javadoc)
      * 
@@ -144,79 +159,90 @@ public class AuthenticationFilter extends FilterBase<AuthenticationProvider>
      *      org.apache.mina.common.IoSession, java.lang.Object)
      */
     @Override
-    public void messageReceived( NextFilter nextFilter, IoSession session, Object message )
-            throws Exception
+    public void messageReceived( NextFilter nextFilter, IoSession session,
+            Object message ) throws Exception
     {
-        if ( !(message instanceof RtspRequest) ) {
+        if ( !(message instanceof RtspRequest) )
+        {
             // Shouldn't happen
             log.warn( "Object message is not a RTSP request" );
             return;
         }
-
-        if ( session.getAttribute( ATTR ) != null ) {
+        
+        if ( session.getAttribute( ATTR ) != null )
+        {
             // Client already autheticated
             log.debug( "Already authenticaed: {}", session.getAttribute( ATTR ) );
             nextFilter.messageReceived( session, message );
         }
-
-        String authString = ((RtspMessage) message).getHeader( "Proxy-Authorization" );
-
-        if ( authString == null ) {
+        
+        String authString =
+                ((RtspMessage) message).getHeader( "Proxy-Authorization" );
+        
+        if ( authString == null )
+        {
             log.debug( "RTSP message: \n{}", message );
-            final RtspResponse response = RtspResponse
-                    .errorResponse( RtspCode.ProxyAuthenticationRequired );
-
+            final RtspResponse response =
+                    RtspResponse.errorResponse( RtspCode.ProxyAuthenticationRequired );
+            
             response.setHeader( "Proxy-Authenticate", scheme.getName() + " "
                     + scheme.getChallenge() );
-
+            
             log.debug( "Client MUST athenticate to Proxy: \n{}", response );
             session.write( response );
             return;
         }
-
-        if ( !validateAuthenticationScheme( authString ) ) {
+        
+        if ( !validateAuthenticationScheme( authString ) )
+        {
             log.debug( "Authentication scheme not valid: {}", authString );
-            RtspResponse response = RtspResponse.errorResponse( RtspCode.BadRequest );
+            RtspResponse response =
+                    RtspResponse.errorResponse( RtspCode.BadRequest );
             session.write( response );
             return;
         }
-
+        
         log.debug( "RTSP message: \n{}", message );
-
+        
         // Check the authentication credentials
-        final Credentials credentials = scheme.getCredentials( (RtspMessage) message );
-
+        final Credentials credentials =
+                scheme.getCredentials( (RtspMessage) message );
+        
         boolean authenticationOk = false;
-        if ( credentials != null ) {
+        if ( credentials != null )
+        {
             String password = provider.getPassword( credentials.getUserName() );
-            if ( password != null && scheme.computeAuthentication( credentials, password ) ) {
+            if ( password != null
+                    && scheme.computeAuthentication( credentials, password ) )
+            {
                 authenticationOk = true;
             }
         }
-
-        if ( !authenticationOk ) {
+        
+        if ( !authenticationOk )
+        {
             log.info( "Authentication failed for user: {}", credentials );
-            RtspResponse response = RtspResponse
-                    .errorResponse( RtspCode.ProxyAuthenticationRequired );
+            RtspResponse response =
+                    RtspResponse.errorResponse( RtspCode.ProxyAuthenticationRequired );
             response.setHeader( "Proxy-Authenticate", scheme.getName() + " "
                     + scheme.getChallenge() );
-
+            
             session.write( response );
             return;
         }
-
+        
         log.debug( "Authentication successfull for user: {}", credentials );
-
+        
         /*
          * Mark the session with an "authenticated" attribute. This will prevent
          * the check for the credentials for every message received.
          */
         session.setAttribute( ATTR, credentials.getUserName() );
-
+        
         // Forward message
         nextFilter.messageReceived( session, message );
     }
-
+    
     /**
      * Gets the authentication scheme stated by the client.
      * 
@@ -226,18 +252,19 @@ public class AuthenticationFilter extends FilterBase<AuthenticationProvider>
     private boolean validateAuthenticationScheme( String authString )
     {
         String schemeName;
-        try {
+        try
+        {
             schemeName = authString.split( " " )[0];
-        } catch ( IndexOutOfBoundsException e ) {
+        } catch ( IndexOutOfBoundsException e )
+        {
             // Malformed auth string
             return false;
         }
-
-        if ( schemeName.equalsIgnoreCase( scheme.getName() ) )
-            return true;
-
+        
+        if ( schemeName.equalsIgnoreCase( scheme.getName() ) ) return true;
+        
         // Scheme not valid
         return false;
     }
-
+    
 }

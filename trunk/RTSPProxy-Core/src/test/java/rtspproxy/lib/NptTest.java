@@ -17,23 +17,22 @@
  */
 package rtspproxy.lib;
 
-import junit.framework.TestCase;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+
+import org.testng.annotations.Test;
 
 /**
  * @author mat
  */
-public class NptTest extends TestCase
+@Test
+public class NptTest
 {
-
-	public static void main( String[] args )
-	{
-		junit.textui.TestRunner.run( NptTest.class );
-	}
-
 	/*
 	 * Test method for 'rtspproxy.lib.Npt.fromString(String)'
 	 */
-	public void testFromString1()
+	@Test
+    public void fromString1()
 	{
 		String s = "npt=0-23.4";
 		Npt npt = Npt.fromString( s );
@@ -48,7 +47,8 @@ public class NptTest extends TestCase
 	/*
 	 * Test method for 'rtspproxy.lib.Npt.fromString(String)'
 	 */
-	public void testFromString2()
+	@Test
+    public void fromString2()
 	{
 		String s = "npt=0-";
 		Npt npt = Npt.fromString( s );
@@ -63,7 +63,8 @@ public class NptTest extends TestCase
 	/*
 	 * Test method for 'rtspproxy.lib.Npt.fromString(String)'
 	 */
-	public void testFromString3()
+	@Test
+    public void fromString3()
 	{
 		String s = "npt=12.34-23.49";
 		Npt npt = Npt.fromString( s );
@@ -78,7 +79,8 @@ public class NptTest extends TestCase
 	/*
 	 * Test method for 'rtspproxy.lib.Npt.fromString(String)'
 	 */
-	public void testFromString4()
+	@Test
+    public void fromString4()
 	{
 		String s = "npt=now-";
 		Npt npt = Npt.fromString( s );

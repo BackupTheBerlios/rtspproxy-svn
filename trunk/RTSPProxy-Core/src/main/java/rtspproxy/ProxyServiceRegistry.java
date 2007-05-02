@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.mina.common.IoAcceptor;
@@ -37,7 +36,6 @@ import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoServiceConfig;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
-import org.apache.mina.filter.executor.ExecutorExecutor;
 import org.apache.mina.transport.socket.nio.DatagramAcceptor;
 import org.apache.mina.transport.socket.nio.DatagramAcceptorConfig;
 import org.apache.mina.transport.socket.nio.DatagramSessionConfig;
@@ -48,7 +46,8 @@ import org.slf4j.LoggerFactory;
 
 import rtspproxy.config.Config;
 import rtspproxy.config.Parameter;
-import rtspproxy.lib.Singleton;
+
+import com.google.inject.Singleton;
 
 /**
  * Custom implementation of the ServiceRegistry interface. Creates an acceptor
@@ -56,7 +55,8 @@ import rtspproxy.lib.Singleton;
  * 
  * @author Matteo Merli
  */
-public final class ProxyServiceRegistry extends Singleton implements Observer
+@Singleton
+public final class ProxyServiceRegistry implements Observer, IProxyServiceRegistry
 {
     
     private static Logger log = LoggerFactory
@@ -72,21 +72,20 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
     
     private DatagramAcceptor datagramAcceptor = null;
     
-    private ExecutorService executor = Executors.newCachedThreadPool();
+    private Executor executor = Executors.newCachedThreadPool();
     
     /**
      * Construct a new ProxyServiceRegistry. This class is a Singleton, so there
      * can be only one instance.
      */
-    public ProxyServiceRegistry()
+    private ProxyServiceRegistry()
     {
-        ExecutorExecutor executorProxy = new ExecutorExecutor( executor );
-        socketAcceptor = new SocketAcceptor( 2, executorProxy );
+        socketAcceptor = new SocketAcceptor( 2, executor );
         SocketAcceptorConfig config = (SocketAcceptorConfig) socketAcceptor
                 .getDefaultConfig();
         config.setReuseAddress( true );
         
-        datagramAcceptor = new DatagramAcceptor( executorProxy );
+        datagramAcceptor = new DatagramAcceptor( executor );
         DatagramAcceptorConfig datagramConfig = (DatagramAcceptorConfig) datagramAcceptor
                 .getDefaultConfig();
         DatagramSessionConfig sessionConfig = (DatagramSessionConfig) datagramConfig
@@ -183,14 +182,12 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
             try
             {
                 // Disconnect all clients
-                Set sessions = acceptor.getManagedSessions( address );
+                Set<IoSession> sessions = acceptor.getManagedSessions( address );
                 log.debug( "{} has {} connected clients.", service.getName(),
                         sessions.size() );
-                for ( Object obj : sessions )
-                {
-                    IoSession session = (IoSession) obj;
+                
+                for ( IoSession session : sessions )
                     session.close();
-                }
                 
                 acceptor.unbind( address );
             } catch ( Exception e )
@@ -298,14 +295,5 @@ public final class ProxyServiceRegistry extends Singleton implements Observer
             // executor.getMaximumPoolSize() );
         }
     }
-    
-    /**
-     * @return a reference to the (unique) ProxyServiceRegistry instance
-     */
-    public static ProxyServiceRegistry getInstance()
-    {
-        return (ProxyServiceRegistry) Singleton
-                .getInstance( ProxyServiceRegistry.class );
-    }
-    
+       
 }

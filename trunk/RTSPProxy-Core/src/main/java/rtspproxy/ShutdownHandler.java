@@ -21,6 +21,8 @@ package rtspproxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+
 import rtspproxy.config.Config;
 import rtspproxy.lib.Exceptions;
 
@@ -31,18 +33,23 @@ import rtspproxy.lib.Exceptions;
  */
 public class ShutdownHandler extends Thread
 {
-
+    
     private static Logger log = LoggerFactory.getLogger( ShutdownHandler.class );
+    
+    @Inject
+    private IReactor reactor;
     
     @Override
     public void run()
     {
         log.info( "Shutting down" );
-        try {
+        try
+        {
             log.info( "Stopping {} {}", Config.getName(), Config.getVersion() );
-            Reactor.stop();
-
-        } catch ( Exception e ) {
+            reactor.stop();
+            
+        } catch ( Exception e )
+        {
             log.error( "Exception in the reactor: ", e );
             Exceptions.logStackTrace( e );
         }

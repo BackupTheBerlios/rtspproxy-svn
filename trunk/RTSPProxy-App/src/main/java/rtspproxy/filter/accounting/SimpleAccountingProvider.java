@@ -27,8 +27,6 @@ public class SimpleAccountingProvider extends AccountingProviderAdapter implemen
 
     private static Logger log = LoggerFactory.getLogger( SimpleAccountingProvider.class );
 
-    private static final String requestMessageATTR = SimpleAccountingProvider.class.getName() + "requestATTR";
-
     // This is not static since it's a separate log
     private Logger accessLog = null;
 

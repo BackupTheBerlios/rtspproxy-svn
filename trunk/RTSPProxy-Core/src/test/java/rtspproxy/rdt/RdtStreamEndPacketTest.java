@@ -3,19 +3,22 @@
  */
 package rtspproxy.rdt;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import java.io.IOException;
 
 import org.apache.mina.common.ByteBuffer;
-
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
  *
  */
-public class RdtStreamEndPacketTest extends TestCase {
+public class RdtStreamEndPacketTest {
 
-		public void testRdtStreamEndPacketStream0Load() throws IOException {
+		@Test()
+        public void testRdtStreamEndPacketStream0Load() throws IOException {
 			RdtStreamEndPacket packet = (RdtStreamEndPacket)RdtPacketDecoder.decode(BufferUtils.loadBuffer("RdtStreamEndPacketStream0.txt"));
 			
 			assertEquals(packet.isNeedReliable(), true);
@@ -27,7 +30,8 @@ public class RdtStreamEndPacketTest extends TestCase {
 			assertEquals(packet.getTotalReliable(), 0);
 		}
 		
-		public void testRdtStreamEndPacketStream0Save() throws IOException {
+		@Test()
+        public void testRdtStreamEndPacketStream0Save() throws IOException {
 			ByteBuffer buffer = BufferUtils.loadBuffer("RdtStreamEndPacketStream0.txt");
 			RdtStreamEndPacket packet = (RdtStreamEndPacket)RdtPacketDecoder.decode(BufferUtils.loadBuffer("RdtStreamEndPacketStream0.txt"));
 	
@@ -35,7 +39,8 @@ public class RdtStreamEndPacketTest extends TestCase {
 		}
 
 
-		public void testRdtStreamEndPacketStream1Load() throws IOException {
+		@Test()
+        public void testRdtStreamEndPacketStream1Load() throws IOException {
 			RdtStreamEndPacket packet = (RdtStreamEndPacket)RdtPacketDecoder.decode(BufferUtils.loadBuffer("RdtStreamEndPacketStream1.txt"));
 			
 			assertEquals(packet.isNeedReliable(), true);
@@ -47,7 +52,8 @@ public class RdtStreamEndPacketTest extends TestCase {
 			assertEquals(packet.getTotalReliable(), 0);
 		}
 		
-		public void testRdtStreamEndPacketStream1Save() throws IOException {
+		@Test()
+        public void testRdtStreamEndPacketStream1Save() throws IOException {
 			ByteBuffer buffer = BufferUtils.loadBuffer("RdtStreamEndPacketStream1.txt");
 			RdtStreamEndPacket packet = (RdtStreamEndPacket)RdtPacketDecoder.decode(BufferUtils.loadBuffer("RdtStreamEndPacketStream1.txt"));
 	

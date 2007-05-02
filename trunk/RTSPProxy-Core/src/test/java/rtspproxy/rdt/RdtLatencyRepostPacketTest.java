@@ -2,28 +2,30 @@
  * 
  */
 package rtspproxy.rdt;
-
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 
 import org.apache.mina.common.ByteBuffer;
-
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
  *
  */
-public class RdtLatencyRepostPacketTest extends TestCase {
+public class RdtLatencyRepostPacketTest {
 
-	public void testRdtLatencyReportPacketLoad() throws IOException {
+	@Test()
+    public void testRdtLatencyReportPacketLoad() throws IOException {
 		RdtLatencyReportPacket packet = (RdtLatencyReportPacket)RdtPacketDecoder.decode(BufferUtils.loadBuffer("RdtLatencyReportWithDataPacket.txt"));
 		
 		assertEquals(packet.isLengthIncluded(), true);
 		assertEquals(packet.getServerTimeout(), 0);
 	}
 
-	public void testRdtLatencyReportPacketDataLoad() throws IOException {
+	@Test()
+    public void testRdtLatencyReportPacketDataLoad() throws IOException {
 		RdtLatencyReportPacket packet = (RdtLatencyReportPacket)RdtPacketDecoder.decode(BufferUtils.loadBuffer("RdtLatencyReportWithDataPacket.txt"));
 		
 		assertEquals(packet.isLengthIncluded(), true);
@@ -42,7 +44,8 @@ public class RdtLatencyRepostPacketTest extends TestCase {
 		assertEquals(subPacket.getTotalReliable(), 0);
 	}
 
-	public void testRdtLatencyReportPacketSave() throws IOException {
+	@Test()
+    public void testRdtLatencyReportPacketSave() throws IOException {
 		ByteBuffer buffer = BufferUtils.loadBuffer("RdtLatencyReportWithDataPacket.txt");
 		RdtLatencyReportPacket packet = (RdtLatencyReportPacket)RdtPacketDecoder.decode(BufferUtils.loadBuffer("RdtLatencyReportWithDataPacket.txt"));
 		

@@ -3,20 +3,23 @@
  */
 package rtspproxy.rdt;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import java.io.IOException;
 
 import org.apache.mina.common.ByteBuffer;
-
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
 /**
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
  *
  */
-public class RdtRttResponsePacketTest extends TestCase {
+public class RdtRttResponsePacketTest {
 
 
-	public void testRdtRttResponsePacketLoad() throws IOException {
+	@Test()
+    public void testRdtRttResponsePacketLoad() throws IOException {
 		RdtRttResponsePacket packet = (RdtRttResponsePacket)RdtPacketDecoder.decode(BufferUtils.loadBuffer("RdtRttResponsePacket.txt"));
 
 		assertEquals(packet.isLengthIncluded(), false);
@@ -24,7 +27,8 @@ public class RdtRttResponsePacketTest extends TestCase {
 		assertEquals(packet.getRoundtripTimestampMicroseconds(), 101211);
 	}
 	
-	public void testRdtRttResponsePacketSave() throws IOException {
+	@Test()
+    public void testRdtRttResponsePacketSave() throws IOException {
 		ByteBuffer buffer = BufferUtils.loadBuffer("RdtRttResponsePacket.txt");
 		RdtRttResponsePacket packet = (RdtRttResponsePacket)RdtPacketDecoder.decode(BufferUtils.loadBuffer("RdtRttResponsePacket.txt"));
 		

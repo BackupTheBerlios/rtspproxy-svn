@@ -18,30 +18,27 @@
 
 package rtspproxy.rtp.rtcp;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import java.util.Arrays;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
 import org.apache.mina.common.ByteBuffer;
+import org.testng.annotations.Test;
 
 import rtspproxy.lib.number.UnsignedInt;
 
 /**
  * @author mat
  */
-public class RtcpPacketTest extends TestCase
+public class RtcpPacketTest
 {
 
-	public static void main( String[] args )
-	{
-		junit.textui.TestRunner.run( RtcpPacketTest.class );
-	}
-
-	/*
+    /*
 	 * Test method for 'rtspproxy.Config.get(String, String)'
 	 */
-	public void testRtcpPacket()
+	@Test
+    public void rtcpPacket()
 	{
 		/* Construct a new dummy packet */
 		RtcpPacket packet = new RtcpPacket();
@@ -60,14 +57,14 @@ public class RtcpPacketTest extends TestCase
 		/* Recreate a RtcpPacket from buffer */
 		RtcpPacket packet2 = new RtcpPacket( buffer );
 
-		/* Compare the two packets */
-		Assert.assertEquals( packet.version, packet2.version );
-		Assert.assertEquals( packet.padding, packet2.padding );
-		Assert.assertEquals( packet.count, packet2.count );
-		Assert.assertEquals( packet.packetType, packet2.packetType );
-		Assert.assertEquals( packet.length, packet2.length );
-		Assert.assertEquals( packet.ssrc, packet2.ssrc );
-		Assert.assertTrue( Arrays.equals( packet.packetBuffer, packet2.packetBuffer ) );
+        /* Compare the two packets */
+		assertEquals( packet.version, packet2.version );
+		assertEquals( packet.padding, packet2.padding );
+		assertEquals( packet.count, packet2.count );
+		assertEquals( packet.packetType, packet2.packetType );
+		assertEquals( packet.length, packet2.length );
+		assertEquals( packet.ssrc, packet2.ssrc );
+		assertTrue( Arrays.equals( packet.packetBuffer, packet2.packetBuffer ) );
 	}
 
 }

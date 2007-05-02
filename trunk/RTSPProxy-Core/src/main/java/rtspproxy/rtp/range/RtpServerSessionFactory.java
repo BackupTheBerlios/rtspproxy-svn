@@ -50,9 +50,6 @@ class RtpServerSessionFactory implements PoolableObjectFactory, Observer
     // RTCP acceptor
     private DatagramAcceptor rtcpAcceptor = new DatagramAcceptor();
 
-    // Filter chain builder
-    private RtpRtcpFilterChainBuilder chainBuilder = new RtpRtcpFilterChainBuilder();
-
     private long idleTimeout;
 
     /**
@@ -69,10 +66,6 @@ class RtpServerSessionFactory implements PoolableObjectFactory, Observer
         this.maxConnections = maxConn;
         this.basePort = basePort;
         this.idleTimeout = idleTimeout;
-
-        this.chainBuilder.setPoolSize( threadPoolSize );
-        this.rtpAcceptor.setFilterChainBuilder( this.chainBuilder );
-        this.rtcpAcceptor.setFilterChainBuilder( this.chainBuilder );
 
         Config.proxyServerRtpThreadPoolSize.addObserver( this );
         Config.proxyServerRtpIdleTimeout.addObserver( this );
@@ -189,10 +182,7 @@ class RtpServerSessionFactory implements PoolableObjectFactory, Observer
         if ( o instanceof Parameter ) {
             Parameter p = (Parameter) o;
 
-            if ( p.equals( Config.proxyServerRtpThreadPoolSize ) )
-                this.chainBuilder.setPoolSize( Config.proxyServerRtpThreadPoolSize
-                        .getValue() );
-            else if ( p.equals( Config.proxyServerRtpIdleTimeout ) )
+            if ( p.equals( Config.proxyServerRtpIdleTimeout ) )
                 this.idleTimeout = Config.proxyServerRtpIdleTimeout.getValue();
         }
     }

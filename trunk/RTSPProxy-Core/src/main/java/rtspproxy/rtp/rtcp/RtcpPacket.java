@@ -95,7 +95,8 @@ public class RtcpPacket implements Packet
 		version = (byte) ( ( c & 0xC0 ) >> 6 );
 		padding = ( ( c & 0x20 ) >> 5 ) == 1;
 		count = (byte) ( c & 0x1F );
-		packetType = new UnsignedByte( buffer.get() );
+        byte b = buffer.get();
+        packetType = new UnsignedByte( b );
 		length = buffer.getShort();
 
 		ssrc = new UnsignedInt( buffer.getInt() );

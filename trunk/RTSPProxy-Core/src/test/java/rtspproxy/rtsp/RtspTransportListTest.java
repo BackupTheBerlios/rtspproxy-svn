@@ -18,45 +18,39 @@
 
 package rtspproxy.rtsp;
 
-import junit.framework.TestCase;
+import static org.testng.Assert.assertEquals;
+
+import org.testng.annotations.Test;
 
 /**
  * @author Matteo Merli
  */
-public class RtspTransportListTest extends TestCase
+public class RtspTransportListTest
 {
-
-	public static void main( String[] args )
-	{
-		junit.textui.TestRunner.run( RtspTransportListTest.class );
-	}
-
-	RtspTransportList transportList;
-	String transportTest;
-
-	@Override
-	protected void setUp() throws Exception
-	{
-		transportTest = "x-real-rdt/mcast;client_port=6972;mode=play,"
-				+ "x-real-rdt/udp;client_port=6972;mode=play,"
-				+ "x-pn-tng/udp;client_port=6972;mode=play,"
-				+ "RTP/AVP;unicast;client_port=6972-6973;mode=play,"
-				+ "x-pn-tng/tcp;mode=play," + "x-real-rdt/tcp;mode=play,"
-				+ "RTP/AVP/TCP;unicast;mode=play";
-		transportList = new RtspTransportList( transportTest );
-	}
-
-	public void testToString()
-	{
-		String expected = "x-real-rdt/udp;client_port=6972;mode=\"PLAY\","
-				+ "RTP/AVP/UDP;unicast;client_port=6972-6973;mode=\"PLAY\"";
-		assertEquals( expected, transportList.toString() );
-	}
-
-	public void testCount()
-	{
-		// only a transport type is valid in this test
-		assertEquals( 2, transportList.count() );
-	}
-
+    String transportTest =
+            "x-real-rdt/mcast;client_port=6972;mode=play,"
+                    + "x-real-rdt/udp;client_port=6972;mode=play,"
+                    + "x-pn-tng/udp;client_port=6972;mode=play,"
+                    + "RTP/AVP;unicast;client_port=6972-6973;mode=play,"
+                    + "x-pn-tng/tcp;mode=play," + "x-real-rdt/tcp;mode=play,"
+                    + "RTP/AVP/TCP;unicast;mode=play";
+    
+    RtspTransportList transportList = new RtspTransportList( transportTest );
+    
+    @Test
+    public void ToString()
+    {
+        String expected =
+                "x-real-rdt/udp;client_port=6972;mode=\"PLAY\","
+                        + "RTP/AVP/UDP;unicast;client_port=6972-6973;mode=\"PLAY\"";
+        assertEquals( expected, transportList.toString() );
+    }
+    
+    @Test
+    public void count()
+    {
+        // only a transport type is valid in this test
+        assertEquals( 2, transportList.count() );
+    }
+    
 }

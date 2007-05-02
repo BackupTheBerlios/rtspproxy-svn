@@ -20,7 +20,7 @@
 	<artifactId>RTSPProxy-Core</artifactId>	
 
 	<build>
-		<defaultGoal>assembly:directory</defaultGoal>
+		<defaultGoal>package</defaultGoal>
 
 		<resources>
 			<resource>

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+mvn -Dwtpversion=1.5 eclipse:eclipse

@@ -18,11 +18,13 @@
 
 package rtspproxy.rtp;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import java.util.Arrays;
 
-import junit.framework.TestCase;
-
 import org.apache.mina.common.ByteBuffer;
+import org.testng.annotations.Test;
 
 import rtspproxy.lib.number.UnsignedByte;
 import rtspproxy.lib.number.UnsignedInt;
@@ -31,13 +33,10 @@ import rtspproxy.lib.number.UnsignedShort;
 /**
  * @author mat
  */
-public class RtpPacketTest extends TestCase {
+public class RtpPacketTest {
 
-	public static void main(String[] args) {
-		junit.textui.TestRunner.run(RtpPacketTest.class);
-	}
-
-	public void testRtpPacket() {
+	@Test()
+    public void testRtpPacket() {
 		// Set the values
 		byte version = 2;
 		boolean padding = true;

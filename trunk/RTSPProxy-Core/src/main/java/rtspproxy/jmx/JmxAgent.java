@@ -38,10 +38,10 @@ import mx4j.tools.naming.NamingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rtspproxy.IReactor;
 import rtspproxy.ProxyService;
 import rtspproxy.RdtClientService;
 import rtspproxy.RdtServerService;
-import rtspproxy.Reactor;
 import rtspproxy.RtcpClientService;
 import rtspproxy.RtcpServerService;
 import rtspproxy.RtpClientService;
@@ -59,6 +59,8 @@ import rtspproxy.lib.Singleton;
 import rtspproxy.proxy.ProxySession;
 import rtspproxy.rtp.range.PortrangeRtpServerSession;
 import rtspproxy.rtp.range.PortrangeRtpServerSessionFactory;
+
+import com.google.inject.Inject;
 
 /**
  * Entry point class for all the JMX interface.
@@ -85,6 +87,9 @@ public class JmxAgent extends Singleton
     public static final String LOGGER_DOMAIN = "RtspProxy.Logger";
 
     private MBeanServer mbeanServer = null;
+    
+    @Inject
+    private IReactor reactor;
 
     /**
      * Creates a MBean server and attach all the MBeans to it. Also starts, if
@@ -138,7 +143,7 @@ public class JmxAgent extends Singleton
 
         } catch ( Exception e ) {
             log.error( "Exception: ", e );
-            Reactor.stop();
+            reactor.stop();
         }
     }
 

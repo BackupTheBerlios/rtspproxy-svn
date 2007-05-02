@@ -22,7 +22,7 @@ import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rtspproxy.Reactor;
+import rtspproxy.IReactor;
 import rtspproxy.config.Config;
 import rtspproxy.config.XMLConfigReader;
 import rtspproxy.filter.accounting.AccountingFilter;
@@ -30,8 +30,10 @@ import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
 import rtspproxy.filter.rewrite.UrlRewritingFilter;
 import rtspproxy.jmx.JmxAgent;
-import rtspproxy.lib.Singleton;
 import rtspproxy.lib.Side;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Filter registry. This registry is populated from the configuration on reactor
@@ -39,149 +41,151 @@ import rtspproxy.lib.Side;
  * 
  * @author Rainer Bieniek (Rainer.Bieniek@vodafone.com)
  */
-public class FilterRegistry extends Singleton
+@Singleton
+public class FilterRegistry implements IFilterRegistry
 {
-
+    
     private static Logger log = LoggerFactory.getLogger( FilterRegistry.class );
-
+    
     private IpAddressFilter clientAddressFilter = null;
-
+    
     private IpAddressFilter serverAddressFilter = null;
-
+    
     private AuthenticationFilter authenticationFilter = null;
-
+    
     private AccountingFilter accountingFilter = null;
-
+    
     private UrlRewritingFilter clientRewritingFilter = null;
-
+    
     private UrlRewritingFilter serverRewritingFilter = null;
-
-    /**
-     * Get the active registry instance
-     */
-    public static FilterRegistry getInstance()
-    {
-        return (FilterRegistry) Singleton.getInstance( FilterRegistry.class );
-    }
-
+    
+    @Inject
+    private IReactor reactor;
+    
     // flag to determine if already populated
     private boolean populated = false;
-
-    /**
-     * populate from configuration
+    
+    /* (non-Javadoc)
+     * @see rtspproxy.filter.IFilterRegistry#populateRegistry()
      */
     public void populateRegistry()
     {
         log.debug( "Populate filter registry." );
-
-        if ( populated ) {
+        
+        if ( populated )
+        {
             log.debug( "Filter registry already populated." );
             return;
         }
-
+        
         Configuration config = XMLConfigReader.getConfiguration();
-
-        try {
+        
+        try
+        {
             
             authenticationFilter = new AuthenticationFilter();
             authenticationFilter.configure( config );
             registerFilterMBean( authenticationFilter );
-            if ( Config.filtersAuthenticationEnable.getValue() ) {
+            if ( Config.filtersAuthenticationEnable.getValue() )
+            {
                 authenticationFilter.resume();
             }
-
+            
             clientAddressFilter = new IpAddressFilter( Side.Client );
             clientAddressFilter.configure( config );
             registerFilterMBean( clientAddressFilter );
-
+            
             serverAddressFilter = new IpAddressFilter( Side.Server );
             serverAddressFilter.configure( config );
             registerFilterMBean( serverAddressFilter );
-            if ( Config.filtersIpAddressEnable.getValue() ) {
+            if ( Config.filtersIpAddressEnable.getValue() )
+            {
                 clientAddressFilter.resume();
                 serverAddressFilter.resume();
             }
-
+            
             clientRewritingFilter = new UrlRewritingFilter( Side.Client );
             clientRewritingFilter.configure( config );
             registerFilterMBean( clientRewritingFilter );
-
+            
             serverRewritingFilter = new UrlRewritingFilter( Side.Server );
             serverRewritingFilter.configure( config );
             registerFilterMBean( serverRewritingFilter );
-            if ( Config.filtersRewriteEnable.getValue() ) {
+            if ( Config.filtersRewriteEnable.getValue() )
+            {
                 clientRewritingFilter.resume();
                 serverRewritingFilter.resume();
             }
-
+            
             accountingFilter = new AccountingFilter();
             accountingFilter.configure( config );
             registerFilterMBean( accountingFilter );
-            if ( Config.filtersAccountingEnable.getValue() ) {
+            if ( Config.filtersAccountingEnable.getValue() )
+            {
                 accountingFilter.resume();
             }
-
-        } catch ( Throwable t ) {
+            
+        } catch ( Throwable t )
+        {
             log.error( "Failed to populate filter registry", t );
-
-            Reactor.stop();
+            reactor.stop();
         }
-
+        
         populated = true;
     }
-
+    
     private void registerFilterMBean( FilterBase filter )
     {
         if ( Config.jmxEnable.getValue() )
             JmxAgent.getInstance().registerFilter( filter );
     }
-
-    /**
-     * @return the accountingFilter
+    
+    /* (non-Javadoc)
+     * @see rtspproxy.filter.IFilterRegistry#getAccountingFilter()
      */
     public AccountingFilter getAccountingFilter()
     {
         return accountingFilter;
     }
-
-    /**
-     * @return the addressFilter
+    
+    /* (non-Javadoc)
+     * @see rtspproxy.filter.IFilterRegistry#getClientAddressFilter()
      */
     public IpAddressFilter getClientAddressFilter()
     {
         return clientAddressFilter;
     }
-
-    /**
-     * @return the server address filter
+    
+    /* (non-Javadoc)
+     * @see rtspproxy.filter.IFilterRegistry#getServerAddressFilter()
      */
     public IpAddressFilter getServerAddressFilter()
     {
         return serverAddressFilter;
     }
-
-    /**
-     * @return the authenticationFilter
+    
+    /* (non-Javadoc)
+     * @see rtspproxy.filter.IFilterRegistry#getAuthenticationFilter()
      */
     public AuthenticationFilter getAuthenticationFilter()
     {
         return authenticationFilter;
     }
-
-    /**
-     * @return the rewritingFilter
+    
+    /* (non-Javadoc)
+     * @see rtspproxy.filter.IFilterRegistry#getClientRewritingFilter()
      */
     public UrlRewritingFilter getClientRewritingFilter()
     {
         return clientRewritingFilter;
     }
-
-    /**
-     * @return the rewritingFilter
+    
+    /* (non-Javadoc)
+     * @see rtspproxy.filter.IFilterRegistry#getServerRewritingFilter()
      */
     public UrlRewritingFilter getServerRewritingFilter()
     {
         return serverRewritingFilter;
     }
-
+    
 }

@@ -1,0 +1,9 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="RtspProxy-Core Tests" verbose="1">
+	<test name="ciao">
+		<packages>
+			<package name="rtspproxy.*" />
+		</packages>
+	</test>
+</suite>

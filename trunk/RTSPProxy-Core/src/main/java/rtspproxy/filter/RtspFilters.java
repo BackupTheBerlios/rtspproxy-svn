@@ -23,6 +23,8 @@ import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 
+import com.google.inject.Inject;
+
 import rtspproxy.filter.accounting.AccountingFilter;
 import rtspproxy.filter.authentication.AuthenticationFilter;
 import rtspproxy.filter.ipaddress.IpAddressFilter;
@@ -37,12 +39,15 @@ import rtspproxy.rtsp.RtspCodecFactory;
  */
 public abstract class RtspFilters implements IoFilterChainBuilder
 {
-
-    private static final IoFilter codecFilter = new ProtocolCodecFilter( RtspCodecFactory
-            .getInstance() );
-
+    
+    private static final IoFilter codecFilter =
+            new ProtocolCodecFilter( RtspCodecFactory.getInstance() );
+    
     private static final String rtspCodecNAME = "rtspCodec";
-
+    
+    @Inject
+    private IFilterRegistry filterRegistry;
+    
     /**
      * IP Address filter.
      * <p>
@@ -53,17 +58,15 @@ public abstract class RtspFilters implements IoFilterChainBuilder
     protected void addIpAddressFilter( IoFilterChain chain, Side side )
     {
         IpAddressFilter filter;
-        if ( side == Side.Client )
-            filter = FilterRegistry.getInstance().getClientAddressFilter();
-        else
-            filter = FilterRegistry.getInstance().getServerAddressFilter();
-
-        if ( filter == null || !filter.isRunning() )
-            return;
-
+        if ( side == Side.Client ) filter =
+                filterRegistry.getClientAddressFilter();
+        else filter = filterRegistry.getServerAddressFilter();
+        
+        if ( filter == null || !filter.isRunning() ) return;
+        
         chain.addFirst( filter.getChainName(), filter );
     }
-
+    
     /**
      * The RTSP codec filter is always present. Translates the incoming streams
      * into RTSP messages.
@@ -72,46 +75,41 @@ public abstract class RtspFilters implements IoFilterChainBuilder
     {
         chain.addLast( rtspCodecNAME, codecFilter );
     }
-
+    
     /**
      * Authentication filter.
      */
     protected void addAuthenticationFilter( IoFilterChain chain )
     {
-        AuthenticationFilter filter = FilterRegistry.getInstance()
-                .getAuthenticationFilter();
-
-        if ( !filter.isRunning() )
-            return;
-
+        AuthenticationFilter filter = filterRegistry.getAuthenticationFilter();
+        
+        if ( !filter.isRunning() ) return;
+        
         chain.addAfter( rtspCodecNAME, filter.getChainName(), filter );
     }
-
+    
     protected void addAccountingFilter( IoFilterChain chain )
     {
-        AccountingFilter filter = FilterRegistry.getInstance().getAccountingFilter();
-
-        if ( !filter.isRunning() )
-            return;
-
+        AccountingFilter filter = filterRegistry.getAccountingFilter();
+        
+        if ( !filter.isRunning() ) return;
+        
         chain.addAfter( rtspCodecNAME, filter.getChainName(), filter );
     }
-
+    
     protected void addRewriteFilter( IoFilterChain chain, Side side )
     {
         UrlRewritingFilter filter;
-
-        if ( side == Side.Client )
-            filter = FilterRegistry.getInstance().getClientRewritingFilter();
-        else
-            filter = FilterRegistry.getInstance().getServerRewritingFilter();
-
-        if ( !filter.isRunning() )
-            return;
-
+        
+        if ( side == Side.Client ) filter =
+                filterRegistry.getClientRewritingFilter();
+        else filter = filterRegistry.getServerRewritingFilter();
+        
+        if ( !filter.isRunning() ) return;
+        
         chain.addAfter( rtspCodecNAME, filter.getChainName(), filter );
     }
-
+    
     protected void addControlFilter( IoFilterChain chain )
     {
         // XXX: disabled
